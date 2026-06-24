@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum MedicineType {
+  Rx
+  OTC
+}
+
+enum PrescriptionStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ─── User & Address ──────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  dob          DateTime?
+  gender       String?
+  bloodGroup   String?
+  allergies    String?
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  addresses     Address[]
+  cart          Cart?
+  orders        Order[]
+  prescriptions Prescription[]
+  reviews       Review[]
+  wishlist      WishlistItem[]
+
+  @@map("users")
+}
+
+model Address {
+  id        String  @id @default(uuid())
+  userId    String
+  label     String
+  name      String
+  phone     String
+  address   String
+  city      String
+  province  String
+  zip       String
+  isDefault Boolean @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("addresses")
+}
+
+// ─── Medicine Catalog ─────────────────────────────────────────────────────────
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+
+  medicines Medicine[]
+
+  @@map("categories")
+}
+
+model Medicine {
+  id            String       @id @default(uuid())
+  name          String
+  brand         String
+  description   String?
+  dosage        String?
+  usage         String?
+  sideEffects   String?
+  price         Decimal      @db.Decimal(10, 2)
+  originalPrice Decimal      @db.Decimal(10, 2)
+  type          MedicineType
+  inStock       Boolean      @default(true)
+  packageSize   String?
+  manufacturer  String?
+  imageUrl      String?
+  rating        Decimal      @default(0) @db.Decimal(3, 2)
+  totalReviews  Int          @default(0)
+  categoryId    String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+
+  @@map("medicines")
+}
+
+// ─── Prescription ─────────────────────────────────────────────────────────────
+
+model Prescription {
+  id         String             @id @default(uuid())
+  userId     String
+  fileName   String
+  fileUrl    String
+  doctor     String?
+  hospital   String?
+  status     PrescriptionStatus @default(PENDING)
+  expiryDate DateTime?
+  uploadedAt DateTime           @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("prescriptions")
+}
+
+// ─── Cart ─────────────────────────────────────────────────────────────────────
+
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id         String @id @default(uuid())
+  cartId     String
+  medicineId String
+  quantity   Int    @default(1)
+
+  cart     Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  @@unique([cartId, medicineId])
+  @@map("cart_items")
+}
+
+// ─── Order ────────────────────────────────────────────────────────────────────
+
+model Order {
+  id             String        @id @default(uuid())
+  userId         String
+  addressId      String?
+  prescriptionId String?
+  status         OrderStatus   @default(PLACED)
+  totalAmount    Decimal       @db.Decimal(10, 2)
+  deliveryCharge Decimal       @default(0) @db.Decimal(10, 2)
+  discount       Decimal       @default(0) @db.Decimal(10, 2)
+  paymentMethod  String?
+  paymentStatus  PaymentStatus @default(PENDING)
+  placedAt       DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  address      Address?      @relation(fields: [addressId], references: [id])
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
+  items        OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(uuid())
+  orderId    String
+  medicineId String
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(10, 2)
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─── Review & Wishlist ────────────────────────────────────────────────────────
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  medicineId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  @@unique([userId, medicineId])
+  @@map("reviews")
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  userId     String
+  medicineId String
+  addedAt    DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  @@unique([userId, medicineId])
+  @@map("wishlist_items")
+}
