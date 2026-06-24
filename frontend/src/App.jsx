@@ -8,6 +8,11 @@ import AdminMedicines from './pages/admin/AdminMedicines'
 import AdminAddMedicine from './pages/admin/AdminAddMedicine'
 import AdminViewMedicine from './pages/admin/AdminViewMedicine'
 import AdminInventoryLog from './pages/admin/AdminInventoryLog'
+import AdminCategories from './pages/admin/AdminCategories'
+import AdminAddCategory from './pages/admin/AdminAddCategory'
+import AdminCategoryDetails from './pages/admin/AdminCategoryDetails'
+import AdminInventory from './pages/admin/AdminInventory'
+import AdminInventoryDetails from './pages/admin/AdminInventoryDetails'
 
 // Public pages
 import Home from './pages/Home'
@@ -95,6 +100,12 @@ export default function App() {
         <Route path="medicines/:id" element={<AdminViewMedicine />} />
         <Route path="medicines/:id/edit" element={<AdminAddMedicine />} />
         <Route path="medicines/:id/inventory" element={<AdminInventoryLog />} />
+        <Route path="categories" element={<AdminCategories />} />
+        <Route path="categories/add" element={<AdminAddCategory />} />
+        <Route path="categories/:id" element={<AdminCategoryDetails />} />
+        <Route path="categories/:id/edit" element={<AdminAddCategory />} />
+        <Route path="inventory" element={<AdminInventory />} />
+        <Route path="inventory/:id" element={<AdminInventoryDetails />} />
       </Route>
 
       {/* Fallback */}
