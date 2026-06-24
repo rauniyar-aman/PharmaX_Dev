@@ -13,6 +13,7 @@ export default function AdminMedicines() {
   const [stockFilter, setStockFilter] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ total: 0, pages: 1 })
+  const [monthlyRevenue, setMonthlyRevenue] = useState(null)
   const LIMIT = 10
 
   const fetchMedicines = async () => {
@@ -32,6 +33,7 @@ export default function AdminMedicines() {
 
   useEffect(() => {
     api.get('/categories').then(res => setCategories(res.data.data.categories || [])).catch(() => {})
+    api.get('/admin/stats').then(res => setMonthlyRevenue(res.data.data.monthlyRevenue)).catch(() => {})
   }, [])
 
   useEffect(() => { fetchMedicines() }, [page, categoryFilter, typeFilter, stockFilter])
@@ -100,7 +102,7 @@ export default function AdminMedicines() {
             { icon: 'inventory', bg: 'bg-primary-fixed', color: 'text-on-primary-fixed-variant', label: 'Total Medicines', value: pagination.total, badge: '+12%', badgeCls: 'text-primary bg-primary/10' },
             { icon: 'warning', bg: 'bg-error-container', color: 'text-on-error-container', label: 'Out of Stock', value: medicines.filter(m => !m.inStock).length, badge: 'Alert', badgeCls: 'text-error bg-error/10' },
             { icon: 'receipt_long', bg: 'bg-secondary-fixed', color: 'text-on-secondary-fixed-variant', label: 'Showing', value: medicines.length, badge: '+5%', badgeCls: 'text-secondary bg-secondary/10' },
-            { icon: 'payments', bg: 'bg-tertiary-fixed', color: 'text-on-tertiary-fixed-variant', label: 'Avg. Price', value: medicines.length ? `Rs ${Math.round(medicines.reduce((a, m) => a + Number(m.price), 0) / medicines.length)}` : '—', badge: '+24%', badgeCls: 'text-tertiary bg-tertiary/10' },
+            { icon: 'payments', bg: 'bg-tertiary-fixed', color: 'text-on-tertiary-fixed-variant', label: 'Monthly Revenue', value: monthlyRevenue !== null ? `Rs ${Number(monthlyRevenue).toLocaleString()}` : '—', badge: 'This month', badgeCls: 'text-tertiary bg-tertiary/10' },
           ].map(c => (
             <div key={c.label} className="bg-white p-4 rounded-2xl border border-outline-variant shadow-sm flex flex-col gap-2">
               <div className="flex justify-between items-start">
@@ -245,7 +247,9 @@ export default function AdminMedicines() {
           {/* Pagination */}
           <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white border-t border-outline-variant">
             <p className="text-sm text-on-surface-variant">
-              Showing {((page - 1) * LIMIT) + 1}–{Math.min(page * LIMIT, pagination.total)} of {pagination.total} medicines
+              {pagination.total === 0
+                ? 'No medicines found'
+                : `Showing ${((page - 1) * LIMIT) + 1}–${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} medicines`}
             </p>
             <div className="flex items-center gap-2">
               <button

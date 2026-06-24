@@ -4,11 +4,6 @@ import api from '../../lib/api'
 
 const TABS = ['Dosage & Usage', 'Side Effects', 'Contraindications']
 
-const LOG_ROWS = [
-  { date: 'Today', time: '09:45 AM', ref: 'STK-9902', event: 'Stock In', eventCls: 'bg-green-100 text-green-800', change: '+500', changeCls: 'text-primary', balance: null, user: 'Admin' },
-  { date: 'Oct 12', time: '02:15 PM', ref: 'Ord: #88721', event: 'Sale', eventCls: 'bg-blue-100 text-blue-800', change: '-12', changeCls: 'text-error', balance: null, user: 'System (POS)' },
-  { date: 'Oct 10', time: '11:30 AM', ref: 'Adj: ADJ-004', event: 'Adjusted', eventCls: 'bg-amber-100 text-amber-800', change: '-2 (Damaged)', changeCls: 'text-amber-600', balance: null, user: 'Warehouse Mgr' },
-]
 
 export default function AdminViewMedicine() {
   const { id } = useParams()
@@ -270,32 +265,10 @@ export default function AdminViewMedicine() {
                   View All Activity
                 </Link>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-surface-container-low text-on-surface-variant">
-                    <tr>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider">Date & Time</th>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider">Event</th>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider">Change</th>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider">User</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant">
-                    {LOG_ROWS.map((row, i) => (
-                      <tr key={i} className="hover:bg-surface-container-low transition-colors">
-                        <td className="px-6 py-4 text-sm">
-                          <p className="text-on-surface font-medium">{row.date}, {row.time}</p>
-                          <p className="text-on-surface-variant text-xs">{row.ref}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`${row.eventCls} px-2 py-0.5 rounded text-xs font-bold`}>{row.event}</span>
-                        </td>
-                        <td className={`px-6 py-4 text-sm font-bold ${row.changeCls}`}>{row.change}</td>
-                        <td className="px-6 py-4 text-sm text-on-surface-variant">{row.user}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant gap-3">
+                <span className="material-symbols-outlined text-5xl opacity-30">inventory_2</span>
+                <p className="text-sm font-medium">No inventory activity recorded yet.</p>
+                <p className="text-xs opacity-70">Stock changes will appear here once activity is logged.</p>
               </div>
             </div>
           </div>
