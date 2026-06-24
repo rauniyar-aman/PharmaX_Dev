@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import Logo from '../../components/common/Logo'
 import Input from '../../components/forms/Input'
 import Button from '../../components/buttons/Button'
@@ -64,6 +65,7 @@ const featureItems = [
 
 export default function SignUp() {
   const navigate = useNavigate()
+  const { register } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [form, setForm] = useState({
     fullName: '',
@@ -74,6 +76,7 @@ export default function SignUp() {
     acceptedTerms: false
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleChange = event => {
     const { name, value, type, checked } = event.target
@@ -83,9 +86,14 @@ export default function SignUp() {
     }))
   }
 
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault()
     setError('')
+
+    if (!form.fullName || !form.email || !form.password) {
+      setError('Please fill in all required fields.')
+      return
+    }
 
     if (!form.acceptedTerms) {
       setError('Please accept the Terms & Conditions to continue.')
@@ -97,12 +105,25 @@ export default function SignUp() {
       return
     }
 
-    if (!form.email) {
-      setError('Please enter your email address.')
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.')
       return
     }
 
-    navigate('/verify-otp', { state: { email: form.email } })
+    setLoading(true)
+    try {
+      await register({
+        fullName: form.fullName,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      })
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -148,7 +169,6 @@ export default function SignUp() {
             Back to homepage
           </Link>
 
-          {/* Logo shown on mobile only */}
           <div className="lg:hidden mb-5">
             <Logo size="lg" />
           </div>
@@ -231,9 +251,13 @@ export default function SignUp() {
                 </span>
               </label>
 
-              {error && <p className="text-xs text-error">{error}</p>}
+              {error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{error}</p>
+              )}
 
-              <Button type="submit" className="w-full">Register</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Creating account…' : 'Register'}
+              </Button>
             </form>
 
             <div className="mt-5 text-center text-sm text-on-surface-variant">

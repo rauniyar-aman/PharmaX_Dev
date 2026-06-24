@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
+import api from '../../lib/api'
 
 export default function ForgotPassword() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault()
     setError('')
 
@@ -16,7 +18,15 @@ export default function ForgotPassword() {
       return
     }
 
-    navigate('/forgot-password-verify', { state: { email } })
+    setLoading(true)
+    try {
+      await api.post('/auth/forgot-password', { email: email.trim() })
+      navigate('/forgot-password-verify', { state: { email: email.trim() } })
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -34,7 +44,7 @@ export default function ForgotPassword() {
           </Link>
           <h2 className="text-2xl font-semibold text-on-surface text-center">Forgot Password</h2>
           <p className="mt-2 text-sm text-on-surface-variant">
-            Enter your email address and we will send a verification code to reset access.
+            Enter your email address and we'll send a verification code to reset your password.
           </p>
         </div>
 
@@ -50,10 +60,16 @@ export default function ForgotPassword() {
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{error}</p>
+          )}
 
-          <button type="submit" className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
-            Send OTP
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition"
+          >
+            {loading ? 'Sending OTP…' : 'Send OTP'}
           </button>
         </form>
       </div>

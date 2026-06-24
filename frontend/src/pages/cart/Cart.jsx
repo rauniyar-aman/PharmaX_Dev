@@ -1,63 +1,84 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-
-const initialCart = [
-  {
-    id: 1,
-    name: 'Amoxicillin 500mg',
-    brand: 'GlaxoSmithKline',
-    type: 'Rx',
-    price: 180,
-    qty: 2,
-    img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop',
-    desc: 'Broad-spectrum antibiotic for bacterial infections',
-  },
-  {
-    id: 2,
-    name: 'Paracetamol 500mg',
-    brand: 'Cipla',
-    type: 'OTC',
-    price: 45,
-    qty: 3,
-    img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=200&h=200&fit=crop',
-    desc: 'Pain reliever and fever reducer',
-  },
-  {
-    id: 3,
-    name: 'Vitamin D3 1000 IU',
-    brand: 'Abbott',
-    type: 'OTC',
-    price: 320,
-    qty: 1,
-    img: 'https://images.unsplash.com/photo-1550572017-edd951b55104?w=200&h=200&fit=crop',
-    desc: 'Supports bone health and immune function',
-  },
-]
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Cart() {
-  const [items, setItems] = useState(initialCart)
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState({})
   const [coupon, setCoupon] = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
 
-  const updateQty = (id, delta) => {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item
-    ))
+  useEffect(() => {
+    if (!isAuthenticated) { navigate('/signin'); return }
+    api.get('/cart')
+      .then(res => setItems(res.data.data.cart.items || []))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false))
+  }, [isAuthenticated, navigate])
+
+  const updateQty = async (medicineId, newQty) => {
+    if (newQty < 1) return
+    setUpdating(prev => ({ ...prev, [medicineId]: true }))
+    try {
+      const res = await api.put(`/cart/items/${medicineId}`, { quantity: newQty })
+      setItems(res.data.data.cart.items || [])
+    } catch (err) {
+      alert(err.response?.data?.message || 'Could not update quantity.')
+    } finally {
+      setUpdating(prev => ({ ...prev, [medicineId]: false }))
+    }
   }
 
-  const removeItem = (id) => setItems(prev => prev.filter(item => item.id !== id))
+  const removeItem = async (medicineId) => {
+    setUpdating(prev => ({ ...prev, [medicineId]: true }))
+    try {
+      const res = await api.delete(`/cart/items/${medicineId}`)
+      setItems(res.data.data.cart.items || [])
+    } catch {
+      alert('Could not remove item.')
+    } finally {
+      setUpdating(prev => ({ ...prev, [medicineId]: false }))
+    }
+  }
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
+  const subtotal = items.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
   const delivery = subtotal >= 500 ? 0 : 80
   const discount = couponApplied ? Math.round(subtotal * 0.1) : 0
   const total = subtotal + delivery - discount
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <div className="h-8 bg-surface-container rounded-xl w-48 animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 space-y-3">
+            {[1, 2].map(i => (
+              <div key={i} className="bg-white rounded-2xl custom-shadow p-4 flex gap-4 animate-pulse">
+                <div className="w-24 h-24 rounded-xl bg-surface-container flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-surface-container rounded w-2/3" />
+                  <div className="h-3 bg-surface-container rounded w-1/2" />
+                  <div className="h-8 bg-surface-container rounded w-1/3 mt-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="h-64 bg-white rounded-2xl custom-shadow animate-pulse" />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-on-surface">Shopping Cart</h1>
-          <p className="text-sm text-on-surface-variant mt-0.5">{items.length} items in your cart</p>
+          <p className="text-sm text-on-surface-variant mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
         </div>
         <Link to="/dashboard/medicines" className="flex items-center gap-1.5 text-sm font-medium text-secondary hover:underline">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
@@ -79,59 +100,72 @@ export default function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-3">
-            {items.map(item => (
-              <div key={item.id} className="bg-white rounded-2xl custom-shadow p-4 flex gap-4">
-                {/* Image */}
-                <Link to={`/dashboard/medicines/${item.id}`} className="flex-shrink-0">
-                  <img src={item.img} alt={item.name} className="w-24 h-24 rounded-xl object-cover" />
-                </Link>
+            {items.map(item => {
+              const med = item.medicine
+              const isRx = med.type === 'Rx'
+              return (
+                <div key={item.id} className="bg-white rounded-2xl custom-shadow p-4 flex gap-4">
+                  <Link to={`/dashboard/medicines/${med.id}`} className="flex-shrink-0">
+                    <img
+                      src={med.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop'}
+                      alt={med.name}
+                      className="w-24 h-24 rounded-xl object-cover"
+                    />
+                  </Link>
 
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.type === 'Rx' ? 'bg-primary text-white' : 'bg-secondary text-white'}`}>{item.type}</span>
-                        <span className="text-xs text-on-surface-variant">{item.brand}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isRx ? 'bg-primary text-white' : 'bg-secondary text-white'}`}>
+                            {isRx ? 'Rx' : 'OTC'}
+                          </span>
+                          <span className="text-xs text-on-surface-variant">{med.brand}</span>
+                        </div>
+                        <Link to={`/dashboard/medicines/${med.id}`} className="text-sm font-semibold text-on-surface hover:text-primary transition-colors">{med.name}</Link>
+                        {med.category?.name && (
+                          <p className="text-xs text-on-surface-variant mt-0.5">{med.category.name}</p>
+                        )}
                       </div>
-                      <Link to={`/dashboard/medicines/${item.id}`} className="text-sm font-semibold text-on-surface hover:text-primary transition-colors">{item.name}</Link>
-                      <p className="text-xs text-on-surface-variant mt-0.5">{item.desc}</p>
-                    </div>
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="p-1.5 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error transition-colors flex-shrink-0"
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3">
-                    {/* Qty Stepper */}
-                    <div className="flex items-center border border-outline-variant rounded-xl overflow-hidden">
                       <button
-                        onClick={() => updateQty(item.id, -1)}
-                        className="px-2.5 py-1.5 hover:bg-surface-container transition-colors text-on-surface"
+                        onClick={() => removeItem(med.id)}
+                        disabled={updating[med.id]}
+                        className="p-1.5 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error transition-colors flex-shrink-0 disabled:opacity-40"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>remove</span>
-                      </button>
-                      <span className="w-10 text-center text-sm font-semibold text-on-surface">{item.qty}</span>
-                      <button
-                        onClick={() => updateQty(item.id, 1)}
-                        className="px-2.5 py-1.5 hover:bg-surface-container transition-colors text-on-surface"
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
                       </button>
                     </div>
 
-                    {/* Price */}
-                    <div className="text-right">
-                      <p className="text-xs text-on-surface-variant">NPR {item.price} × {item.qty}</p>
-                      <p className="text-base font-bold text-on-surface">NPR {item.price * item.qty}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center border border-outline-variant rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => updateQty(med.id, item.quantity - 1)}
+                          disabled={item.quantity <= 1 || updating[med.id]}
+                          className="px-2.5 py-1.5 hover:bg-surface-container transition-colors text-on-surface disabled:opacity-40"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>remove</span>
+                        </button>
+                        <span className="w-10 text-center text-sm font-semibold text-on-surface">
+                          {updating[med.id] ? '…' : item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQty(med.id, item.quantity + 1)}
+                          disabled={updating[med.id]}
+                          className="px-2.5 py-1.5 hover:bg-surface-container transition-colors text-on-surface disabled:opacity-40"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                        </button>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-xs text-on-surface-variant">NPR {Number(med.price).toFixed(0)} × {item.quantity}</p>
+                        <p className="text-base font-bold text-on-surface">NPR {(Number(med.price) * item.quantity).toFixed(0)}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
             {/* Free Delivery Banner */}
             {subtotal < 500 ? (
@@ -159,8 +193,8 @@ export default function Cart() {
 
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-on-surface-variant">Subtotal ({items.reduce((s, i) => s + i.qty, 0)} items)</span>
-                  <span className="font-medium text-on-surface">NPR {subtotal}</span>
+                  <span className="text-on-surface-variant">Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
+                  <span className="font-medium text-on-surface">NPR {subtotal.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-on-surface-variant">Delivery Charge</span>
@@ -174,7 +208,7 @@ export default function Cart() {
                 )}
                 <div className="border-t border-outline-variant pt-3 flex justify-between">
                   <span className="font-semibold text-on-surface">Total</span>
-                  <span className="font-bold text-lg text-on-surface">NPR {total}</span>
+                  <span className="font-bold text-lg text-on-surface">NPR {total.toFixed(0)}</span>
                 </div>
               </div>
 
@@ -201,7 +235,6 @@ export default function Cart() {
                 {couponApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied — 10% off!</p>}
               </div>
 
-              {/* Checkout Button */}
               <Link
                 to="/dashboard/checkout/shipping"
                 className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors"
@@ -210,7 +243,6 @@ export default function Cart() {
                 Proceed to Checkout
               </Link>
 
-              {/* Trust badges */}
               <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-outline-variant">
                 <div className="flex items-center gap-1 text-xs text-on-surface-variant">
                   <span className="material-symbols-outlined ms-filled text-primary" style={{ fontSize: '16px' }}>lock</span>

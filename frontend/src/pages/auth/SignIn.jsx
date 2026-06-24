@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import AuthLayout from '../../components/common/AuthLayout'
 import AuthHeader from '../../components/layout/AuthHeader'
 import Input from '../../components/forms/Input'
 import Button from '../../components/buttons/Button'
-import { Link } from 'react-router-dom'
 
 const MailIcon = (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -20,7 +21,32 @@ const LockIcon = (
 )
 
 export default function SignIn() {
+  const navigate = useNavigate()
+  const { login } = useAuth()
+  const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = e => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setError('')
+    if (!form.email || !form.password) {
+      setError('Please enter your email and password.')
+      return
+    }
+    setLoading(true)
+    try {
+      await login(form.email, form.password)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid email or password.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <AuthLayout>
@@ -42,13 +68,24 @@ export default function SignIn() {
             <p className="text-sm text-on-surface-variant mt-2">Use your PharmaX credentials to access the secure portal.</p>
           </div>
 
-          <form className="space-y-5">
-            <Input label="Email Address" placeholder="name@pharmacy.com" icon={MailIcon} />
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <Input
+              label="Email Address"
+              name="email"
+              type="email"
+              placeholder="name@pharmacy.com"
+              icon={MailIcon}
+              value={form.email}
+              onChange={handleChange}
+            />
             <Input
               label="Password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               icon={LockIcon}
+              value={form.password}
+              onChange={handleChange}
               right={
                 <button type="button" onClick={() => setShowPassword(prev => !prev)} className="text-on-surface-variant text-sm">
                   {showPassword ? 'Hide' : 'Show'}
@@ -64,7 +101,13 @@ export default function SignIn() {
               <Link to="/forgot-password" className="text-primary font-medium">Forgot Password?</Link>
             </div>
 
-            <Button className="w-full">Sign In</Button>
+            {error && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{error}</p>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In'}
+            </Button>
 
             <div className="flex items-center gap-3 text-sm text-on-surface-variant">
               <div className="h-px flex-1 bg-surface-container-high" />
@@ -72,7 +115,7 @@ export default function SignIn() {
               <div className="h-px flex-1 bg-surface-container-high" />
             </div>
 
-            <button className="w-full rounded-xl border border-surface-container bg-surface py-3 text-sm font-semibold text-on-surface transition hover:bg-surface-container">
+            <button type="button" className="w-full rounded-xl border border-surface-container bg-surface py-3 text-sm font-semibold text-on-surface transition hover:bg-surface-container">
               Continue with SSO
             </button>
           </form>

@@ -1,67 +1,118 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
+import { useAuth } from '../../context/AuthContext'
 
-const medicines = [
-  { id: 1, name: 'Amoxicillin 500mg', brand: 'GlaxoSmithKline', category: 'Antibiotics', price: 180, originalPrice: 220, type: 'Rx', rating: 4.5, reviews: 124, inStock: true, img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop' },
-  { id: 2, name: 'Paracetamol 500mg', brand: 'Cipla', category: 'Pain Relief', price: 45, originalPrice: 55, type: 'OTC', rating: 4.8, reviews: 389, inStock: true, img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&h=300&fit=crop' },
-  { id: 3, name: 'Vitamin D3 1000 IU', brand: 'Abbott', category: 'Vitamins', price: 320, originalPrice: 380, type: 'OTC', rating: 4.6, reviews: 256, inStock: true, img: 'https://images.unsplash.com/photo-1550572017-edd951b55104?w=400&h=300&fit=crop' },
-  { id: 4, name: 'Metformin 500mg', brand: 'Sun Pharma', category: 'Diabetes Care', price: 95, originalPrice: 120, type: 'Rx', rating: 4.4, reviews: 178, inStock: true, img: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop' },
-  { id: 5, name: 'Cetirizine 10mg', brand: 'Cipla', category: 'Cold & Flu', price: 35, originalPrice: 45, type: 'OTC', rating: 4.7, reviews: 312, inStock: true, img: 'https://images.unsplash.com/photo-1600451490099-e1a77bb3b4e3?w=400&h=300&fit=crop' },
-  { id: 6, name: 'Omeprazole 20mg', brand: 'AstraZeneca', category: 'Digestive', price: 140, originalPrice: 175, type: 'Rx', rating: 4.5, reviews: 203, inStock: false, img: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=400&h=300&fit=crop' },
-  { id: 7, name: 'Lisinopril 10mg', brand: 'Merck', category: 'Cardiac Health', price: 210, originalPrice: 260, type: 'Rx', rating: 4.3, reviews: 145, inStock: true, img: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop' },
-  { id: 8, name: 'Clotrimazole Cream 1%', brand: 'Bayer', category: 'Skin Care', price: 85, originalPrice: 100, type: 'OTC', rating: 4.6, reviews: 89, inStock: true, img: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&h=300&fit=crop' },
-  { id: 9, name: 'Vitamin C 1000mg', brand: 'Himalaya', category: 'Vitamins', price: 275, originalPrice: 320, type: 'OTC', rating: 4.9, reviews: 421, inStock: true, img: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400&h=300&fit=crop' },
-  { id: 10, name: 'Aspirin 75mg', brand: 'Bayer', category: 'Cardiac Health', price: 60, originalPrice: 80, type: 'OTC', rating: 4.5, reviews: 298, inStock: true, img: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400&h=300&fit=crop' },
-  { id: 11, name: 'Insulin Glargine', brand: 'Sanofi', category: 'Diabetes Care', price: 850, originalPrice: 950, type: 'Rx', rating: 4.7, reviews: 167, inStock: false, img: 'https://images.unsplash.com/photo-1618015359417-89b95d961c6b?w=400&h=300&fit=crop' },
-  { id: 12, name: 'Omega-3 Fish Oil', brand: 'Nature Made', category: 'Vitamins', price: 420, originalPrice: 500, type: 'OTC', rating: 4.8, reviews: 534, inStock: true, img: 'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=400&h=300&fit=crop' },
-]
+const ITEMS_PER_PAGE = 8
 
 const categoryColors = {
-  'Antibiotics': 'text-blue-600',
+  Antibiotics: 'text-blue-600',
   'Pain Relief': 'text-red-600',
-  'Vitamins': 'text-green-600',
+  Vitamins: 'text-green-600',
   'Diabetes Care': 'text-purple-600',
   'Cold & Flu': 'text-cyan-600',
-  'Digestive': 'text-orange-600',
+  Digestive: 'text-orange-600',
   'Cardiac Health': 'text-rose-600',
   'Skin Care': 'text-yellow-600',
 }
 
-const ITEMS_PER_PAGE = 8
+function MedicineSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden custom-shadow animate-pulse">
+      <div className="h-48 bg-surface-container" />
+      <div className="p-4 space-y-2">
+        <div className="h-3 bg-surface-container rounded w-1/3" />
+        <div className="h-4 bg-surface-container rounded w-3/4" />
+        <div className="h-3 bg-surface-container rounded w-1/2" />
+        <div className="h-8 bg-surface-container rounded mt-3" />
+      </div>
+    </div>
+  )
+}
 
 export default function MedicinesListing() {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+
+  const [medicines, setMedicines] = useState([])
+  const [categories, setCategories] = useState([])
+  const [totalResults, setTotalResults] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [cartLoading, setCartLoading] = useState({})
+  const [wishlist, setWishlist] = useState([])
+
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [priceRange, setPriceRange] = useState('')
   const [availability, setAvailability] = useState('')
-  const [rating, setRating] = useState('')
   const [sortBy, setSortBy] = useState('popular')
-  const [wishlist, setWishlist] = useState([])
   const [page, setPage] = useState(1)
 
-  const toggleWishlist = (id) => setWishlist(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+  useEffect(() => {
+    api.get('/categories')
+      .then(res => setCategories(res.data.data.categories || []))
+      .catch(() => {})
+  }, [])
 
-  const filtered = medicines.filter(m => {
-    if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !m.brand.toLowerCase().includes(search.toLowerCase())) return false
-    if (category && m.category !== category) return false
-    if (priceRange === 'under-100' && m.price >= 100) return false
-    if (priceRange === '100-300' && (m.price < 100 || m.price > 300)) return false
-    if (priceRange === 'over-300' && m.price <= 300) return false
-    if (availability === 'in-stock' && !m.inStock) return false
-    if (availability === 'out-of-stock' && m.inStock) return false
-    if (rating && m.rating < parseInt(rating)) return false
-    return true
-  })
+  const fetchMedicines = useCallback(() => {
+    setLoading(true)
+    setError('')
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.price - b.price
-    if (sortBy === 'price-desc') return b.price - a.price
-    if (sortBy === 'newest') return b.id - a.id
-    return b.reviews - a.reviews
-  })
+    const params = { sortBy, page, limit: ITEMS_PER_PAGE }
+    if (search) params.search = search
+    if (category) params.category = category
+    if (priceRange === 'under-100') params.maxPrice = 99
+    if (priceRange === '100-300') { params.minPrice = 100; params.maxPrice = 300 }
+    if (priceRange === 'over-300') params.minPrice = 301
+    if (availability === 'in-stock') params.inStock = 'true'
+    if (availability === 'out-of-stock') params.inStock = 'false'
 
-  const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE)
-  const paginated = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+    api.get('/medicines', { params })
+      .then(res => {
+        const { medicines: list, pagination } = res.data.data
+        setMedicines(list || [])
+        setTotalResults(pagination?.total || 0)
+      })
+      .catch(() => setError('Failed to load medicines. Please try again.'))
+      .finally(() => setLoading(false))
+  }, [search, category, priceRange, availability, sortBy, page])
+
+  useEffect(() => { fetchMedicines() }, [fetchMedicines])
+
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value)
+    setPage(1)
+  }
+
+  const addToCart = async (medicineId) => {
+    if (!isAuthenticated) { navigate('/signin'); return }
+    setCartLoading(prev => ({ ...prev, [medicineId]: true }))
+    try {
+      await api.post('/cart/items', { medicineId, quantity: 1 })
+    } catch (err) {
+      alert(err.response?.data?.message || 'Could not add to cart.')
+    } finally {
+      setCartLoading(prev => ({ ...prev, [medicineId]: false }))
+    }
+  }
+
+  const toggleWishlist = async (medicineId) => {
+    if (!isAuthenticated) { navigate('/signin'); return }
+    const inWishlist = wishlist.includes(medicineId)
+    setWishlist(prev => inWishlist ? prev.filter(id => id !== medicineId) : [...prev, medicineId])
+    try {
+      if (inWishlist) {
+        await api.delete(`/wishlist/${medicineId}`)
+      } else {
+        await api.post(`/wishlist/${medicineId}`)
+      }
+    } catch {
+      setWishlist(prev => inWishlist ? [...prev, medicineId] : prev.filter(id => id !== medicineId))
+    }
+  }
+
+  const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE)
 
   return (
     <div className="space-y-5">
@@ -85,7 +136,6 @@ export default function MedicinesListing() {
 
       {/* Search + Filters */}
       <div className="bg-white rounded-2xl p-4 custom-shadow space-y-3">
-        {/* Search */}
         <div className="relative">
           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '20px' }}>search</span>
           <input
@@ -97,31 +147,26 @@ export default function MedicinesListing() {
           />
         </div>
 
-        {/* Filters Row */}
         <div className="flex flex-wrap gap-2 items-center">
-          <select value={category} onChange={e => { setCategory(e.target.value); setPage(1) }}
+          <select value={category} onChange={handleFilterChange(setCategory)}
             className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[140px]">
             <option value="">All Categories</option>
-            {[...new Set(medicines.map(m => m.category))].map(c => <option key={c} value={c}>{c}</option>)}
+            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
-          <select value={priceRange} onChange={e => { setPriceRange(e.target.value); setPage(1) }}
+
+          <select value={priceRange} onChange={handleFilterChange(setPriceRange)}
             className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
             <option value="">All Prices</option>
             <option value="under-100">Under NPR 100</option>
             <option value="100-300">NPR 100–300</option>
             <option value="over-300">Over NPR 300</option>
           </select>
-          <select value={availability} onChange={e => { setAvailability(e.target.value); setPage(1) }}
+
+          <select value={availability} onChange={handleFilterChange(setAvailability)}
             className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
             <option value="">Availability</option>
             <option value="in-stock">In Stock</option>
             <option value="out-of-stock">Out of Stock</option>
-          </select>
-          <select value={rating} onChange={e => { setRating(e.target.value); setPage(1) }}
-            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[120px]">
-            <option value="">All Ratings</option>
-            <option value="4">4★ & above</option>
-            <option value="3">3★ & above</option>
           </select>
 
           <div className="ml-auto flex items-center gap-1 bg-surface-container-low rounded-xl p-1">
@@ -130,96 +175,117 @@ export default function MedicinesListing() {
               { val: 'price-asc', label: 'Price ↑' },
               { val: 'newest', label: 'Newest' },
             ].map(opt => (
-              <button key={opt.val} onClick={() => setSortBy(opt.val)}
+              <button key={opt.val} onClick={() => { setSortBy(opt.val); setPage(1) }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sortBy === opt.val ? 'bg-white text-on-surface custom-shadow' : 'text-on-surface-variant hover:text-on-surface'}`}>
                 {opt.label}
               </button>
             ))}
           </div>
 
-          <span className="text-sm text-on-surface-variant">{sorted.length} results</span>
+          <span className="text-sm text-on-surface-variant">{totalResults} results</span>
         </div>
       </div>
 
-      {/* Medicine Grid */}
-      {paginated.length === 0 ? (
+      {/* Error State */}
+      {error && (
+        <div className="bg-white rounded-2xl custom-shadow text-center py-12">
+          <span className="material-symbols-outlined text-error" style={{ fontSize: '48px' }}>error_outline</span>
+          <p className="text-base font-medium text-on-surface mt-3">{error}</p>
+          <button onClick={fetchMedicines} className="mt-4 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Loading Skeleton */}
+      {loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => <MedicineSkeleton key={i} />)}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && medicines.length === 0 && (
         <div className="bg-white rounded-2xl custom-shadow text-center py-16">
           <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '48px' }}>search_off</span>
           <p className="text-base font-medium text-on-surface mt-3">No medicines found</p>
           <p className="text-sm text-on-surface-variant mt-1">Try adjusting your search or filters</p>
         </div>
-      ) : (
+      )}
+
+      {/* Medicine Grid */}
+      {!loading && !error && medicines.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {paginated.map(med => (
-            <div key={med.id} className="bg-white rounded-2xl overflow-hidden custom-shadow hover:-translate-y-1 transition-all duration-200 flex flex-col group">
-              {/* Image */}
-              <Link to={`/dashboard/medicines/${med.id}`} className="relative block overflow-hidden">
-                <img
-                  src={med.img}
-                  alt={med.name}
-                  className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                {/* Type badge */}
-                <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${
-                  med.type === 'Rx' ? 'bg-primary text-white' : 'bg-secondary text-white'
-                }`}>
-                  {med.type}
-                </span>
-                {/* Wishlist btn */}
-                <button
-                  onClick={(e) => { e.preventDefault(); toggleWishlist(med.id) }}
-                  className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                >
-                  <span className={`material-symbols-outlined ${wishlist.includes(med.id) ? 'ms-filled text-error' : 'text-on-surface-variant'}`} style={{ fontSize: '18px' }}>favorite</span>
-                </button>
-                {/* Out of stock overlay */}
-                {!med.inStock && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <span className="bg-error text-white text-xs font-bold px-3 py-1.5 rounded-full">Out of Stock</span>
-                  </div>
-                )}
-              </Link>
-
-              {/* Content */}
-              <div className="p-4 flex flex-col flex-1">
-                <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${categoryColors[med.category] || 'text-on-surface-variant'}`}>{med.category}</p>
-                <Link to={`/dashboard/medicines/${med.id}`} className="text-sm font-semibold text-on-surface hover:text-primary transition-colors leading-snug">{med.name}</Link>
-
-                {/* Stars */}
-                <div className="flex items-center gap-1 mt-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`material-symbols-outlined ${i < Math.floor(med.rating) ? 'ms-filled text-amber-400' : 'text-outline-variant'}`} style={{ fontSize: '14px' }}>star</span>
-                  ))}
-                  <span className="text-xs text-on-surface-variant ml-1">({med.reviews})</span>
-                </div>
-
-                {/* Price */}
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-base font-bold text-on-surface">NPR {med.price}</span>
-                  <span className="text-xs text-on-surface-variant line-through">NPR {med.originalPrice}</span>
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex gap-2 mt-3 pt-3 border-t border-outline-variant">
-                  <Link
-                    to={`/dashboard/medicines/${med.id}`}
-                    className="flex-1 py-2 border border-outline-variant rounded-xl text-sm font-medium text-on-surface text-center hover:border-primary hover:text-primary transition-colors"
-                  >
-                    View Details
-                  </Link>
+          {medicines.map(med => {
+            const isRx = med.type === 'Rx'
+            const typeLabel = isRx ? 'Rx' : 'OTC'
+            const catName = med.category?.name || ''
+            return (
+              <div key={med.id} className="bg-white rounded-2xl overflow-hidden custom-shadow hover:-translate-y-1 transition-all duration-200 flex flex-col group">
+                <Link to={`/dashboard/medicines/${med.id}`} className="relative block overflow-hidden">
+                  <img
+                    src={med.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop'}
+                    alt={med.name}
+                    className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${isRx ? 'bg-primary text-white' : 'bg-secondary text-white'}`}>
+                    {typeLabel}
+                  </span>
                   <button
-                    disabled={!med.inStock}
-                    className={`px-3 py-2 rounded-xl transition-colors flex items-center justify-center ${
-                      med.inStock ? 'bg-primary text-white hover:bg-primary/90' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
-                    }`}
-                    title={med.inStock ? 'Add to Cart' : 'Notify Me'}
+                    onClick={e => { e.preventDefault(); toggleWishlist(med.id) }}
+                    className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{med.inStock ? 'add_shopping_cart' : 'notifications'}</span>
+                    <span className={`material-symbols-outlined ${wishlist.includes(med.id) ? 'ms-filled text-error' : 'text-on-surface-variant'}`} style={{ fontSize: '18px' }}>favorite</span>
                   </button>
+                  {!med.inStock && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="bg-error text-white text-xs font-bold px-3 py-1.5 rounded-full">Out of Stock</span>
+                    </div>
+                  )}
+                </Link>
+
+                <div className="p-4 flex flex-col flex-1">
+                  <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${categoryColors[catName] || 'text-on-surface-variant'}`}>{catName}</p>
+                  <Link to={`/dashboard/medicines/${med.id}`} className="text-sm font-semibold text-on-surface hover:text-primary transition-colors leading-snug">{med.name}</Link>
+
+                  <div className="flex items-center gap-1 mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={`material-symbols-outlined ${i < Math.floor(med.rating || 0) ? 'ms-filled text-amber-400' : 'text-outline-variant'}`} style={{ fontSize: '14px' }}>star</span>
+                    ))}
+                    <span className="text-xs text-on-surface-variant ml-1">({med.totalReviews || 0})</span>
+                  </div>
+
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <span className="text-base font-bold text-on-surface">NPR {Number(med.price).toFixed(0)}</span>
+                    {med.originalPrice && med.originalPrice > med.price && (
+                      <span className="text-xs text-on-surface-variant line-through">NPR {Number(med.originalPrice).toFixed(0)}</span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 mt-3 pt-3 border-t border-outline-variant">
+                    <Link
+                      to={`/dashboard/medicines/${med.id}`}
+                      className="flex-1 py-2 border border-outline-variant rounded-xl text-sm font-medium text-on-surface text-center hover:border-primary hover:text-primary transition-colors"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      disabled={!med.inStock || cartLoading[med.id]}
+                      onClick={() => addToCart(med.id)}
+                      className={`px-3 py-2 rounded-xl transition-colors flex items-center justify-center ${
+                        med.inStock ? 'bg-primary text-white hover:bg-primary/90' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
+                      } disabled:opacity-60`}
+                      title={med.inStock ? 'Add to Cart' : 'Out of Stock'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                        {cartLoading[med.id] ? 'hourglass_empty' : med.inStock ? 'add_shopping_cart' : 'notifications'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
