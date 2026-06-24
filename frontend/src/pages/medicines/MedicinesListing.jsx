@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 
@@ -33,6 +33,7 @@ function MedicineSkeleton() {
 export default function MedicinesListing() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const [searchParams] = useSearchParams()
 
   const [medicines, setMedicines] = useState([])
   const [categories, setCategories] = useState([])
@@ -43,7 +44,7 @@ export default function MedicinesListing() {
   const [wishlist, setWishlist] = useState([])
 
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState(() => searchParams.get('category') || '')
   const [priceRange, setPriceRange] = useState('')
   const [availability, setAvailability] = useState('')
   const [sortBy, setSortBy] = useState('popular')

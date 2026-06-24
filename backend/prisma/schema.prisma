@@ -93,10 +93,12 @@ model Address {
 // ─── Medicine Catalog ─────────────────────────────────────────────────────────
 
 model Category {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  icon      String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  name        String   @unique
+  icon        String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 
   medicines Medicine[]
 
@@ -119,6 +121,7 @@ model Medicine {
   manufacturer  String?
   imageUrl      String?
   stockQuantity Int          @default(0)
+  expiryDate    DateTime?
   rating        Decimal      @default(0) @db.Decimal(3, 2)
   totalReviews  Int          @default(0)
   categoryId    String

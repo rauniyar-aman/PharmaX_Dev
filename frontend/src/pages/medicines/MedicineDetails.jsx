@@ -206,6 +206,19 @@ export default function MedicineDetails() {
                 <p className="text-xs font-medium text-on-surface mt-0.5">{med.packageSize}</p>
               </div>
             )}
+            {med.expiryDate && (() => {
+              const exp = new Date(med.expiryDate)
+              const isExpired = exp < new Date()
+              return (
+                <div>
+                  <p className="text-xs text-on-surface-variant">Expiry Date</p>
+                  <p className={`text-xs font-medium mt-0.5 ${isExpired ? 'text-error' : 'text-on-surface'}`}>
+                    {exp.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    {isExpired && <span className="ml-1 text-error">(Expired)</span>}
+                  </p>
+                </div>
+              )
+            })()}
           </div>
         </div>
       </div>

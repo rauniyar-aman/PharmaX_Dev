@@ -19,6 +19,7 @@ export default function AdminAddMedicine() {
     name: '', brand: '', description: '',
     categoryId: '', type: 'OTC',
     price: '', stockQuantity: '', inStock: 'true',
+    expiryDate: '',
     manufacturer: '', dosage: '', usage: '', sideEffects: '',
     imageUrl: '',
   })
@@ -33,6 +34,7 @@ export default function AdminAddMedicine() {
           categoryId: m.categoryId || '', type: m.type || 'OTC',
           price: m.price || '', stockQuantity: m.stockQuantity || 0,
           inStock: m.inStock ? 'true' : 'false',
+          expiryDate: m.expiryDate ? m.expiryDate.split('T')[0] : '',
           manufacturer: m.manufacturer || '', dosage: m.dosage || '',
           usage: m.usage || '', sideEffects: m.sideEffects || '',
           imageUrl: m.imageUrl || '',
@@ -169,7 +171,7 @@ export default function AdminAddMedicine() {
             {/* Pricing & Inventory */}
             <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="payments" title="Pricing & Inventory" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className={LABEL_CLS}>Price (Rs) *</label>
                   <div className="relative">
@@ -187,6 +189,10 @@ export default function AdminAddMedicine() {
                     <option value="true">In Stock</option>
                     <option value="false">Out of Stock</option>
                   </select>
+                </div>
+                <div>
+                  <label className={LABEL_CLS}>Expiry Date <span className="text-on-surface-variant font-normal">(optional)</span></label>
+                  <input className={FIELD_CLS} name="expiryDate" type="date" value={form.expiryDate} onChange={handleChange} />
                 </div>
               </div>
             </section>
@@ -255,6 +261,12 @@ export default function AdminAddMedicine() {
                     <span>Status:</span>
                     <span className="font-bold">{form.inStock === 'true' ? 'In Stock' : 'Out of Stock'}</span>
                   </div>
+                  {form.expiryDate && (
+                    <div className="flex justify-between items-center text-sm opacity-90">
+                      <span>Expires:</span>
+                      <span className="font-bold">{new Date(form.expiryDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-white/10 rounded-full blur-2xl" />

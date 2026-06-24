@@ -107,7 +107,7 @@ const addReview = async (req, res) => {
 
 // POST /api/medicines
 const createMedicine = async (req, res) => {
-  const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId } = req.body
+  const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId, expiryDate } = req.body
   if (!name || !brand || !price || !type || !categoryId) {
     return fail(res, 'name, brand, price, type, and categoryId are required')
   }
@@ -124,6 +124,7 @@ const createMedicine = async (req, res) => {
       inStock: inStock !== false && inStock !== 'false',
       stockQuantity: parseInt(stockQuantity || 0),
       packageSize, manufacturer, imageUrl, categoryId,
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
     },
     include: { category: { select: { id: true, name: true } } },
   })
@@ -136,7 +137,7 @@ const updateMedicine = async (req, res) => {
   const existing = await prisma.medicine.findUnique({ where: { id: req.params.id } })
   if (!existing) return notFound(res, 'Medicine not found')
 
-  const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId } = req.body
+  const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId, expiryDate } = req.body
 
   const medicine = await prisma.medicine.update({
     where: { id: req.params.id },
@@ -156,6 +157,7 @@ const updateMedicine = async (req, res) => {
       ...(manufacturer !== undefined && { manufacturer }),
       ...(imageUrl !== undefined && { imageUrl }),
       ...(categoryId !== undefined && { categoryId }),
+      ...(expiryDate !== undefined && { expiryDate: expiryDate ? new Date(expiryDate) : null }),
     },
     include: { category: { select: { id: true, name: true } } },
   })
