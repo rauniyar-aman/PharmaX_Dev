@@ -50,7 +50,7 @@ model User {
   id           String   @id @default(uuid())
   fullName     String
   email        String   @unique
-  phone        String?
+  phone        String?  @unique
   passwordHash String
   dob          DateTime?
   gender       String?

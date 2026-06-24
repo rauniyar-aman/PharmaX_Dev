@@ -115,7 +115,7 @@ export default function SignUp() {
       const email = await register({
         fullName: form.fullName,
         email: form.email,
-        phone: form.phone,
+        phone: form.phone ? `+977${form.phone.replace(/\D/g, '')}` : undefined,
         password: form.password,
       })
       navigate('/verify-otp', { state: { email } })
@@ -129,7 +129,7 @@ export default function SignUp() {
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Left brand panel */}
-      <div className="hidden lg:flex lg:w-[44%] flex-col bg-surface-container-low border-r border-surface-container p-10">
+      <div className="hidden lg:flex lg:w-[38%] flex-col bg-surface-container-low border-r border-surface-container p-10">
         <Logo size="lg" />
 
         <div className="flex-1 flex flex-col justify-center">
@@ -158,7 +158,7 @@ export default function SignUp() {
 
       {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-10 overflow-y-auto">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-xl">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 mb-5"
@@ -173,12 +173,12 @@ export default function SignUp() {
             <Logo size="lg" />
           </div>
 
-          <div className="rounded-[28px] border border-surface-container bg-white p-8 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.16)]">
+          <div className="rounded-[28px] border border-surface-container bg-white p-10 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.16)]">
             <h1 className="text-2xl font-semibold text-on-surface">Create Account</h1>
             <p className="mt-1.5 text-sm text-on-surface-variant">Start your clinical journey with PharmaX today.</p>
 
-            <form className="mt-6 space-y-3.5" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-2 gap-3">
+            <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Full Name"
                   name="fullName"
@@ -187,14 +187,23 @@ export default function SignUp() {
                   placeholder="Dr. John Doe"
                   icon={UserIcon}
                 />
-                <Input
-                  label="Phone Number"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="+1 (555) 0000"
-                  icon={PhoneIcon}
-                />
+                <div>
+                  <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Phone Number</label>
+                  <div className="flex items-center rounded-2xl border border-surface-container bg-white overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition">
+                    <div className="flex items-center gap-1.5 px-3 py-3 border-r border-surface-container bg-surface-container-low text-on-surface-variant shrink-0">
+                      <span className="text-on-surface-variant">{PhoneIcon}</span>
+                      <span className="text-sm font-semibold text-on-surface">+977</span>
+                    </div>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="98XXXXXXXX"
+                      className="flex-1 px-3 py-3 text-sm text-on-surface placeholder:text-slate-400 bg-transparent outline-none"
+                    />
+                  </div>
+                </div>
               </div>
 
               <Input
@@ -207,7 +216,7 @@ export default function SignUp() {
                 icon={MailIcon}
               />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Password"
                   name="password"

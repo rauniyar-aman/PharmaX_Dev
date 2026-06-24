@@ -39,8 +39,8 @@ export default function SignIn() {
     }
     setLoading(true)
     try {
-      await login(form.email, form.password)
-      navigate('/dashboard')
+      const user = await login(form.email, form.password)
+      navigate(user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password.')
     } finally {

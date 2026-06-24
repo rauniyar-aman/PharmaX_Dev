@@ -22,6 +22,13 @@ const register = async (req, res) => {
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing && !existing.otpCode) return fail(res, 'An account with this email already exists', 409)
 
+  if (phone) {
+    const phoneUser = await prisma.user.findUnique({ where: { phone } })
+    if (phoneUser && phoneUser.email !== email) {
+      return fail(res, 'This phone number is already registered', 409)
+    }
+  }
+
   const passwordHash = await bcrypt.hash(password, 10)
   const otp = generateOtp()
   const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
