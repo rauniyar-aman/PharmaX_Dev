@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? 'https://pharmax.com'
-    : 'http://localhost:5173',
+    : /^http:\/\/localhost(:\d+)?$/,
   credentials: true,
 }))
 app.use(express.json())
