@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useCart } from '../../context/CartContext'
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
@@ -19,6 +20,7 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
   const location = useLocation()
   const [notifOpen, setNotifOpen] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
+  const { cartCount } = useCart()
 
   const getTitle = () => {
     const path = location.pathname
@@ -56,7 +58,11 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
           className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>shopping_cart</span>
-          <span className="absolute top-1 right-1 w-4 h-4 bg-secondary text-on-secondary-container text-[10px] font-bold rounded-full flex items-center justify-center leading-none">3</span>
+          {cartCount > 0 && (
+            <span className="absolute top-1 right-1 w-4 h-4 bg-secondary text-on-secondary-container text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+              {cartCount > 9 ? '9+' : cartCount}
+            </span>
+          )}
         </Link>
 
         {/* Notifications */}

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
+import { useCart } from '../../context/CartContext'
 
 export default function Cart() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const { refreshCart } = useCart()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState({})
@@ -26,6 +28,7 @@ export default function Cart() {
     try {
       const res = await api.put(`/cart/items/${medicineId}`, { quantity: newQty })
       setItems(res.data.data.cart.items || [])
+      refreshCart()
     } catch (err) {
       alert(err.response?.data?.message || 'Could not update quantity.')
     } finally {
@@ -38,6 +41,7 @@ export default function Cart() {
     try {
       const res = await api.delete(`/cart/items/${medicineId}`)
       setItems(res.data.data.cart.items || [])
+      refreshCart()
     } catch {
       alert('Could not remove item.')
     } finally {
@@ -106,11 +110,13 @@ export default function Cart() {
               return (
                 <div key={item.id} className="bg-white rounded-2xl custom-shadow p-4 flex gap-4">
                   <Link to={`/dashboard/medicines/${med.id}`} className="flex-shrink-0">
-                    <img
-                      src={med.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop'}
-                      alt={med.name}
-                      className="w-24 h-24 rounded-xl object-cover"
-                    />
+                    {med.imageUrl ? (
+                      <img src={med.imageUrl} alt={med.name} className="w-24 h-24 rounded-xl object-cover" />
+                    ) : (
+                      <div className="w-24 h-24 rounded-xl bg-surface-container-low flex items-center justify-center">
+                        <span className="material-symbols-outlined text-4xl text-on-surface-variant opacity-30">medication</span>
+                      </div>
+                    )}
                   </Link>
 
                   <div className="flex-1 min-w-0">

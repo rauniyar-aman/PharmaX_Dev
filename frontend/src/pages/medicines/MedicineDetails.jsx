@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
+import { useCart } from '../../context/CartContext'
 
 export default function MedicineDetails() {
   const { id } = useParams()
@@ -10,7 +11,9 @@ export default function MedicineDetails() {
   const [qty, setQty] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
   const [cartLoading, setCartLoading] = useState(false)
+  const [buyLoading, setBuyLoading] = useState(false)
   const [cartMsg, setCartMsg] = useState('')
+  const { refreshCart } = useCart()
 
   useEffect(() => {
     setLoading(true)
@@ -24,7 +27,8 @@ export default function MedicineDetails() {
     setCartLoading(true)
     setCartMsg('')
     try {
-      await api.post('/cart', { medicineId: med.id, quantity: qty })
+      await api.post('/cart/items', { medicineId: med.id, quantity: qty })
+      refreshCart()
       setCartMsg('Added to cart!')
       setTimeout(() => setCartMsg(''), 2500)
     } catch (err) {
@@ -32,6 +36,19 @@ export default function MedicineDetails() {
       setTimeout(() => setCartMsg(''), 2500)
     }
     setCartLoading(false)
+  }
+
+  const handleBuyNow = async () => {
+    setBuyLoading(true)
+    try {
+      await api.post('/cart/items', { medicineId: med.id, quantity: qty })
+      refreshCart()
+      navigate('/dashboard/checkout/shipping')
+    } catch (err) {
+      setCartMsg(err.response?.data?.message || 'Failed to proceed to checkout.')
+      setTimeout(() => setCartMsg(''), 2500)
+    }
+    setBuyLoading(false)
   }
 
   const tabs = [
@@ -183,13 +200,14 @@ export default function MedicineDetails() {
               {cartLoading ? 'Adding…' : 'Add to Cart'}
             </button>
             <button
-              disabled={!med.inStock}
+              onClick={handleBuyNow}
+              disabled={!med.inStock || buyLoading}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border-2 transition-colors ${
                 med.inStock ? 'border-primary text-primary hover:bg-primary/5' : 'border-outline-variant text-on-surface-variant cursor-not-allowed'
               }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>flash_on</span>
-              Buy Now
+              {buyLoading ? 'Processing…' : 'Buy Now'}
             </button>
           </div>
 

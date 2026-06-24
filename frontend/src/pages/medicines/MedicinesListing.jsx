@@ -224,11 +224,18 @@ export default function MedicinesListing() {
             return (
               <div key={med.id} className="bg-white rounded-2xl overflow-hidden custom-shadow hover:-translate-y-1 transition-all duration-200 flex flex-col group">
                 <Link to={`/dashboard/medicines/${med.id}`} className="relative block overflow-hidden">
-                  <img
-                    src={med.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop'}
-                    alt={med.name}
-                    className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  {med.imageUrl ? (
+                    <img
+                      src={med.imageUrl}
+                      alt={med.name}
+                      className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="h-48 w-full bg-surface-container-low flex flex-col items-center justify-center gap-2 text-on-surface-variant group-hover:bg-surface-container transition-colors duration-300">
+                      <span className="material-symbols-outlined text-5xl opacity-30">medication</span>
+                      <span className="text-xs opacity-40">No image</span>
+                    </div>
+                  )}
                   <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${isRx ? 'bg-primary text-white' : 'bg-secondary text-white'}`}>
                     {typeLabel}
                   </span>
