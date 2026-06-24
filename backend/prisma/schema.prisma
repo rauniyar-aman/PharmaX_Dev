@@ -118,6 +118,7 @@ model Medicine {
   packageSize   String?
   manufacturer  String?
   imageUrl      String?
+  stockQuantity Int          @default(0)
   rating        Decimal      @default(0) @db.Decimal(3, 2)
   totalReviews  Int          @default(0)
   categoryId    String

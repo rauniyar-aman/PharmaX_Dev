@@ -1,5 +1,5 @@
 const prisma = require('../config/db')
-const { ok, notFound, fail } = require('../utils/response')
+const { ok, created, notFound, fail } = require('../utils/response')
 
 // GET /api/medicines
 const getMedicines = async (req, res) => {
@@ -105,4 +105,71 @@ const addReview = async (req, res) => {
   ok(res, { review }, 'Review submitted')
 }
 
-module.exports = { getMedicines, getMedicineById, getMedicineReviews, addReview }
+// POST /api/medicines
+const createMedicine = async (req, res) => {
+  const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId } = req.body
+  if (!name || !brand || !price || !type || !categoryId) {
+    return fail(res, 'name, brand, price, type, and categoryId are required')
+  }
+
+  const category = await prisma.category.findUnique({ where: { id: categoryId } })
+  if (!category) return notFound(res, 'Category not found')
+
+  const medicine = await prisma.medicine.create({
+    data: {
+      name, brand, description, dosage, usage, sideEffects,
+      price: parseFloat(price),
+      originalPrice: parseFloat(originalPrice || price),
+      type,
+      inStock: inStock !== false && inStock !== 'false',
+      stockQuantity: parseInt(stockQuantity || 0),
+      packageSize, manufacturer, imageUrl, categoryId,
+    },
+    include: { category: { select: { id: true, name: true } } },
+  })
+
+  created(res, { medicine }, 'Medicine added successfully')
+}
+
+// PUT /api/medicines/:id
+const updateMedicine = async (req, res) => {
+  const existing = await prisma.medicine.findUnique({ where: { id: req.params.id } })
+  if (!existing) return notFound(res, 'Medicine not found')
+
+  const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId } = req.body
+
+  const medicine = await prisma.medicine.update({
+    where: { id: req.params.id },
+    data: {
+      ...(name !== undefined && { name }),
+      ...(brand !== undefined && { brand }),
+      ...(description !== undefined && { description }),
+      ...(dosage !== undefined && { dosage }),
+      ...(usage !== undefined && { usage }),
+      ...(sideEffects !== undefined && { sideEffects }),
+      ...(price !== undefined && { price: parseFloat(price) }),
+      ...(originalPrice !== undefined && { originalPrice: parseFloat(originalPrice) }),
+      ...(type !== undefined && { type }),
+      ...(inStock !== undefined && { inStock: inStock !== false && inStock !== 'false' }),
+      ...(stockQuantity !== undefined && { stockQuantity: parseInt(stockQuantity) }),
+      ...(packageSize !== undefined && { packageSize }),
+      ...(manufacturer !== undefined && { manufacturer }),
+      ...(imageUrl !== undefined && { imageUrl }),
+      ...(categoryId !== undefined && { categoryId }),
+    },
+    include: { category: { select: { id: true, name: true } } },
+  })
+
+  ok(res, { medicine }, 'Medicine updated successfully')
+}
+
+// DELETE /api/medicines/:id
+const deleteMedicine = async (req, res) => {
+  const existing = await prisma.medicine.findUnique({ where: { id: req.params.id } })
+  if (!existing) return notFound(res, 'Medicine not found')
+
+  await prisma.medicine.delete({ where: { id: req.params.id } })
+  ok(res, {}, 'Medicine deleted successfully')
+}
+
+module.exports = { getMedicines, getMedicineById, getMedicineReviews, addReview, createMedicine, updateMedicine, deleteMedicine }

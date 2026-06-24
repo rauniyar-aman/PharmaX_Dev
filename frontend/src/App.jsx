@@ -1,6 +1,14 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
+// Admin Panel
+import AdminLayout from './components/admin/AdminLayout'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminMedicines from './pages/admin/AdminMedicines'
+import AdminAddMedicine from './pages/admin/AdminAddMedicine'
+import AdminViewMedicine from './pages/admin/AdminViewMedicine'
+import AdminInventoryLog from './pages/admin/AdminInventoryLog'
+
 // Public pages
 import Home from './pages/Home'
 import SignIn from './pages/auth/SignIn'
@@ -76,6 +84,17 @@ export default function App() {
         <Route path="reviews" element={<MyReviews />} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="medicines" element={<AdminMedicines />} />
+        <Route path="medicines/add" element={<AdminAddMedicine />} />
+        <Route path="medicines/:id" element={<AdminViewMedicine />} />
+        <Route path="medicines/:id/edit" element={<AdminAddMedicine />} />
+        <Route path="medicines/:id/inventory" element={<AdminInventoryLog />} />
       </Route>
 
       {/* Fallback */}
