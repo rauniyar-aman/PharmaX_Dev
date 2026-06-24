@@ -112,13 +112,13 @@ export default function SignUp() {
 
     setLoading(true)
     try {
-      await register({
+      const email = await register({
         fullName: form.fullName,
         email: form.email,
         phone: form.phone,
         password: form.password,
       })
-      navigate('/dashboard')
+      navigate('/verify-otp', { state: { email } })
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')
     } finally {

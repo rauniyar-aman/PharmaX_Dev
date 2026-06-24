@@ -57,6 +57,8 @@ model User {
   bloodGroup   String?
   allergies    String?
   role         Role     @default(CUSTOMER)
+  otpCode      String?
+  otpExpiresAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

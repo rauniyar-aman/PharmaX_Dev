@@ -1,19 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
+import { useAuth } from '../../context/AuthContext'
+import api from '../../lib/api'
 
 export default function OtpVerification() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { verifyEmail } = useAuth()
   const email = location.state?.email
   const [code, setCode] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
   const inputs = useRef([])
 
   useEffect(() => {
-    if (!email) {
-      navigate('/signup', { replace: true })
-    }
+    if (!email) navigate('/signup', { replace: true })
   }, [email, navigate])
 
   const updateCode = (value, index) => {
@@ -21,7 +25,6 @@ export default function OtpVerification() {
     const nextCode = [...code]
     nextCode[index] = value.slice(-1)
     setCode(nextCode)
-
     if (value && index < inputs.current.length - 1) {
       inputs.current[index + 1]?.focus()
     }
@@ -33,7 +36,7 @@ export default function OtpVerification() {
     }
   }
 
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault()
     setError('')
 
@@ -42,23 +45,44 @@ export default function OtpVerification() {
       return
     }
 
-    navigate('/otp-verified')
+    setLoading(true)
+    try {
+      await verifyEmail(email, code.join(''))
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Verification failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setResendLoading(true)
+    setResendSuccess(false)
+    setError('')
+    try {
+      await api.post('/auth/register', { email, fullName: '', password: '' })
+    } catch {}
+    setResendSuccess(true)
+    setResendLoading(false)
   }
 
   return (
     <AuthLayout>
       <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-surface-container bg-white shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
-          <div className="pointer-events-none absolute -left-16 top-1/4 h-40 w-40 rounded-full bg-primary/10 blur-3xl"></div>
-          <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl"></div>
+          <div className="pointer-events-none absolute -left-16 top-1/4 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl" />
           <div className="relative p-10">
             <div className="text-center">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl">
-                🔒
+                ✉️
               </div>
               <h1 className="text-3xl font-semibold text-on-surface">Verify Your Email</h1>
               <p className="mt-3 text-sm leading-6 text-on-surface-variant">
-                We've sent a 6-digit code to <span className="font-medium text-on-surface">{email || 'your email'}</span> to verify your account.
+                We've sent a 6-digit code to{' '}
+                <span className="font-semibold text-on-surface">{email}</span>.
+                <br />Enter it below to activate your account.
               </p>
             </div>
 
@@ -80,23 +104,40 @@ export default function OtpVerification() {
                 ))}
               </div>
 
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{error}</p>
+              )}
 
-              <button type="submit" className="w-full rounded-3xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90">
-                Verify Code
+              {resendSuccess && (
+                <p className="text-xs text-primary bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5">
+                  A new code has been sent to your email.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-3xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Verifying…' : 'Verify & Continue'}
               </button>
             </form>
 
             <div className="mt-6 border-t border-surface-container pt-6 text-center text-sm text-on-surface-variant">
               <p>Didn't receive the code?</p>
-              <button type="button" className="mt-3 text-primary font-semibold hover:text-primary/90">
-                Resend code
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                className="mt-3 text-primary font-semibold hover:text-primary/90 disabled:opacity-60"
+              >
+                {resendLoading ? 'Sending…' : 'Resend code'}
               </button>
             </div>
 
-            <div className="mt-6 text-center text-sm text-on-surface-variant">
-              <Link to="/signin" className="text-primary font-semibold">
-                ← Back to login
+            <div className="mt-4 text-center text-sm text-on-surface-variant">
+              <Link to="/signup" className="text-primary font-semibold">
+                ← Back to Sign Up
               </Link>
             </div>
           </div>

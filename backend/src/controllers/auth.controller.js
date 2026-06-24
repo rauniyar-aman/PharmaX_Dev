@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const prisma = require('../config/db')
 const { ok, created, fail, unauthorized, serverError } = require('../utils/response')
+const { sendOtpEmail, sendVerificationEmail } = require('../utils/email')
 
 const signToken = (user) =>
   jwt.sign(
@@ -10,21 +11,65 @@ const signToken = (user) =>
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   )
 
+const generateOtp = () =>
+  Math.floor(100000 + Math.random() * 900000).toString()
+
 // POST /api/auth/register
 const register = async (req, res) => {
   const { fullName, email, phone, password } = req.body
   if (!fullName || !email || !password) return fail(res, 'fullName, email, and password are required')
 
   const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return fail(res, 'An account with this email already exists', 409)
+  if (existing && !existing.otpCode) return fail(res, 'An account with this email already exists', 409)
 
   const passwordHash = await bcrypt.hash(password, 10)
-  const user = await prisma.user.create({
-    data: { fullName, email, phone, passwordHash },
-    select: { id: true, fullName: true, email: true, phone: true, role: true, createdAt: true },
+  const otp = generateOtp()
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
+
+  if (existing) {
+    await prisma.user.update({
+      where: { email },
+      data: { passwordHash, otpCode: otp, otpExpiresAt },
+    })
+  } else {
+    await prisma.user.create({
+      data: { fullName, email, phone, passwordHash, otpCode: otp, otpExpiresAt },
+    })
+  }
+
+  try {
+    await sendVerificationEmail(email, fullName, otp)
+  } catch (err) {
+    console.error('Failed to send verification email:', err.message)
+    return serverError(res, 'Account created but failed to send verification email. Please try again.')
+  }
+
+  created(res, { email }, 'Account created. Please check your email for the verification code.')
+}
+
+// POST /api/auth/verify-email
+const verifyEmail = async (req, res) => {
+  const { email, otp } = req.body
+  if (!email || !otp) return fail(res, 'Email and OTP are required')
+
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user || !user.otpCode) return fail(res, 'Invalid or expired OTP', 400)
+  if (user.otpCode !== otp) return fail(res, 'Invalid OTP. Please check and try again.', 400)
+  if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
+    return fail(res, 'OTP has expired. Please register again.', 400)
+  }
+
+  await prisma.user.update({
+    where: { email },
+    data: { otpCode: null, otpExpiresAt: null },
   })
 
-  created(res, { token: signToken(user), user }, 'Account created successfully')
+  const safeUser = {
+    id: user.id, fullName: user.fullName, email: user.email,
+    phone: user.phone, role: user.role, createdAt: user.createdAt,
+  }
+
+  ok(res, { token: signToken(user), user: safeUser }, 'Email verified successfully. Welcome to PharmaX!')
 }
 
 // POST /api/auth/login
@@ -35,10 +80,12 @@ const login = async (req, res) => {
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user) return unauthorized(res, 'Invalid email or password')
 
+  if (user.otpCode) return fail(res, 'Please verify your email before signing in.', 403)
+
   const match = await bcrypt.compare(password, user.passwordHash)
   if (!match) return unauthorized(res, 'Invalid email or password')
 
-  const { passwordHash, ...safeUser } = user
+  const { passwordHash, otpCode, otpExpiresAt, ...safeUser } = user
   ok(res, { token: signToken(user), user: safeUser }, 'Login successful')
 }
 
@@ -46,7 +93,11 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: { id: true, fullName: true, email: true, phone: true, role: true, dob: true, gender: true, bloodGroup: true, allergies: true, createdAt: true },
+    select: {
+      id: true, fullName: true, email: true, phone: true,
+      role: true, dob: true, gender: true, bloodGroup: true,
+      allergies: true, createdAt: true,
+    },
   })
   if (!user) return fail(res, 'User not found', 404)
   ok(res, { user })
@@ -58,8 +109,21 @@ const forgotPassword = async (req, res) => {
   if (!email) return fail(res, 'Email is required')
 
   const user = await prisma.user.findUnique({ where: { email } })
-  // Always respond with success to avoid email enumeration
-  ok(res, {}, 'If that email exists, a reset code has been sent')
+  if (!user) return fail(res, 'No account found with this email address.', 404)
+
+  const otp = generateOtp()
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
+
+  await prisma.user.update({ where: { email }, data: { otpCode: otp, otpExpiresAt } })
+
+  try {
+    await sendOtpEmail(email, user.fullName, otp)
+  } catch (err) {
+    console.error('Failed to send OTP email:', err.message)
+    return serverError(res, 'Failed to send OTP email. Please try again.')
+  }
+
+  ok(res, {}, 'Reset code sent to your email')
 }
 
 // POST /api/auth/reset-password
@@ -67,12 +131,23 @@ const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body
   if (!email || !otp || !newPassword) return fail(res, 'email, otp, and newPassword are required')
 
-  // OTP verification is mocked — integrate an email/SMS service here
-  if (otp !== '123456') return fail(res, 'Invalid or expired OTP', 400)
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user || !user.otpCode) return fail(res, 'Invalid or expired OTP', 400)
+  if (user.otpCode !== otp) return fail(res, 'Invalid OTP. Please check and try again.', 400)
+  if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
+    return fail(res, 'OTP has expired. Please request a new one.', 400)
+  }
+
+  const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash)
+  if (isSamePassword) return fail(res, 'New password cannot be the same as your previous password.', 400)
 
   const passwordHash = await bcrypt.hash(newPassword, 10)
-  await prisma.user.update({ where: { email }, data: { passwordHash } })
+  await prisma.user.update({
+    where: { email },
+    data: { passwordHash, otpCode: null, otpExpiresAt: null },
+  })
+
   ok(res, {}, 'Password reset successfully')
 }
 
-module.exports = { register, login, getMe, forgotPassword, resetPassword }
+module.exports = { register, verifyEmail, login, getMe, forgotPassword, resetPassword }
