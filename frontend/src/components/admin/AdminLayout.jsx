@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import AdminSidebar from './AdminSidebar'
 
 export default function AdminLayout() {
   const { user, loading } = useAuth()
+  const [collapsed, setCollapsed] = useState(false)
 
   if (loading) {
     return (
@@ -34,8 +36,11 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <div className="ml-64 min-h-screen flex flex-col">
+      <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+      <div
+        className="min-h-screen flex flex-col transition-all duration-300"
+        style={{ marginLeft: collapsed ? '72px' : '256px' }}
+      >
         <Outlet />
       </div>
     </div>

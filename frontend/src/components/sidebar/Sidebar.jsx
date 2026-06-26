@@ -27,31 +27,29 @@ export default function Sidebar({ collapsed, onToggle }) {
       style={{ boxShadow: '2px 0 12px -2px rgba(0,0,0,0.06)' }}
     >
       {/* Logo */}
-      <div className={`flex items-center h-16 border-b border-outline-variant flex-shrink-0 ${collapsed ? 'justify-center px-3' : 'px-4 gap-3'}`}>
-        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary flex-shrink-0">
-          <span className="material-symbols-outlined ms-filled text-white" style={{ fontSize: '20px' }}>medical_services</span>
-        </div>
-        {!collapsed && (
-          <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-primary leading-tight">PharmaX</p>
-            <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider leading-tight">Customer Portal</p>
-          </div>
-        )}
-        {!collapsed && (
-          <button
-            onClick={onToggle}
-            className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors flex-shrink-0"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_left</span>
-          </button>
-        )}
-        {collapsed && (
-          <button
-            onClick={onToggle}
-            className="absolute -right-3 top-5 w-6 h-6 bg-white border border-outline-variant rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors shadow-sm"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
+      <div className={`flex items-center h-16 border-b border-outline-variant flex-shrink-0 ${collapsed ? 'justify-center px-3' : 'px-4 justify-between'}`}>
+        {collapsed ? (
+          <>
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary flex-shrink-0">
+              <span className="material-symbols-outlined ms-filled text-white" style={{ fontSize: '20px' }}>medical_services</span>
+            </div>
+            <button
+              onClick={onToggle}
+              className="absolute -right-3 top-5 w-6 h-6 bg-white border border-outline-variant rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <img src="/PharmaX_Logo.png" alt="PharmaX" className="h-9 w-auto" />
+            <button
+              onClick={onToggle}
+              className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors flex-shrink-0"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_left</span>
+            </button>
+          </>
         )}
       </div>
 
