@@ -14,6 +14,11 @@ export default function Cart() {
   const [coupon, setCoupon] = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
 
+  const handleProceedToCheckout = () => {
+    sessionStorage.setItem('checkoutAllowed', '1')
+    navigate('/dashboard/checkout/shipping')
+  }
+
   useEffect(() => {
     if (!isAuthenticated) { navigate('/signin'); return }
     api.get('/cart')
@@ -241,13 +246,13 @@ export default function Cart() {
                 {couponApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied — 10% off!</p>}
               </div>
 
-              <Link
-                to="/dashboard/checkout/shipping"
+              <button
+                onClick={handleProceedToCheckout}
                 className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>shopping_bag</span>
                 Proceed to Checkout
-              </Link>
+              </button>
 
               <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-outline-variant">
                 <div className="flex items-center gap-1 text-xs text-on-surface-variant">

@@ -1,21 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
 import CheckoutSteps from '../../components/checkout/CheckoutSteps'
-
-const orderItems = [
-  { name: 'Amoxicillin 500mg', qty: 2, price: 180 },
-  { name: 'Paracetamol 500mg', qty: 3, price: 45 },
-  { name: 'Vitamin D3 1000 IU', qty: 1, price: 320 },
-]
 
 export default function CheckoutPayment() {
   const navigate = useNavigate()
   const [method, setMethod] = useState('esewa')
   const [promo, setPromo] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
+  const [cartItems, setCartItems] = useState([])
+  const [cartLoading, setCartLoading] = useState(true)
 
-  const subtotal = orderItems.reduce((s, i) => s + i.price * i.qty, 0)
-  const delivery = 0
+  useEffect(() => {
+    api.get('/cart')
+      .then(res => setCartItems(res.data.data.cart.items || []))
+      .catch(() => {})
+      .finally(() => setCartLoading(false))
+  }, [])
+
+  const subtotal = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
+  const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
   const discount = promoApplied ? Math.round(subtotal * 0.1) : 0
   const total = subtotal + delivery - discount
 
@@ -117,14 +121,25 @@ export default function CheckoutPayment() {
         <div className="bg-white rounded-2xl custom-shadow p-5 h-fit space-y-4">
           <h2 className="text-[15px] font-semibold text-on-surface">Order Summary</h2>
 
-          <div className="space-y-2.5">
-            {orderItems.map(item => (
-              <div key={item.name} className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">{item.name} × {item.qty}</span>
-                <span className="font-medium text-on-surface">NPR {item.price * item.qty}</span>
-              </div>
-            ))}
-          </div>
+          {cartLoading ? (
+            <div className="space-y-2.5">
+              {[1, 2].map(i => (
+                <div key={i} className="flex justify-between">
+                  <div className="h-3 bg-surface-container rounded w-2/3 animate-pulse" />
+                  <div className="h-3 bg-surface-container rounded w-1/5 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {cartItems.map(item => (
+                <div key={item.id} className="flex justify-between text-sm">
+                  <span className="text-on-surface-variant">{item.medicine.name} × {item.quantity}</span>
+                  <span className="font-medium text-on-surface">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Promo */}
           <div>
@@ -146,35 +161,39 @@ export default function CheckoutPayment() {
                 {promoApplied ? 'Applied' : 'Apply'}
               </button>
             </div>
+            {promoApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied — 10% off!</p>}
           </div>
 
           <div className="border-t border-outline-variant pt-3 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Subtotal</span>
-              <span className="font-medium">NPR {subtotal}</span>
+              <span className="font-medium">NPR {subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Delivery</span>
-              <span className="font-medium text-primary">FREE</span>
+              <span className={`font-medium ${delivery === 0 ? 'text-primary' : 'text-on-surface'}`}>
+                {delivery === 0 ? 'FREE' : `NPR ${delivery}`}
+              </span>
             </div>
             {promoApplied && (
               <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Discount</span>
-                <span className="font-medium text-primary">– NPR {discount}</span>
+                <span className="text-on-surface-variant">Discount (PHARMA10)</span>
+                <span className="font-medium text-primary">– NPR {discount.toLocaleString()}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-base border-t border-outline-variant pt-2">
               <span>Total</span>
-              <span>NPR {total}</span>
+              <span>NPR {total.toLocaleString()}</span>
             </div>
           </div>
 
           <button
             onClick={() => navigate('/dashboard/checkout/confirmation')}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors"
+            disabled={cartLoading || cartItems.length === 0}
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-            Place Order · NPR {total}
+            Place Order · NPR {total.toLocaleString()}
           </button>
 
           <Link to="/dashboard/checkout/prescription" className="flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors">

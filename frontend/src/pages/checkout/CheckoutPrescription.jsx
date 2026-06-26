@@ -1,16 +1,22 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
 import CheckoutSteps from '../../components/checkout/CheckoutSteps'
-
-const rxMedicines = [
-  { name: 'Amoxicillin 500mg', qty: 2 },
-]
 
 export default function CheckoutPrescription() {
   const navigate = useNavigate()
   const [uploaded, setUploaded] = useState(null)
   const [dragging, setDragging] = useState(false)
+  const [cartItems, setCartItems] = useState([])
   const inputRef = useRef()
+
+  useEffect(() => {
+    api.get('/cart')
+      .then(res => setCartItems(res.data.data.cart.items || []))
+      .catch(() => {})
+  }, [])
+
+  const rxItems = cartItems.filter(i => i.medicine.type === 'Rx')
 
   const handleFile = (file) => {
     if (file) setUploaded(file)
@@ -27,31 +33,44 @@ export default function CheckoutPrescription() {
     { name: 'rx_amoxicillin.jpg', date: 'May 22, 2024', size: '2.1 MB', verified: true },
   ]
 
+  const subtotal = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
+  const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
+
   return (
     <div className="space-y-4">
       <CheckoutSteps current={1} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
-          {/* Action Required Alert */}
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined ms-filled text-amber-600 flex-shrink-0" style={{ fontSize: '22px' }}>warning</span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-amber-800">Action Required — Prescription Needed</p>
-                <p className="text-xs text-amber-700 mt-1 mb-3">The following medicines in your cart require a valid doctor's prescription:</p>
-                <ul className="space-y-1.5">
-                  {rxMedicines.map(m => (
-                    <li key={m.name} className="flex items-center gap-2 text-xs text-amber-800">
-                      <span className="material-symbols-outlined ms-filled text-amber-500" style={{ fontSize: '16px' }}>check_circle</span>
-                      <span className="font-medium">{m.name}</span>
-                      <span className="text-amber-600">× {m.qty}</span>
-                    </li>
-                  ))}
-                </ul>
+          {/* Action Required Alert — only if cart has Rx medicines */}
+          {rxItems.length > 0 ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined ms-filled text-amber-600 flex-shrink-0" style={{ fontSize: '22px' }}>warning</span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-800">Action Required — Prescription Needed</p>
+                  <p className="text-xs text-amber-700 mt-1 mb-3">The following medicines in your cart require a valid doctor's prescription:</p>
+                  <ul className="space-y-1.5">
+                    {rxItems.map(item => (
+                      <li key={item.id} className="flex items-center gap-2 text-xs text-amber-800">
+                        <span className="material-symbols-outlined ms-filled text-amber-500" style={{ fontSize: '16px' }}>check_circle</span>
+                        <span className="font-medium">{item.medicine.name}</span>
+                        <span className="text-amber-600">× {item.quantity}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
+              <span className="material-symbols-outlined ms-filled text-primary" style={{ fontSize: '22px' }}>check_circle</span>
+              <div>
+                <p className="text-sm font-semibold text-primary">No Prescription Required</p>
+                <p className="text-xs text-on-surface-variant mt-0.5">All items in your cart are OTC medicines. You can proceed to payment.</p>
+              </div>
+            </div>
+          )}
 
           {/* Upload Zone */}
           <div className="bg-white rounded-2xl custom-shadow p-5">
@@ -120,29 +139,62 @@ export default function CheckoutPrescription() {
           </div>
         </div>
 
-        {/* Right: Buttons */}
-        <div className="bg-white rounded-2xl custom-shadow p-5 h-fit space-y-3">
-          <h3 className="text-sm font-semibold text-on-surface">Prescription Upload</h3>
-          <p className="text-xs text-on-surface-variant leading-relaxed">Upload a clear photo or PDF of your prescription. Our pharmacist will verify it before processing your order.</p>
+        {/* Right panel */}
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl custom-shadow p-5 h-fit space-y-3">
+            <h3 className="text-sm font-semibold text-on-surface">Prescription Upload</h3>
+            <p className="text-xs text-on-surface-variant leading-relaxed">Upload a clear photo or PDF of your prescription. Our pharmacist will verify it before processing your order.</p>
 
-          <button
-            onClick={() => navigate('/dashboard/checkout/payment')}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
-              uploaded ? 'bg-primary text-white hover:bg-primary/90' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
-            }`}
-            disabled={!uploaded}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>payment</span>
-            Submit & Continue to Payment
-          </button>
+            <button
+              onClick={() => navigate('/dashboard/checkout/payment')}
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                uploaded || rxItems.length === 0
+                  ? 'bg-primary text-white hover:bg-primary/90'
+                  : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
+              }`}
+              disabled={rxItems.length > 0 && !uploaded}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>payment</span>
+              {rxItems.length === 0 ? 'Continue to Payment' : 'Submit & Continue to Payment'}
+            </button>
 
-          <Link
-            to="/dashboard/checkout/shipping"
-            className="flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
-            Back to Shipping
-          </Link>
+            <Link
+              to="/dashboard/checkout/shipping"
+              className="flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
+              Back to Shipping
+            </Link>
+          </div>
+
+          {/* Order Summary */}
+          <div className="bg-white rounded-2xl custom-shadow p-5">
+            <h2 className="text-[15px] font-semibold text-on-surface mb-3">Order Summary</h2>
+            <div className="space-y-2.5 mb-3">
+              {cartItems.map(item => (
+                <div key={item.id} className="flex justify-between text-sm">
+                  <span className="text-on-surface-variant">{item.medicine.name} × {item.quantity}</span>
+                  <span className="font-medium text-on-surface">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-outline-variant pt-3 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-on-surface-variant">Subtotal</span>
+                <span className="font-medium">NPR {subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-on-surface-variant">Delivery</span>
+                <span className={`font-medium ${delivery === 0 ? 'text-primary' : 'text-on-surface'}`}>
+                  {delivery === 0 ? 'FREE' : `NPR ${delivery}`}
+                </span>
+              </div>
+              <div className="flex justify-between font-bold text-sm border-t border-outline-variant pt-2">
+                <span>Total</span>
+                <span>NPR {(subtotal + delivery).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

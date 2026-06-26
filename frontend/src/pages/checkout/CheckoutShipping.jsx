@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
 import CheckoutSteps from '../../components/checkout/CheckoutSteps'
 
 const savedAddresses = [
@@ -27,20 +28,27 @@ const savedAddresses = [
   },
 ]
 
-const orderItems = [
-  { name: 'Amoxicillin 500mg', qty: 2, price: 180 },
-  { name: 'Paracetamol 500mg', qty: 3, price: 45 },
-  { name: 'Vitamin D3 1000 IU', qty: 1, price: 320 },
-]
-
 export default function CheckoutShipping() {
   const navigate = useNavigate()
   const [selected, setSelected] = useState(1)
   const [showNewForm, setShowNewForm] = useState(false)
   const [newAddr, setNewAddr] = useState({ name: '', phone: '', address: '', city: '', province: '', zip: '' })
+  const [cartItems, setCartItems] = useState([])
+  const [cartLoading, setCartLoading] = useState(true)
 
-  const subtotal = orderItems.reduce((s, i) => s + i.price * i.qty, 0)
-  const delivery = subtotal >= 500 ? 0 : 80
+  useEffect(() => {
+    if (!sessionStorage.getItem('checkoutAllowed')) {
+      navigate('/dashboard/cart', { replace: true })
+      return
+    }
+    api.get('/cart')
+      .then(res => setCartItems(res.data.data.cart.items || []))
+      .catch(() => {})
+      .finally(() => setCartLoading(false))
+  }, [])
+
+  const subtotal = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
+  const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
 
   return (
     <div className="space-y-4">
@@ -94,7 +102,6 @@ export default function CheckoutShipping() {
               ))}
             </div>
 
-            {/* New Address Form */}
             {showNewForm && (
               <div className="mt-4 pt-4 border-t border-outline-variant">
                 <h3 className="text-sm font-semibold text-on-surface mb-3">New Delivery Address</h3>
@@ -145,39 +152,59 @@ export default function CheckoutShipping() {
         {/* Right: Order Summary */}
         <div className="bg-white rounded-2xl custom-shadow p-5 h-fit">
           <h2 className="text-[15px] font-semibold text-on-surface mb-4">Order Summary</h2>
-          <div className="space-y-2.5 mb-4">
-            {orderItems.map(item => (
-              <div key={item.name} className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">{item.name} × {item.qty}</span>
-                <span className="font-medium text-on-surface">NPR {item.price * item.qty}</span>
-              </div>
-            ))}
-          </div>
+
+          {cartLoading ? (
+            <div className="space-y-2.5 mb-4">
+              {[1, 2].map(i => (
+                <div key={i} className="flex justify-between">
+                  <div className="h-3 bg-surface-container rounded w-2/3 animate-pulse" />
+                  <div className="h-3 bg-surface-container rounded w-1/5 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2.5 mb-4">
+              {cartItems.map(item => (
+                <div key={item.id} className="flex justify-between text-sm">
+                  <span className="text-on-surface-variant">{item.medicine.name} × {item.quantity}</span>
+                  <span className="font-medium text-on-surface">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="border-t border-outline-variant pt-3 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Subtotal</span>
-              <span className="font-medium text-on-surface">NPR {subtotal}</span>
+              <span className="font-medium text-on-surface">NPR {subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Delivery</span>
-              <span className={`font-medium ${delivery === 0 ? 'text-primary' : 'text-on-surface'}`}>{delivery === 0 ? 'FREE' : `NPR ${delivery}`}</span>
+              <span className={`font-medium ${delivery === 0 ? 'text-primary' : 'text-on-surface'}`}>
+                {delivery === 0 ? 'FREE' : `NPR ${delivery}`}
+              </span>
             </div>
             <div className="flex justify-between text-sm font-bold border-t border-outline-variant pt-2">
               <span className="text-on-surface">Total</span>
-              <span className="text-on-surface text-base">NPR {subtotal + delivery}</span>
+              <span className="text-on-surface text-base">NPR {(subtotal + delivery).toLocaleString()}</span>
             </div>
           </div>
+
           <button
             onClick={() => navigate('/dashboard/checkout/prescription')}
-            className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors"
+            disabled={cartLoading || cartItems.length === 0}
+            className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue to Prescription
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
           </button>
-          <Link to="/dashboard/cart" className="mt-3 flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors">
+          <button
+            onClick={() => { sessionStorage.removeItem('checkoutAllowed'); navigate('/dashboard/cart') }}
+            className="mt-3 w-full flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+          >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
             Back to Cart
-          </Link>
+          </button>
         </div>
       </div>
     </div>

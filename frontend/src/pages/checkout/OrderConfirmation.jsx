@@ -1,16 +1,24 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import api from '../../lib/api'
 import CheckoutSteps from '../../components/checkout/CheckoutSteps'
 
-const orderedItems = [
-  { name: 'Amoxicillin 500mg', brand: 'GlaxoSmithKline', qty: 2, price: 180, img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop' },
-  { name: 'Paracetamol 500mg', brand: 'Cipla', qty: 3, price: 45, img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=200&h=200&fit=crop' },
-  { name: 'Vitamin D3 1000 IU', brand: 'Abbott', qty: 1, price: 320, img: 'https://images.unsplash.com/photo-1550572017-edd951b55104?w=200&h=200&fit=crop' },
-]
-
-const subtotal = orderedItems.reduce((s, i) => s + i.price * i.qty, 0)
-
 export default function OrderConfirmation() {
+  const [cartItems, setCartItems] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    sessionStorage.removeItem('checkoutAllowed')
+    api.get('/cart')
+      .then(res => setCartItems(res.data.data.cart.items || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const subtotal = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
+  const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
+  const total = subtotal + delivery
+
   return (
     <div className="space-y-4">
       <CheckoutSteps current={4} />
@@ -71,7 +79,7 @@ export default function OrderConfirmation() {
             <span className="material-symbols-outlined ms-filled text-primary" style={{ fontSize: '14px' }}>check_circle</span>
             <span className="text-xs text-primary font-medium">Payment Confirmed</span>
           </div>
-          <p className="text-xs text-on-surface-variant mt-0.5">Total Paid: NPR {subtotal}</p>
+          <p className="text-xs text-on-surface-variant mt-0.5">Total Paid: NPR {total.toLocaleString()}</p>
         </div>
       </div>
 
@@ -79,21 +87,41 @@ export default function OrderConfirmation() {
         {/* Ordered Items */}
         <div className="lg:col-span-2 bg-white rounded-2xl custom-shadow p-5">
           <h2 className="text-[15px] font-semibold text-on-surface mb-4">Ordered Medicines</h2>
-          <div className="space-y-3">
-            {orderedItems.map(item => (
-              <div key={item.name} className="flex items-center gap-4 p-3 rounded-xl border border-outline-variant">
-                <img src={item.img} alt={item.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-on-surface">{item.name}</p>
-                  <p className="text-xs text-on-surface-variant">{item.brand}</p>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="flex items-center gap-4 p-3 rounded-xl border border-outline-variant animate-pulse">
+                  <div className="w-14 h-14 rounded-xl bg-surface-container flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-surface-container rounded w-1/2" />
+                    <div className="h-3 bg-surface-container rounded w-1/3" />
+                  </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs text-on-surface-variant">× {item.qty}</p>
-                  <p className="text-sm font-bold text-on-surface">NPR {item.price * item.qty}</p>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {cartItems.map(item => (
+                <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl border border-outline-variant">
+                  {item.medicine.imageUrl ? (
+                    <img src={item.medicine.imageUrl} alt={item.medicine.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-surface-container-low flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined text-2xl text-on-surface-variant opacity-30">medication</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-on-surface">{item.medicine.name}</p>
+                    <p className="text-xs text-on-surface-variant">{item.medicine.brand}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs text-on-surface-variant">× {item.quantity}</p>
+                    <p className="text-sm font-bold text-on-surface">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Order Summary */}
@@ -102,15 +130,17 @@ export default function OrderConfirmation() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Subtotal</span>
-              <span className="font-medium">NPR {subtotal}</span>
+              <span className="font-medium">NPR {subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Delivery</span>
-              <span className="font-medium text-primary">FREE</span>
+              <span className={`font-medium ${delivery === 0 ? 'text-primary' : 'text-on-surface'}`}>
+                {delivery === 0 ? 'FREE' : `NPR ${delivery}`}
+              </span>
             </div>
             <div className="flex justify-between font-bold text-base border-t border-outline-variant pt-2 mt-2">
               <span>Total Paid</span>
-              <span>NPR {subtotal}</span>
+              <span>NPR {total.toLocaleString()}</span>
             </div>
           </div>
 

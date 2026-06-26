@@ -43,6 +43,7 @@ export default function MedicineDetails() {
     try {
       await api.post('/cart/items', { medicineId: med.id, quantity: qty })
       refreshCart()
+      sessionStorage.setItem('checkoutAllowed', '1')
       navigate('/dashboard/checkout/shipping')
     } catch (err) {
       setCartMsg(err.response?.data?.message || 'Failed to proceed to checkout.')
