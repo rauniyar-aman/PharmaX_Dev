@@ -27,6 +27,7 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [unverified, setUnverified] = useState(false)
 
   const handleChange = e => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
@@ -38,11 +39,17 @@ export default function SignIn() {
       return
     }
     setLoading(true)
+    setUnverified(false)
     try {
       const user = await login(form.email, form.password)
       navigate(user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password.')
+      if (err.response?.status === 403) {
+        setUnverified(true)
+        setError('')
+      } else {
+        setError(err.response?.data?.message || 'Invalid email or password.')
+      }
     } finally {
       setLoading(false)
     }
@@ -100,6 +107,19 @@ export default function SignIn() {
               </label>
               <Link to="/forgot-password" className="text-primary font-medium">Forgot Password?</Link>
             </div>
+
+            {unverified && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-2">
+                <p className="text-xs text-amber-800 font-medium">Your email address hasn't been verified yet.</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/verify-otp', { state: { email: form.email, autoResend: true } })}
+                  className="w-full py-2 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors"
+                >
+                  Verify Email Now →
+                </button>
+              </div>
+            )}
 
             {error && (
               <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{error}</p>

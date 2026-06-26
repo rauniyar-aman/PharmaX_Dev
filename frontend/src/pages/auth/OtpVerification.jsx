@@ -9,16 +9,19 @@ export default function OtpVerification() {
   const location = useLocation()
   const { verifyEmail } = useAuth()
   const email = location.state?.email
+  const autoResend = location.state?.autoResend || false
   const [code, setCode] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const [devOtp, setDevOtp] = useState(location.state?.otp || null)
   const inputs = useRef([])
 
   useEffect(() => {
-    if (!email) navigate('/signup', { replace: true })
-  }, [email, navigate])
+    if (!email) { navigate('/signup', { replace: true }); return }
+    if (autoResend) handleResend()
+  }, [])
 
   const updateCode = (value, index) => {
     if (!/^[0-9]*$/.test(value)) return
@@ -60,10 +63,14 @@ export default function OtpVerification() {
     setResendLoading(true)
     setResendSuccess(false)
     setError('')
+    setDevOtp(null)
     try {
-      await api.post('/auth/register', { email, fullName: '', password: '' })
-    } catch {}
-    setResendSuccess(true)
+      const res = await api.post('/auth/resend-otp', { email })
+      if (res.data?.data?.otp) setDevOtp(res.data.data.otp)
+      setResendSuccess(true)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to resend code. Please try again.')
+    }
     setResendLoading(false)
   }
 
@@ -86,7 +93,21 @@ export default function OtpVerification() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
+            {devOtp && (
+              <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center">
+                <p className="text-xs text-amber-700 font-medium mb-1">Email delivery failed — dev mode OTP:</p>
+                <p className="text-2xl font-bold tracking-[0.3em] text-amber-800">{devOtp}</p>
+                <button
+                  type="button"
+                  onClick={() => setCode(devOtp.split(''))}
+                  className="mt-2 text-xs text-amber-700 underline hover:text-amber-900"
+                >
+                  Auto-fill
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-6">
               <div className="grid grid-cols-6 gap-3">
                 {code.map((digit, index) => (
                   <input

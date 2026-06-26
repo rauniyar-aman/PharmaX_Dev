@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (data) => {
     const res = await api.post('/auth/register', data)
-    return res.data.data.email
+    return res.data.data
   }, [])
 
   const verifyEmail = useCallback(async (email, otp) => {

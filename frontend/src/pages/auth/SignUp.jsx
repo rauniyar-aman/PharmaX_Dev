@@ -112,13 +112,13 @@ export default function SignUp() {
 
     setLoading(true)
     try {
-      const email = await register({
+      const data = await register({
         fullName: form.fullName,
         email: form.email,
         phone: form.phone ? `+977${form.phone.replace(/\D/g, '')}` : undefined,
         password: form.password,
       })
-      navigate('/verify-otp', { state: { email } })
+      navigate('/verify-otp', { state: { email: data.email, otp: data.otp } })
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')
     } finally {
