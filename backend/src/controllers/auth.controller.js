@@ -44,14 +44,53 @@ const register = async (req, res) => {
     })
   }
 
+  let emailSent = true
   try {
     await sendVerificationEmail(email, fullName, otp)
   } catch (err) {
+    emailSent = false
     console.error('Failed to send verification email:', err.message)
-    return serverError(res, 'Account created but failed to send verification email. Please try again.')
   }
 
-  created(res, { email }, 'Account created. Please check your email for the verification code.')
+  console.log(`\n📧 OTP for ${email}: ${otp}\n`)
+
+  const devData = (!emailSent && process.env.NODE_ENV !== 'production') ? { email, otp } : { email }
+  created(res, devData, emailSent
+    ? 'Account created. Please check your email for the verification code.'
+    : `Account created but email delivery failed. Your OTP is: ${otp}`
+  )
+}
+
+// POST /api/auth/resend-otp
+const resendOtp = async (req, res) => {
+  const { email } = req.body
+  if (!email) return fail(res, 'Email is required')
+
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user) return fail(res, 'No account found with this email.', 404)
+  if (!user.otpCode && user.otpExpiresAt === null) {
+    return fail(res, 'This account is already verified.', 400)
+  }
+
+  const otp = generateOtp()
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
+  await prisma.user.update({ where: { email }, data: { otpCode: otp, otpExpiresAt } })
+
+  let emailSent = true
+  try {
+    await sendVerificationEmail(email, user.fullName, otp)
+  } catch (err) {
+    emailSent = false
+    console.error('Failed to resend OTP email:', err.message)
+  }
+
+  console.log(`\n📧 Resent OTP for ${email}: ${otp}\n`)
+
+  const devData = (!emailSent && process.env.NODE_ENV !== 'production') ? { otp } : {}
+  ok(res, devData, emailSent
+    ? 'A new verification code has been sent to your email.'
+    : `Email delivery failed. Your OTP is: ${otp}`
+  )
 }
 
 // POST /api/auth/verify-email
@@ -123,14 +162,20 @@ const forgotPassword = async (req, res) => {
 
   await prisma.user.update({ where: { email }, data: { otpCode: otp, otpExpiresAt } })
 
+  let emailSent = true
   try {
     await sendOtpEmail(email, user.fullName, otp)
   } catch (err) {
+    emailSent = false
     console.error('Failed to send OTP email:', err.message)
-    return serverError(res, 'Failed to send OTP email. Please try again.')
   }
 
-  ok(res, {}, 'Reset code sent to your email')
+  console.log(`\n🔑 Password reset OTP for ${email}: ${otp}\n`)
+
+  const devMsg = !emailSent
+    ? `Email delivery failed. Your OTP is: ${otp}`
+    : 'Reset code sent to your email'
+  ok(res, (!emailSent && process.env.NODE_ENV !== 'production') ? { otp } : {}, devMsg)
 }
 
 // POST /api/auth/reset-password
@@ -157,4 +202,4 @@ const resetPassword = async (req, res) => {
   ok(res, {}, 'Password reset successfully')
 }
 
-module.exports = { register, verifyEmail, login, getMe, forgotPassword, resetPassword }
+module.exports = { register, resendOtp, verifyEmail, login, getMe, forgotPassword, resetPassword }
