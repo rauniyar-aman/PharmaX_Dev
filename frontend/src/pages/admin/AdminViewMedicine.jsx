@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -128,7 +128,7 @@ export default function AdminViewMedicine() {
           {/* Left Column */}
           <div className="col-span-12 lg:col-span-4 space-y-6">
             {/* Image */}
-            <div className="bg-white rounded-xl border border-outline-variant p-4 shadow-sm">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 shadow-sm">
               <div className="relative aspect-square rounded-lg bg-surface-container overflow-hidden">
                 {medicine.imageUrl
                   ? <img src={medicine.imageUrl} alt={medicine.name} className="w-full h-full object-contain" />
@@ -146,7 +146,7 @@ export default function AdminViewMedicine() {
             </div>
 
             {/* Status Summary */}
-            <div className="bg-white rounded-xl border border-outline-variant p-4 shadow-sm space-y-4">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 shadow-sm space-y-4">
               <h3 className="text-lg font-semibold text-on-surface">Quick Status</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-surface-container-low rounded-lg border border-outline-variant/30">
@@ -175,7 +175,7 @@ export default function AdminViewMedicine() {
           {/* Right Column */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
             {/* Overview Card */}
-            <div className="bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -204,7 +204,7 @@ export default function AdminViewMedicine() {
                   <h4 className="text-xs font-bold uppercase text-on-surface-variant mb-2">Category</h4>
                   <div className="flex items-center gap-2 text-on-surface">
                     <span className="material-symbols-outlined text-primary">pill</span>
-                    <span className="font-medium text-sm">{medicine.category?.name || '—'}</span>
+                    <span className="font-medium text-sm">{medicine.category?.name || 'â€"'}</span>
                   </div>
                 </div>
                 <div>
@@ -232,7 +232,7 @@ export default function AdminViewMedicine() {
             </div>
 
             {/* Medical Data Tabs */}
-            <div className="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
               <div className="flex border-b border-outline-variant">
                 {TABS.map((tab, i) => (
                   <button
@@ -252,7 +252,7 @@ export default function AdminViewMedicine() {
             </div>
 
             {/* Inventory Log */}
-            <div className="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
               <div className="p-6 border-b border-outline-variant flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">history</span>
@@ -276,7 +276,7 @@ export default function AdminViewMedicine() {
       </main>
 
       <footer className="p-8 border-t border-outline-variant text-center">
-        <p className="text-on-surface-variant text-xs">© 2024 PharmaX Admin. Enterprise Pharmacy Management.</p>
+        <p className="text-on-surface-variant text-xs">Â© 2024 PharmaX Admin. Enterprise Pharmacy Management.</p>
       </footer>
     </div>
   )

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -22,7 +22,7 @@ export default function AdminCategories() {
 
   const handleDelete = async (id, name, count) => {
     if (count > 0) {
-      alert(`Cannot delete "${name}" — ${count} medicine(s) are assigned to it.`)
+      alert(`Cannot delete "${name}" â€" ${count} medicine(s) are assigned to it.`)
       return
     }
     if (!window.confirm(`Delete category "${name}"? This cannot be undone.`)) return
@@ -75,7 +75,7 @@ export default function AdminCategories() {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant flex flex-wrap items-center gap-4">
+        <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[280px] relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">filter_list</span>
             <input
@@ -100,7 +100,7 @@ export default function AdminCategories() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-surface-container-high/50 border-b border-outline-variant">
@@ -133,7 +133,7 @@ export default function AdminCategories() {
                       <span className="text-[10px] text-on-surface-variant font-mono">{cat.id.slice(0, 8).toUpperCase()}</span>
                     </td>
                     <td className="px-6 py-4 max-w-xs">
-                      <p className="text-sm text-on-surface-variant line-clamp-1">{cat.description || '—'}</p>
+                      <p className="text-sm text-on-surface-variant line-clamp-1">{cat.description || 'â€"'}</p>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="bg-secondary-fixed text-on-secondary-fixed-variant px-2.5 py-0.5 rounded-full text-xs font-bold">
@@ -185,7 +185,7 @@ export default function AdminCategories() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
+          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Categories</p>
             <div className="flex items-end justify-between">
@@ -196,15 +196,15 @@ export default function AdminCategories() {
               </span>
             </div>
           </div>
-          <div className="p-6 bg-white rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
+          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-secondary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Most Medicines</p>
             <div className="flex flex-col">
-              <h4 className="text-lg font-bold text-on-surface">{mostActive?.name || '—'}</h4>
+              <h4 className="text-lg font-bold text-on-surface">{mostActive?.name || 'â€"'}</h4>
               <span className="text-on-surface-variant text-xs">{mostActive?._count?.medicines || 0} Medicines</span>
             </div>
           </div>
-          <div className="p-6 bg-white rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
+          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-error/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Inactive</p>
             <div className="flex items-end justify-between">

@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 const navItems = [
@@ -6,7 +6,7 @@ const navItems = [
   { to: '/admin/medicines', icon: 'medication', label: 'Medicines' },
   { to: '/admin/categories', icon: 'category', label: 'Categories' },
   { to: '/admin/inventory', icon: 'inventory_2', label: 'Inventory' },
-  { to: '/admin/prescriptions', icon: 'description', label: 'Prescriptions', badge: '42' },
+  { to: '/admin/prescriptions', icon: 'description', label: 'Prescriptions' },
   { to: '/admin/orders', icon: 'shopping_cart', label: 'Orders' },
   { to: '/admin/customers', icon: 'group', label: 'Customers' },
   { to: '/admin/delivery', icon: 'local_shipping', label: 'Delivery' },
@@ -29,12 +29,10 @@ export default function AdminSidebar({ collapsed, onToggle }) {
       style={{ width: collapsed ? '72px' : '256px' }}
     >
       {/* Logo + Toggle */}
-      <div className={`flex items-center mb-10 px-4 ${collapsed ? 'flex-col gap-4' : 'justify-between'}`}>
+      <div className={`flex items-center mb-6 px-4 ${collapsed ? 'flex-col justify-center gap-2' : 'justify-between'}`}>
         {collapsed ? (
           <>
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-on-primary shrink-0">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
-            </div>
+            <img src="/PharmaX_Logo.png" alt="PharmaX" className="h-9 w-auto object-contain" />
             <button
               onClick={onToggle}
               title="Expand sidebar"
@@ -45,7 +43,7 @@ export default function AdminSidebar({ collapsed, onToggle }) {
           </>
         ) : (
           <>
-            <img src="/PharmaX_Logo.png" alt="PharmaX" className="h-9 w-auto" />
+            <img src="/PharmaX_Logo.png" alt="PharmaX" className="h-12 w-auto" />
             <button
               onClick={onToggle}
               title="Collapse sidebar"
@@ -96,23 +94,24 @@ export default function AdminSidebar({ collapsed, onToggle }) {
       {/* Footer */}
       <div className="mt-auto pt-4 border-t border-outline-variant px-2 space-y-1">
         {!collapsed ? (
-          <div className="flex items-center gap-3 px-3 py-2 mb-1">
+          <Link to="/admin/profile" className="flex items-center gap-3 px-3 py-2 mb-1 rounded-lg hover:bg-surface-container-high transition-colors group">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold shrink-0">
               {user?.fullName?.[0]?.toUpperCase() || 'A'}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-on-surface truncate">{user?.fullName || 'Admin'}</p>
               <p className="text-[10px] text-on-surface-variant truncate">{user?.email}</p>
             </div>
-          </div>
+            <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '16px' }}>open_in_new</span>
+          </Link>
         ) : (
           <div className="flex justify-center py-2 mb-1">
-            <div
+            <Link to="/admin/profile"
               title={user?.fullName || 'Admin'}
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold"
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold hover:opacity-90 transition-opacity"
             >
               {user?.fullName?.[0]?.toUpperCase() || 'A'}
-            </div>
+            </Link>
           </div>
         )}
         <button

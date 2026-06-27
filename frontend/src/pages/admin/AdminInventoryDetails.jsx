@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -107,7 +107,7 @@ export default function AdminInventoryDetails() {
         {/* Top Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Medicine Profile */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-8 border border-outline-variant shadow-sm flex items-start gap-6">
+          <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant shadow-sm flex items-start gap-6">
             <div className="w-28 h-28 rounded-2xl bg-surface-container border border-outline-variant shrink-0 flex items-center justify-center overflow-hidden">
               {med.imageUrl
                 ? <img src={med.imageUrl} alt={med.name} className="w-full h-full object-cover" />
@@ -120,7 +120,7 @@ export default function AdminInventoryDetails() {
                   {med.type}
                 </span>
               </div>
-              <p className="text-sm text-on-surface-variant mb-4">{med.brand} · {med.category?.name || 'Uncategorized'}</p>
+              <p className="text-sm text-on-surface-variant mb-4">{med.brand} Â· {med.category?.name || 'Uncategorized'}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div>
                   <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-0.5">Price</p>
@@ -128,13 +128,13 @@ export default function AdminInventoryDetails() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-0.5">Package</p>
-                  <p className="text-lg font-bold text-on-surface">{med.packageSize || '—'}</p>
+                  <p className="text-lg font-bold text-on-surface">{med.packageSize || 'â€"'}</p>
                 </div>
                 <div>
                   <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-0.5">Rating</p>
                   <p className="text-lg font-bold text-on-surface flex items-center gap-1">
                     <span className="material-symbols-outlined text-amber-400 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                    {med.rating ? Number(med.rating).toFixed(1) : '—'}
+                    {med.rating ? Number(med.rating).toFixed(1) : 'â€"'}
                   </p>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function AdminInventoryDetails() {
           </div>
 
           {/* Status Card */}
-          <div className="bg-white rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col gap-4">
+          <div className="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col gap-4">
             <div>
               <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Stock Status</p>
               <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border ${status.cls}`}>
@@ -176,7 +176,7 @@ export default function AdminInventoryDetails() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Stock Update Form */}
-          <div className="lg:col-span-1 bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+          <div className="lg:col-span-1 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-outline-variant flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">inventory_2</span>
               <h3 className="text-base font-semibold text-on-surface">Update Stock</h3>
@@ -238,13 +238,13 @@ export default function AdminInventoryDetails() {
                 className="w-full py-3 bg-primary text-white rounded-lg font-semibold text-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <span className="material-symbols-outlined text-base">save</span>
-                {saving ? 'Saving…' : 'Update Stock'}
+                {saving ? 'Savingâ€¦' : 'Update Stock'}
               </button>
             </form>
           </div>
 
           {/* Medicine Details */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+          <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-outline-variant flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">info</span>
               <h3 className="text-base font-semibold text-on-surface">Medicine Information</h3>
@@ -252,12 +252,12 @@ export default function AdminInventoryDetails() {
             <div className="p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
                 {[
-                  { label: 'Generic Name', value: med.genericName || '—' },
-                  { label: 'Brand', value: med.brand || '—' },
-                  { label: 'Manufacturer', value: med.manufacturer || '—' },
-                  { label: 'Category', value: med.category?.name || '—' },
+                  { label: 'Generic Name', value: med.genericName || 'â€"' },
+                  { label: 'Brand', value: med.brand || 'â€"' },
+                  { label: 'Manufacturer', value: med.manufacturer || 'â€"' },
+                  { label: 'Category', value: med.category?.name || 'â€"' },
                   { label: 'Type', value: med.type },
-                  { label: 'Package Size', value: med.packageSize || '—' },
+                  { label: 'Package Size', value: med.packageSize || 'â€"' },
                   { label: 'Price', value: `Rs ${Number(med.price).toFixed(2)}` },
                   { label: 'Requires Prescription', value: med.type === 'Rx' ? 'Yes' : 'No' },
                   { label: 'Expiry Date', value: med.expiryDate ? new Date(med.expiryDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Not set' },
@@ -284,7 +284,7 @@ export default function AdminInventoryDetails() {
           {[
             { label: 'Critical Level', threshold: '< 20 units', value: med.stockQuantity < 20, color: 'text-error', bg: 'bg-error/5 border-error/20', icon: 'dangerous' },
             { label: 'Low Stock Alert', threshold: '< 50 units', value: isLow, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: 'warning' },
-            { label: 'Healthy Stock', threshold: '≥ 50 units', value: med.inStock && med.stockQuantity >= 50, color: 'text-primary', bg: 'bg-primary/5 border-primary/20', icon: 'check_circle' },
+            { label: 'Healthy Stock', threshold: 'â‰¥ 50 units', value: med.inStock && med.stockQuantity >= 50, color: 'text-primary', bg: 'bg-primary/5 border-primary/20', icon: 'check_circle' },
           ].map(item => (
             <div key={item.label} className={`rounded-xl border p-5 flex items-center gap-4 ${item.bg}`}>
               <span className={`material-symbols-outlined text-3xl ${item.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>

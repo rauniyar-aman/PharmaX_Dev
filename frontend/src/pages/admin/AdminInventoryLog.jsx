@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -48,7 +48,7 @@ export default function AdminInventoryLog() {
           <div>
             <h1 className="text-3xl font-semibold text-on-surface">Inventory Activity Log</h1>
             <p className="text-sm text-on-surface-variant">
-              {medicine ? `${medicine.name} • ` : ''}
+              {medicine ? `${medicine.name} â€¢ ` : ''}
               {medicine && <span className="font-semibold text-primary">SKU: {medicine.id.slice(0, 8).toUpperCase()}</span>}
             </p>
           </div>
@@ -61,12 +61,12 @@ export default function AdminInventoryLog() {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { label: 'Stock In (30d)', value: '—', icon: 'trending_up', iconBg: 'bg-primary-fixed text-on-primary-fixed', barCls: 'bg-primary' },
-            { label: 'Stock Out (30d)', value: '—', icon: 'trending_down', iconBg: 'bg-secondary-fixed text-on-secondary-fixed', barCls: 'bg-secondary' },
-            { label: 'Net Change', value: '—', icon: 'swap_vert', iconBg: 'bg-tertiary-fixed text-on-tertiary-fixed', barCls: 'bg-tertiary' },
-            { label: 'Current Inventory', value: medicine ? medicine.stockQuantity.toLocaleString() : '—', sub: 'units', icon: 'inventory', iconBg: 'bg-white/20', highlight: true },
+            { label: 'Stock In (30d)', value: 'â€"', icon: 'trending_up', iconBg: 'bg-primary-fixed text-on-primary-fixed', barCls: 'bg-primary' },
+            { label: 'Stock Out (30d)', value: 'â€"', icon: 'trending_down', iconBg: 'bg-secondary-fixed text-on-secondary-fixed', barCls: 'bg-secondary' },
+            { label: 'Net Change', value: 'â€"', icon: 'swap_vert', iconBg: 'bg-tertiary-fixed text-on-tertiary-fixed', barCls: 'bg-tertiary' },
+            { label: 'Current Inventory', value: medicine ? medicine.stockQuantity.toLocaleString() : 'â€"', sub: 'units', icon: 'inventory', iconBg: 'bg-white/20', highlight: true },
           ].map(c => (
-            <div key={c.label} className={`${c.highlight ? 'bg-primary-container text-on-primary-container' : 'bg-white border border-outline-variant'} p-4 rounded-xl shadow-sm flex flex-col gap-2 relative overflow-hidden group`}>
+            <div key={c.label} className={`${c.highlight ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-lowest border border-outline-variant'} p-4 rounded-xl shadow-sm flex flex-col gap-2 relative overflow-hidden group`}>
               <div className="flex justify-between items-start">
                 <span className={`text-[11px] font-bold uppercase tracking-wider ${c.highlight ? 'opacity-80' : 'text-on-surface-variant'}`}>{c.label}</span>
                 <div className={`${c.iconBg} p-1.5 rounded-lg`}>
@@ -90,7 +90,7 @@ export default function AdminInventoryLog() {
         </div>
 
         {/* Activity Table */}
-        <div className="bg-white border border-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-surface-container-high border-b border-outline-variant">

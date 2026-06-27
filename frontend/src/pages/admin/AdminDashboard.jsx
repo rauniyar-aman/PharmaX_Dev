@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 
 const KpiCard = ({ icon, iconBg, iconColor, label, value, badge, badgeColor }) => (
-  <div className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant flex flex-col justify-between">
+  <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-col justify-between">
     <div className="flex items-center justify-between mb-2">
       <div className={`p-2 ${iconBg} rounded-lg ${iconColor}`}>
         <span className="material-symbols-outlined text-xl">{icon}</span>
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
 
         <div className="mb-6">
           <h5 className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Storage Metrics</h5>
-          <div className="p-4 bg-white rounded-xl border border-outline-variant">
+          <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs font-bold text-on-surface">Cold Storage</span>
               <span className="text-xs text-primary">Normal</span>
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
               <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
                 <div className="bg-primary h-full w-[65%]" />
               </div>
-              <span className="text-xs font-bold text-on-surface">4°C</span>
+              <span className="text-xs font-bold text-on-surface">4Â°C</span>
             </div>
             <p className="text-[10px] text-on-surface-variant mt-2">Sensors active in all 12 modules.</p>
           </div>
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
       {/* Main Content (offset left sidebar via AdminLayout ml-64, offset right sidebar here) */}
       <div className="mr-72">
         {/* Header */}
-        <header className="sticky top-0 z-40 w-full h-16 bg-white shadow-sm flex justify-between items-center px-8">
+        <header className="sticky top-0 z-40 w-full h-16 bg-surface-container-lowest shadow-sm flex justify-between items-center px-8">
           <div className="flex items-center flex-1 max-w-2xl">
             <div className="relative w-full">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
@@ -142,32 +142,32 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <KpiCard
               icon="pill" iconBg="bg-primary/10" iconColor="text-primary"
-              label="Total Medicines" value={stats ? stats.totalMedicines.toLocaleString() : '—'}
+              label="Total Medicines" value={stats ? stats.totalMedicines.toLocaleString() : 'â€"'}
               badge="+4.2%" badgeColor="text-primary"
             />
             <KpiCard
               icon="shopping_bag" iconBg="bg-secondary-container/20" iconColor="text-secondary"
-              label="Total Orders" value={stats ? stats.totalOrders.toLocaleString() : '—'}
+              label="Total Orders" value={stats ? stats.totalOrders.toLocaleString() : 'â€"'}
               badge="+12%" badgeColor="text-secondary"
             />
             <KpiCard
               icon="group" iconBg="bg-surface-container-highest" iconColor="text-tertiary"
-              label="Active Customers" value={stats ? stats.totalCustomers.toLocaleString() : '—'}
+              label="Active Customers" value={stats ? stats.totalCustomers.toLocaleString() : 'â€"'}
               badge="~21 today" badgeColor="text-on-surface-variant"
             />
             <KpiCard
               icon="clinical_notes" iconBg="bg-error-container/20" iconColor="text-error"
-              label="Pending Scripts" value={stats ? stats.pendingPrescriptions : '—'}
-              badge="Critical" badgeColor="text-error"
+              label="Pending Prescriptions" value={stats ? stats.pendingPrescriptions : 0}
+              badge={stats?.pendingPrescriptions > 0 ? 'Action Required' : ''} badgeColor="text-error"
             />
             <KpiCard
               icon="warning" iconBg="bg-outline-variant/20" iconColor="text-outline"
-              label="Low Stock Items" value={stats ? stats.outOfStock : '—'}
+              label="Low Stock Items" value={stats ? stats.outOfStock : 'â€"'}
               badge="Attention" badgeColor="text-error"
             />
             <KpiCard
               icon="payments" iconBg="bg-primary/10" iconColor="text-primary"
-              label="Total Revenue" value={stats ? fmt(Number(stats.totalRevenue)) : '—'}
+              label="Total Revenue" value={stats ? fmt(Number(stats.totalRevenue)) : 'â€"'}
               badge="Rs 120k avg." badgeColor="text-primary"
             />
           </div>
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
           {/* Analytics Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Sales Trend */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-outline-variant">
+            <div className="lg:col-span-2 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <div className="flex items-center justify-between mb-6">
                 <h4 className="text-lg font-semibold text-on-surface">Sales Trend</h4>
                 <div className="flex gap-2">
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Order Distribution */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-outline-variant">
+            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <h4 className="text-lg font-semibold text-on-surface mb-6">Order Distribution</h4>
               <div className="flex justify-center mb-6">
                 <div className="relative w-44 h-44 rounded-full border-[12px] border-surface-container flex items-center justify-center">
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
           {/* Middle Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Recent Orders */}
-            <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+            <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
               <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low/50">
                 <h4 className="text-lg font-semibold text-on-surface">Recent Orders</h4>
                 <button className="text-primary text-sm font-bold hover:underline">View All</button>
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Pending Prescriptions */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-outline-variant">
+            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <div className="flex justify-between items-center mb-6">
                 <h4 className="text-lg font-semibold text-on-surface">Pending Prescriptions</h4>
                 <span className="bg-error text-on-error px-2 py-0.5 rounded-full text-[10px] font-bold">
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
                       <p className="text-sm font-bold text-on-surface truncate">{p.name}</p>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-error font-bold uppercase">Pending Verification</span>
-                        <span className="text-[10px] text-on-surface-variant">• {p.time}</span>
+                        <span className="text-[10px] text-on-surface-variant">â€¢ {p.time}</span>
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
           {/* Bottom Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Inventory Alert */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-outline-variant">
+            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <h4 className="text-lg font-semibold text-on-surface mb-4">Inventory Alert</h4>
               <div className="space-y-4">
                 {[
@@ -332,13 +332,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* Delivery Timeline */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-outline-variant">
+            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <h4 className="text-lg font-semibold text-on-surface mb-6">Delivery Timeline</h4>
               <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-outline-variant">
                 <div className="relative">
                   <div className="absolute -left-[20px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-primary/10" />
                   <p className="text-sm font-bold text-on-surface">Order #PH-9380 Delivered</p>
-                  <p className="text-[10px] text-on-surface-variant">Agent: S. K. Khan • 2 mins ago</p>
+                  <p className="text-[10px] text-on-surface-variant">Agent: S. K. Khan â€¢ 2 mins ago</p>
                 </div>
                 <div className="relative">
                   <div className="absolute -left-[20px] top-1.5 w-2.5 h-2.5 rounded-full bg-secondary ring-4 ring-secondary/10" />
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* User Growth */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-outline-variant">
+            <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <h4 className="text-lg font-semibold text-on-surface mb-2">User Growth</h4>
               <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-2xl font-bold text-primary">+{stats ? Math.floor(stats.totalCustomers * 0.08) : 242}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -17,7 +17,7 @@ export default function AdminCategoryDetails() {
 
   const handleDelete = async () => {
     if ((category._count?.medicines || 0) > 0) {
-      alert(`Cannot delete "${category.name}" — ${category._count.medicines} medicine(s) are assigned to it.`)
+      alert(`Cannot delete "${category.name}" â€" ${category._count.medicines} medicine(s) are assigned to it.`)
       return
     }
     if (!window.confirm(`Delete "${category.name}"? This cannot be undone.`)) return
@@ -84,7 +84,7 @@ export default function AdminCategoryDetails() {
         {/* Summary Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Category Profile */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-8 border border-outline-variant shadow-sm flex items-start gap-8">
+          <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant shadow-sm flex items-start gap-8">
             <div className="w-32 h-32 rounded-2xl bg-surface-container flex items-center justify-center text-7xl shrink-0">
               {category.icon || <span className="material-symbols-outlined text-primary text-6xl">category</span>}
             </div>
@@ -131,7 +131,7 @@ export default function AdminCategoryDetails() {
             <div className="mt-8 relative z-10">
               <button
                 onClick={() => navigate('/admin/inventory')}
-                className="bg-white text-primary text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-surface-variant transition-colors"
+                className="bg-surface-container-lowest text-primary text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-surface-variant transition-colors"
               >
                 View Inventory
               </button>
@@ -140,7 +140,7 @@ export default function AdminCategoryDetails() {
         </div>
 
         {/* Medicines Table */}
-        <div className="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-8 py-5 border-b border-outline-variant flex items-center justify-between">
             <h3 className="text-lg font-semibold text-on-surface">Medicines in this Category</h3>
             <button

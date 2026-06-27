@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../lib/api'
 
-const FIELD_CLS = 'w-full rounded-lg border border-outline-variant px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all'
+const FIELD_CLS = 'w-full rounded-lg border border-outline-variant px-3 py-2 text-sm bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all'
 const LABEL_CLS = 'block text-xs font-semibold text-on-surface-variant mb-1'
 
 export default function AdminAddMedicine() {
@@ -123,7 +123,7 @@ export default function AdminAddMedicine() {
           {/* Left Column */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
             {/* Basic Info */}
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="info" title="Basic Information" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -142,7 +142,7 @@ export default function AdminAddMedicine() {
             </section>
 
             {/* Classification */}
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="grid_view" title="Classification" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -169,13 +169,13 @@ export default function AdminAddMedicine() {
             </section>
 
             {/* Pricing & Inventory */}
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="payments" title="Pricing & Inventory" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className={LABEL_CLS}>Price (Rs) *</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium text-sm">â‚¹</span>
                     <input className={`${FIELD_CLS} pl-8`} name="price" type="number" value={form.price} onChange={handleChange} placeholder="0.00" min="0" step="0.01" />
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function AdminAddMedicine() {
             </section>
 
             {/* Additional Info */}
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="clinical_notes" title="Additional Info" />
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -226,7 +226,7 @@ export default function AdminAddMedicine() {
           {/* Right Column */}
           <div className="col-span-12 lg:col-span-4 space-y-6">
             {/* Image */}
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="image" title="Media" />
               <label className={LABEL_CLS}>Medicine Image URL</label>
               <input className={FIELD_CLS} name="imageUrl" value={form.imageUrl} onChange={handleChange} placeholder="https://example.com/image.jpg" type="url" />
@@ -294,7 +294,7 @@ export default function AdminAddMedicine() {
                 disabled={loading}
                 className="w-full py-4 bg-primary text-white font-semibold text-lg rounded-xl hover:opacity-90 shadow-md transition-all active:scale-[0.98] disabled:opacity-60"
               >
-                {loading ? 'Saving…' : isEdit ? 'Update Medicine' : 'Save Medicine'}
+                {loading ? 'Savingâ€¦' : isEdit ? 'Update Medicine' : 'Save Medicine'}
               </button>
               <button
                 type="button"

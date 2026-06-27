@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -95,7 +95,7 @@ export default function AdminInventory() {
             { label: 'Low Stock', value: lowStock, icon: 'warning', bg: 'bg-amber-50', color: 'text-amber-600', fill: true },
             { label: 'Out of Stock', value: outOfStock, icon: 'error', bg: 'bg-error-container/40', color: 'text-error', fill: true },
           ].map(c => (
-            <div key={c.label} className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm flex items-center gap-4">
+            <div key={c.label} className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant shadow-sm flex items-center gap-4">
               <div className={`w-12 h-12 ${c.bg} rounded-lg flex items-center justify-center ${c.color}`}>
                 <span className="material-symbols-outlined text-[28px]" style={c.fill ? { fontVariationSettings: "'FILL' 1" } : {}}>{c.icon}</span>
               </div>
@@ -108,7 +108,7 @@ export default function AdminInventory() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap items-center gap-4">
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[180px]">
             <select
               className="w-full bg-surface-container-low border border-outline-variant rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-secondary outline-none"
@@ -151,7 +151,7 @@ export default function AdminInventory() {
         </div>
 
         {/* Inventory Table */}
-        <div className="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
           {loading ? (
             <div className="p-12 flex justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
           ) : (
@@ -193,7 +193,7 @@ export default function AdminInventory() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || '—'}</td>
+                        <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || 'â€"'}</td>
                         <td className="px-6 py-4">
                           <div className={`text-sm font-medium ${med.stockQuantity < 50 ? 'text-error' : 'text-on-surface'}`}>
                             {med.stockQuantity.toLocaleString()} Units
@@ -229,7 +229,7 @@ export default function AdminInventory() {
                                   </span>
                                 )
                               })()
-                            : <span className="text-on-surface-variant">—</span>
+                            : <span className="text-on-surface-variant">â€"</span>
                           }
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -261,7 +261,7 @@ export default function AdminInventory() {
           {/* Pagination */}
           <div className="px-6 py-4 bg-surface-container-low/50 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-outline-variant">
             <span className="text-xs text-on-surface-variant">
-              {pagination.total === 0 ? 'No medicines found' : `Showing ${((page - 1) * LIMIT) + 1}–${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} items`}
+              {pagination.total === 0 ? 'No medicines found' : `Showing ${((page - 1) * LIMIT) + 1}â€"${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} items`}
             </span>
             <div className="flex items-center gap-1">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors disabled:opacity-30">

@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../lib/api'
 
-const FIELD_CLS = 'w-full p-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white outline-none transition-all text-sm'
+const FIELD_CLS = 'w-full p-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-surface-container-lowest outline-none transition-all text-sm'
 const LABEL_CLS = 'block text-sm font-semibold text-on-surface-variant mb-1.5'
 
-const ICON_OPTIONS = ['💊', '🌿', '💉', '🦠', '❤️', '✨', '🤧', '🫁', '🧪', '🩺', '🩹', '🧬', '🔬', '💆', '🦷', '👁️', '🧠', '🦴']
+const ICON_OPTIONS = ['medication', 'local_pharmacy', 'vaccines', 'medical_services', 'favorite', 'healing', 'sick', 'air', 'science', 'stethoscope', 'biotech', 'spa', 'visibility', 'psychology', 'dentistry', 'fitness_center', 'child_care', 'orthopedics']
 
 export default function AdminAddCategory() {
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = Boolean(id)
 
-  const [form, setForm] = useState({ name: '', description: '', icon: '💊', isActive: 'true' })
+  const [form, setForm] = useState({ name: '', description: '', icon: 'medication', isActive: 'true' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -22,7 +22,7 @@ export default function AdminAddCategory() {
       api.get(`/categories/${id}`)
         .then(res => {
           const c = res.data.data.category
-          setForm({ name: c.name || '', description: c.description || '', icon: c.icon || '💊', isActive: c.isActive ? 'true' : 'false' })
+          setForm({ name: c.name || '', description: c.description || '', icon: c.icon || 'medication', isActive: c.isActive ? 'true' : 'false' })
         })
         .catch(() => navigate('/admin/categories', { replace: true }))
     }
@@ -80,7 +80,7 @@ export default function AdminAddCategory() {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Form */}
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-outline-variant">
                 <span className="material-symbols-outlined text-primary">info</span>
                 <h3 className="text-lg font-semibold">Basic Information</h3>
@@ -115,38 +115,38 @@ export default function AdminAddCategory() {
 
           {/* Right: Icon Picker */}
           <div className="space-y-6">
-            <section className="bg-white p-6 rounded-xl border border-outline-variant shadow-sm sticky top-20">
+            <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm sticky top-20">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-outline-variant">
                 <span className="material-symbols-outlined text-primary">emoji_symbols</span>
                 <h3 className="text-lg font-semibold">Category Icon</h3>
               </div>
               <div>
                 <label className={LABEL_CLS}>Selected Icon</label>
-                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-5xl mx-auto mb-4 border-2 border-primary/20">
-                  {form.icon}
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border-2 border-primary/20">
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '36px', fontVariationSettings: "'FILL' 1" }}>{form.icon}</span>
                 </div>
-                <label className={LABEL_CLS}>Choose an Emoji</label>
+                <label className={LABEL_CLS}>Choose an Icon</label>
                 <div className="grid grid-cols-6 gap-2">
-                  {ICON_OPTIONS.map(emoji => (
+                  {ICON_OPTIONS.map(icon => (
                     <button
-                      key={emoji}
+                      key={icon}
                       type="button"
-                      onClick={() => setForm(prev => ({ ...prev, icon: emoji }))}
-                      className={`w-full aspect-square rounded-lg flex items-center justify-center text-xl transition-all ${form.icon === emoji ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-surface-container-low border border-outline-variant'}`}
+                      onClick={() => setForm(prev => ({ ...prev, icon }))}
+                      className={`w-full aspect-square rounded-lg flex items-center justify-center transition-all ${form.icon === icon ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-surface-container-low border border-outline-variant'}`}
                     >
-                      {emoji}
+                      <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
                     </button>
                   ))}
                 </div>
                 <div className="mt-4">
-                  <label className={LABEL_CLS}>Or type any emoji</label>
+                  <label className={LABEL_CLS}>Or type an icon name</label>
                   <input
                     className={FIELD_CLS}
                     name="icon"
                     value={form.icon}
                     onChange={handleChange}
-                    placeholder="e.g. 🏥"
-                    maxLength={4}
+                    placeholder="e.g. medication"
+                    maxLength={40}
                   />
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function AdminAddCategory() {
               className="w-full sm:w-auto px-10 py-3 bg-primary text-white rounded-lg font-semibold hover:opacity-90 shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <span className="material-symbols-outlined">save</span>
-              {loading ? 'Saving…' : isEdit ? 'Update Category' : 'Save Category'}
+              {loading ? 'Savingâ€¦' : isEdit ? 'Update Category' : 'Save Category'}
             </button>
             <button
               type="button"
@@ -200,3 +200,4 @@ export default function AdminAddCategory() {
     </div>
   )
 }
+

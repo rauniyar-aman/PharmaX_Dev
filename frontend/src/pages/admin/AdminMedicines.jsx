@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -102,9 +102,9 @@ export default function AdminMedicines() {
             { icon: 'inventory', bg: 'bg-primary-fixed', color: 'text-on-primary-fixed-variant', label: 'Total Medicines', value: pagination.total, badge: '+12%', badgeCls: 'text-primary bg-primary/10' },
             { icon: 'warning', bg: 'bg-error-container', color: 'text-on-error-container', label: 'Out of Stock', value: medicines.filter(m => !m.inStock).length, badge: 'Alert', badgeCls: 'text-error bg-error/10' },
             { icon: 'receipt_long', bg: 'bg-secondary-fixed', color: 'text-on-secondary-fixed-variant', label: 'Showing', value: medicines.length, badge: '+5%', badgeCls: 'text-secondary bg-secondary/10' },
-            { icon: 'payments', bg: 'bg-tertiary-fixed', color: 'text-on-tertiary-fixed-variant', label: 'Monthly Revenue', value: monthlyRevenue !== null ? `Rs ${Number(monthlyRevenue).toLocaleString()}` : '—', badge: 'This month', badgeCls: 'text-tertiary bg-tertiary/10' },
+            { icon: 'payments', bg: 'bg-tertiary-fixed', color: 'text-on-tertiary-fixed-variant', label: 'Monthly Revenue', value: monthlyRevenue !== null ? `Rs ${Number(monthlyRevenue).toLocaleString()}` : 'â€"', badge: 'This month', badgeCls: 'text-tertiary bg-tertiary/10' },
           ].map(c => (
-            <div key={c.label} className="bg-white p-4 rounded-2xl border border-outline-variant shadow-sm flex flex-col gap-2">
+            <div key={c.label} className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant shadow-sm flex flex-col gap-2">
               <div className="flex justify-between items-start">
                 <div className={`p-2 ${c.bg} rounded-xl ${c.color}`}>
                   <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{c.icon}</span>
@@ -118,7 +118,7 @@ export default function AdminMedicines() {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap gap-4 items-center">
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[240px] relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
             <form onSubmit={handleSearch}>
@@ -132,7 +132,7 @@ export default function AdminMedicines() {
             </form>
           </div>
           <select
-            className="min-w-[140px] px-3 py-2 border border-outline-variant rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none bg-white"
+            className="min-w-[140px] px-3 py-2 border border-outline-variant rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none bg-surface-container-lowest"
             value={categoryFilter}
             onChange={e => { setCategoryFilter(e.target.value); setPage(1) }}
           >
@@ -140,7 +140,7 @@ export default function AdminMedicines() {
             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
           <select
-            className="min-w-[140px] px-3 py-2 border border-outline-variant rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none bg-white"
+            className="min-w-[140px] px-3 py-2 border border-outline-variant rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none bg-surface-container-lowest"
             value={typeFilter}
             onChange={e => { setTypeFilter(e.target.value); setPage(1) }}
           >
@@ -149,7 +149,7 @@ export default function AdminMedicines() {
             <option value="OTC">OTC Product</option>
           </select>
           <select
-            className="min-w-[140px] px-3 py-2 border border-outline-variant rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none bg-white"
+            className="min-w-[140px] px-3 py-2 border border-outline-variant rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none bg-surface-container-lowest"
             value={stockFilter}
             onChange={e => { setStockFilter(e.target.value); setPage(1) }}
           >
@@ -160,7 +160,7 @@ export default function AdminMedicines() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           {loading ? (
             <div className="p-12 flex justify-center">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -202,7 +202,7 @@ export default function AdminMedicines() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || '—'}</td>
+                      <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || 'â€"'}</td>
                       <td className="px-6 py-4">
                         {med.type === 'Rx'
                           ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-error-container text-on-error-container border border-error/20">Rx Required</span>
@@ -245,11 +245,11 @@ export default function AdminMedicines() {
           )}
 
           {/* Pagination */}
-          <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white border-t border-outline-variant">
+          <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface-container-lowest border-t border-outline-variant">
             <p className="text-sm text-on-surface-variant">
               {pagination.total === 0
                 ? 'No medicines found'
-                : `Showing ${((page - 1) * LIMIT) + 1}–${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} medicines`}
+                : `Showing ${((page - 1) * LIMIT) + 1}â€"${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} medicines`}
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -283,7 +283,7 @@ export default function AdminMedicines() {
       </section>
 
       <footer className="px-8 py-4 border-t border-outline-variant bg-surface-container-low text-on-surface-variant flex justify-between items-center">
-        <p className="text-sm">© 2024 PharmaX Admin Panel. All rights reserved.</p>
+        <p className="text-sm">Â© 2024 PharmaX Admin Panel. All rights reserved.</p>
         <div className="flex items-center gap-6 text-sm">
           <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
           <a href="#" className="hover:text-primary transition-colors">Help Center</a>
