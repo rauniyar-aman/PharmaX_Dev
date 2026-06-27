@@ -20,7 +20,7 @@ const upload = multer({
 
 router.use(protect)
 router.get('/', getPrescriptions)
-router.post('/', upload.single('file'), uploadPrescription)
+router.post('/', upload.array('files', 10), uploadPrescription)
 router.delete('/:id', deletePrescription)
 
 module.exports = router
