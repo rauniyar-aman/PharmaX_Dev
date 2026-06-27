@@ -13,6 +13,14 @@ import AdminAddCategory from './pages/admin/AdminAddCategory'
 import AdminCategoryDetails from './pages/admin/AdminCategoryDetails'
 import AdminInventory from './pages/admin/AdminInventory'
 import AdminInventoryDetails from './pages/admin/AdminInventoryDetails'
+import AdminProfile from './pages/admin/AdminProfile'
+import AdminOrders from './pages/admin/AdminOrders'
+import AdminPrescriptions from './pages/admin/AdminPrescriptions'
+import AdminCustomers from './pages/admin/AdminCustomers'
+import AdminCustomerDetail from './pages/admin/AdminCustomerDetail'
+import AdminReports from './pages/admin/AdminReports'
+import AdminDelivery from './pages/admin/AdminDelivery'
+import AdminSettings from './pages/admin/AdminSettings'
 
 // Public pages
 import Home from './pages/Home'
@@ -23,6 +31,7 @@ import ForgotPasswordVerify from './pages/auth/ForgotPasswordVerify'
 import OtpVerification from './pages/auth/OtpVerification'
 import OtpVerified from './pages/auth/OtpVerified'
 import ResetPasswordSuccess from './pages/auth/ResetPasswordSuccess'
+import RestoreAccount from './pages/auth/RestoreAccount'
 
 // Dashboard layout + pages
 import DashboardLayout from './components/layouts/DashboardLayout'
@@ -37,6 +46,7 @@ import CheckoutShipping from './pages/checkout/CheckoutShipping'
 import CheckoutPrescription from './pages/checkout/CheckoutPrescription'
 import CheckoutPayment from './pages/checkout/CheckoutPayment'
 import OrderConfirmation from './pages/checkout/OrderConfirmation'
+import PaymentFailed from './pages/checkout/PaymentFailed'
 
 // Orders
 import Orders from './pages/orders/Orders'
@@ -62,6 +72,7 @@ export default function App() {
       <Route path="/verify-otp" element={<OtpVerification />} />
       <Route path="/otp-verified" element={<OtpVerified />} />
       <Route path="/reset-success" element={<ResetPasswordSuccess />} />
+      <Route path="/restore-account" element={<RestoreAccount />} />
 
       {/* Dashboard Routes */}
       <Route path="/dashboard" element={<DashboardLayout />}>
@@ -77,6 +88,7 @@ export default function App() {
         <Route path="checkout/prescription" element={<CheckoutPrescription />} />
         <Route path="checkout/payment" element={<CheckoutPayment />} />
         <Route path="checkout/confirmation" element={<OrderConfirmation />} />
+        <Route path="checkout/failed" element={<PaymentFailed />} />
 
         {/* Orders */}
         <Route path="orders" element={<Orders />} />
@@ -106,6 +118,14 @@ export default function App() {
         <Route path="categories/:id/edit" element={<AdminAddCategory />} />
         <Route path="inventory" element={<AdminInventory />} />
         <Route path="inventory/:id" element={<AdminInventoryDetails />} />
+        <Route path="profile" element={<AdminProfile />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="prescriptions" element={<AdminPrescriptions />} />
+        <Route path="customers" element={<AdminCustomers />} />
+        <Route path="customers/:id" element={<AdminCustomerDetail />} />
+        <Route path="reports" element={<AdminReports />} />
+        <Route path="delivery" element={<AdminDelivery />} />
+        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
       {/* Fallback */}
