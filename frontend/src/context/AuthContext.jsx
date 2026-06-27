@@ -14,7 +14,11 @@ export function AuthProvider({ children }) {
     if (!token) { setLoading(false); return }
 
     api.get('/auth/me')
-      .then(res => setUser(res.data.data.user))
+      .then(res => {
+        const u = res.data.data.user
+        setUser(u)
+        localStorage.setItem('pharmax_user', JSON.stringify(u))
+      })
       .catch(() => { localStorage.removeItem('pharmax_token'); localStorage.removeItem('pharmax_user') })
       .finally(() => setLoading(false))
   }, [])
@@ -42,6 +46,25 @@ export function AuthProvider({ children }) {
     return user
   }, [])
 
+  const refreshUser = useCallback(() => {
+    api.get('/auth/me')
+      .then(res => {
+        const u = res.data.data.user
+        setUser(u)
+        localStorage.setItem('pharmax_user', JSON.stringify(u))
+      })
+      .catch(() => {})
+  }, [])
+
+  const restoreAccount = useCallback(async (email, otp) => {
+    const res = await api.post('/auth/restore-confirm', { email, otp })
+    const { token, user } = res.data.data
+    localStorage.setItem('pharmax_token', token)
+    localStorage.setItem('pharmax_user', JSON.stringify(user))
+    setUser(user)
+    return user
+  }, [])
+
   const logout = useCallback(() => {
     localStorage.removeItem('pharmax_token')
     localStorage.removeItem('pharmax_user')
@@ -49,7 +72,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, refreshUser, restoreAccount, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   )

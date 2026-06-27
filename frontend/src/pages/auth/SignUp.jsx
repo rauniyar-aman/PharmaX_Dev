@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Logo from '../../components/common/Logo'
@@ -120,7 +120,11 @@ export default function SignUp() {
       })
       navigate('/verify-otp', { state: { email: data.email, otp: data.otp } })
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      if (err.response?.data?.code === 'ACCOUNT_DELETED') {
+        navigate('/restore-account', { state: { email: form.email, fromRegister: true } })
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -164,7 +168,7 @@ export default function SignUp() {
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 mb-5"
           >
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-lg leading-none">
-              ‹
+              â€¹
             </span>
             Back to homepage
           </Link>
@@ -173,7 +177,7 @@ export default function SignUp() {
             <Logo size="lg" />
           </div>
 
-          <div className="rounded-[28px] border border-surface-container bg-white p-10 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.16)]">
+          <div className="rounded-[28px] border border-surface-container bg-surface-container-lowest p-10 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.16)]">
             <h1 className="text-2xl font-semibold text-on-surface">Create Account</h1>
             <p className="mt-1.5 text-sm text-on-surface-variant">Start your clinical journey with PharmaX today.</p>
 
@@ -189,7 +193,7 @@ export default function SignUp() {
                 />
                 <div>
                   <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Phone Number</label>
-                  <div className="flex items-center rounded-2xl border border-surface-container bg-white overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition">
+                  <div className="flex items-center rounded-2xl border border-surface-container bg-surface-container-lowest overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition">
                     <div className="flex items-center gap-1.5 px-3 py-3 border-r border-surface-container bg-surface-container-low text-on-surface-variant shrink-0">
                       <span className="text-on-surface-variant">{PhoneIcon}</span>
                       <span className="text-sm font-semibold text-on-surface">+977</span>
@@ -223,7 +227,7 @@ export default function SignUp() {
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={handleChange}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   icon={LockIcon}
                   right={
                     <button
@@ -241,7 +245,7 @@ export default function SignUp() {
                   type={showPassword ? 'text' : 'password'}
                   value={form.confirmPassword}
                   onChange={handleChange}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   icon={LockIcon}
                 />
               </div>
@@ -265,7 +269,7 @@ export default function SignUp() {
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating account…' : 'Register'}
+                {loading ? 'Creating accountâ€¦' : 'Register'}
               </Button>
             </form>
 

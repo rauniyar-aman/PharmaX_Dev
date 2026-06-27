@@ -28,31 +28,42 @@ export default function SignIn() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [unverified, setUnverified] = useState(false)
+  const [accountStatus, setAccountStatus] = useState(null) // 'deleted' | 'deactivated'
 
   const handleChange = e => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
+    setUnverified(false)
+    setAccountStatus(null)
     if (!form.email || !form.password) {
       setError('Please enter your email and password.')
       return
     }
     setLoading(true)
-    setUnverified(false)
     try {
       const user = await login(form.email, form.password)
       navigate(user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')
     } catch (err) {
-      if (err.response?.status === 403) {
+      const code = err.response?.data?.code
+      const status = err.response?.status
+      if (status === 410 || code === 'ACCOUNT_DELETED') {
+        setAccountStatus('deleted')
+      } else if (code === 'ACCOUNT_DEACTIVATED') {
+        setAccountStatus('deactivated')
+      } else if (status === 403 && !code) {
         setUnverified(true)
-        setError('')
       } else {
         setError(err.response?.data?.message || 'Invalid email or password.')
       }
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRestoreRequest = () => {
+    navigate('/restore-account', { state: { email: form.email } })
   }
 
   return (
@@ -111,12 +122,31 @@ export default function SignIn() {
             {unverified && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-2">
                 <p className="text-xs text-amber-800 font-medium">Your email address hasn't been verified yet.</p>
-                <button
-                  type="button"
-                  onClick={() => navigate('/verify-otp', { state: { email: form.email, autoResend: true } })}
-                  className="w-full py-2 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors"
-                >
+                <button type="button" onClick={() => navigate('/verify-otp', { state: { email: form.email, autoResend: true } })}
+                  className="w-full py-2 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors">
                   Verify Email Now →
+                </button>
+              </div>
+            )}
+
+            {accountStatus === 'deleted' && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-2">
+                <p className="text-xs text-red-800 font-medium">This account has been deleted.</p>
+                <p className="text-xs text-red-700">Your previous data is preserved. Would you like to restore your account?</p>
+                <button type="button" onClick={handleRestoreRequest}
+                  className="w-full py-2 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors">
+                  Restore My Account →
+                </button>
+              </div>
+            )}
+
+            {accountStatus === 'deactivated' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 space-y-2">
+                <p className="text-xs text-orange-800 font-medium">This account is currently deactivated.</p>
+                <p className="text-xs text-orange-700">Verify your email to reactivate it.</p>
+                <button type="button" onClick={handleRestoreRequest}
+                  className="w-full py-2 rounded-lg bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 transition-colors">
+                  Reactivate My Account →
                 </button>
               </div>
             )}

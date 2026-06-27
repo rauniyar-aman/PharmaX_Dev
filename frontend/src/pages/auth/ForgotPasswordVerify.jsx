@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
 import api from '../../lib/api'
@@ -75,13 +75,13 @@ export default function ForgotPasswordVerify() {
   return (
     <AuthLayout>
       <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-surface-container bg-white shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
+        <div className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-surface-container bg-surface-container-lowest shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
           <div className="pointer-events-none absolute -left-16 top-1/4 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
           <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl" />
           <div className="relative p-10">
             <div className="text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl">
-                🔒
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', fontVariationSettings: "'FILL' 1" }}>lock_reset</span>
               </div>
               <h1 className="text-3xl font-semibold text-on-surface">Reset Password</h1>
               <p className="mt-3 text-sm leading-6 text-on-surface-variant">
@@ -153,7 +153,7 @@ export default function ForgotPasswordVerify() {
                 disabled={loading}
                 className="w-full rounded-3xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? 'Resetting…' : 'Reset Password'}
+                {loading ? 'Resettingâ€¦' : 'Reset Password'}
               </button>
             </form>
 

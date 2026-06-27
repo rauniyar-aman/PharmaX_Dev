@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
 import { useAuth } from '../../context/AuthContext'
@@ -17,10 +17,14 @@ export default function OtpVerification() {
   const [resendSuccess, setResendSuccess] = useState(false)
   const [devOtp, setDevOtp] = useState(location.state?.otp || null)
   const inputs = useRef([])
+  const didResend = useRef(false)
 
   useEffect(() => {
     if (!email) { navigate('/signup', { replace: true }); return }
-    if (autoResend) handleResend()
+    if (autoResend && !didResend.current) {
+      didResend.current = true
+      handleResend()
+    }
   }, [])
 
   const updateCode = (value, index) => {
@@ -77,13 +81,13 @@ export default function OtpVerification() {
   return (
     <AuthLayout>
       <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-surface-container bg-white shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
+        <div className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-surface-container bg-surface-container-lowest shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
           <div className="pointer-events-none absolute -left-16 top-1/4 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
           <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl" />
           <div className="relative p-10">
             <div className="text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl">
-                ✉️
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', fontVariationSettings: "'FILL' 1" }}>mark_email_unread</span>
               </div>
               <h1 className="text-3xl font-semibold text-on-surface">Verify Your Email</h1>
               <p className="mt-3 text-sm leading-6 text-on-surface-variant">
@@ -95,7 +99,7 @@ export default function OtpVerification() {
 
             {devOtp && (
               <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center">
-                <p className="text-xs text-amber-700 font-medium mb-1">Email delivery failed — dev mode OTP:</p>
+                <p className="text-xs text-amber-700 font-medium mb-1">Email delivery failed â€" dev mode OTP:</p>
                 <p className="text-2xl font-bold tracking-[0.3em] text-amber-800">{devOtp}</p>
                 <button
                   type="button"
@@ -140,7 +144,7 @@ export default function OtpVerification() {
                 disabled={loading}
                 className="w-full rounded-3xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? 'Verifying…' : 'Verify & Continue'}
+                {loading ? 'Verifyingâ€¦' : 'Verify & Continue'}
               </button>
             </form>
 
@@ -152,13 +156,13 @@ export default function OtpVerification() {
                 disabled={resendLoading}
                 className="mt-3 text-primary font-semibold hover:text-primary/90 disabled:opacity-60"
               >
-                {resendLoading ? 'Sending…' : 'Resend code'}
+                {resendLoading ? 'Sendingâ€¦' : 'Resend code'}
               </button>
             </div>
 
             <div className="mt-4 text-center text-sm text-on-surface-variant">
               <Link to="/signup" className="text-primary font-semibold">
-                ← Back to Sign Up
+                â† Back to Sign Up
               </Link>
             </div>
           </div>

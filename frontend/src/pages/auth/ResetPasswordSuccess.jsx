@@ -1,11 +1,11 @@
-import React from 'react'
+﻿import React from 'react'
 import { Link } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
 
 export default function ResetPasswordSuccess() {
   return (
     <AuthLayout>
-      <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-surface-container bg-white shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
+      <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-surface-container bg-surface-container-lowest shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">
         <div className="pointer-events-none absolute -left-16 top-1/4 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
         <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl" />
 

@@ -20,6 +20,16 @@ const register = async (req, res) => {
   if (!fullName || !email || !password) return fail(res, 'fullName, email, and password are required')
 
   const existing = await prisma.user.findUnique({ where: { email } })
+
+  if (existing?.isDeleted) {
+    return res.status(409).json({
+      success: false,
+      code: 'ACCOUNT_DELETED',
+      message: 'An account with this email was previously deleted.',
+      data: { email },
+    })
+  }
+
   if (existing && !existing.otpCode) return fail(res, 'An account with this email already exists', 409)
 
   if (phone) {
@@ -70,6 +80,14 @@ const resendOtp = async (req, res) => {
   if (!user) return fail(res, 'No account found with this email.', 404)
   if (!user.otpCode && user.otpExpiresAt === null) {
     return fail(res, 'This account is already verified.', 400)
+  }
+
+  // Cooldown: if an OTP was sent less than 60 seconds ago, don't send another
+  if (user.otpCode && user.otpExpiresAt) {
+    const secondsRemaining = (user.otpExpiresAt - Date.now()) / 1000
+    if (secondsRemaining > 9 * 60) {
+      return ok(res, {}, 'A code was already sent recently. Please check your email.')
+    }
   }
 
   const otp = generateOtp()
@@ -126,12 +144,30 @@ const login = async (req, res) => {
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user) return unauthorized(res, 'Invalid email or password')
 
+  if (user.isDeleted) {
+    return res.status(410).json({
+      success: false,
+      code: 'ACCOUNT_DELETED',
+      message: 'This account has been deleted.',
+      data: { email },
+    })
+  }
+
+  if (!user.isActive) {
+    return res.status(403).json({
+      success: false,
+      code: 'ACCOUNT_DEACTIVATED',
+      message: 'This account is deactivated.',
+      data: { email },
+    })
+  }
+
   if (user.otpCode) return fail(res, 'Please verify your email before signing in.', 403)
 
   const match = await bcrypt.compare(password, user.passwordHash)
   if (!match) return unauthorized(res, 'Invalid email or password')
 
-  const { passwordHash, otpCode, otpExpiresAt, ...safeUser } = user
+  const { passwordHash, otpCode, otpExpiresAt, isDeleted, deletedAt, isActive, ...safeUser } = user
   ok(res, { token: signToken(user), user: safeUser }, 'Login successful')
 }
 
@@ -142,11 +178,174 @@ const getMe = async (req, res) => {
     select: {
       id: true, fullName: true, email: true, phone: true,
       role: true, dob: true, gender: true, bloodGroup: true,
-      allergies: true, createdAt: true,
+      allergies: true, avatarUrl: true, createdAt: true,
     },
   })
   if (!user) return fail(res, 'User not found', 404)
   ok(res, { user })
+}
+
+// PUT /api/auth/me
+const updateProfile = async (req, res) => {
+  const { fullName, phone, dob, gender, bloodGroup, allergies } = req.body
+  if (!fullName) return fail(res, 'Full name is required')
+
+  if (phone) {
+    const phoneUser = await prisma.user.findUnique({ where: { phone } })
+    if (phoneUser && phoneUser.id !== req.user.id) {
+      return fail(res, 'This phone number is already registered', 409)
+    }
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      fullName,
+      phone: phone || null,
+      dob: dob ? new Date(dob) : null,
+      gender: gender || null,
+      bloodGroup: bloodGroup || null,
+      allergies: allergies || null,
+    },
+    select: {
+      id: true, fullName: true, email: true, phone: true,
+      role: true, dob: true, gender: true, bloodGroup: true,
+      allergies: true, avatarUrl: true, createdAt: true,
+    },
+  })
+
+  ok(res, { user: updated }, 'Profile updated successfully')
+}
+
+// POST /api/auth/avatar
+const uploadAvatar = async (req, res) => {
+  if (!req.file) return fail(res, 'No file uploaded')
+  const avatarUrl = `/uploads/avatars/${req.file.filename}`
+  const updated = await prisma.user.update({
+    where: { id: req.user.id },
+    data: { avatarUrl },
+    select: {
+      id: true, fullName: true, email: true, phone: true,
+      role: true, dob: true, gender: true, bloodGroup: true,
+      allergies: true, avatarUrl: true, createdAt: true,
+    },
+  })
+  ok(res, { user: updated }, 'Profile picture updated')
+}
+
+// POST /api/auth/change-password
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body
+  if (!currentPassword || !newPassword) return fail(res, 'currentPassword and newPassword are required')
+  if (newPassword.length < 6) return fail(res, 'New password must be at least 6 characters')
+
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+  const match = await bcrypt.compare(currentPassword, user.passwordHash)
+  if (!match) return fail(res, 'Current password is incorrect', 401)
+
+  const isSame = await bcrypt.compare(newPassword, user.passwordHash)
+  if (isSame) return fail(res, 'New password cannot be the same as your current password', 400)
+
+  const passwordHash = await bcrypt.hash(newPassword, 10)
+  await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash } })
+
+  ok(res, {}, 'Password changed successfully')
+}
+
+// DELETE /api/auth/me — soft delete account
+const softDeleteAccount = async (req, res) => {
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: { isDeleted: true, deletedAt: new Date(), isActive: false },
+  })
+  ok(res, {}, 'Account deleted. Your data is retained and can be restored later.')
+}
+
+// POST /api/auth/deactivate — temporarily deactivate
+const deactivateAccount = async (req, res) => {
+  await prisma.user.update({ where: { id: req.user.id }, data: { isActive: false } })
+  ok(res, {}, 'Account deactivated.')
+}
+
+// POST /api/auth/restore-request — send OTP to restore deleted/deactivated account
+const restoreRequest = async (req, res) => {
+  const { email } = req.body
+  if (!email) return fail(res, 'Email is required')
+
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user) return fail(res, 'No account found with this email.', 404)
+  if (user.isActive && !user.isDeleted) return fail(res, 'This account is already active.', 400)
+
+  // Cooldown: if an OTP was sent less than 60 seconds ago, don't send another
+  if (user.otpCode && user.otpExpiresAt) {
+    const secondsRemaining = (user.otpExpiresAt - Date.now()) / 1000
+    if (secondsRemaining > 9 * 60) {
+      return ok(res, {}, 'A code was already sent recently. Please check your email.')
+    }
+  }
+
+  const otp = generateOtp()
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
+  await prisma.user.update({ where: { email }, data: { otpCode: otp, otpExpiresAt } })
+
+  let emailSent = true
+  try {
+    await sendVerificationEmail(email, user.fullName, otp)
+  } catch (err) {
+    emailSent = false
+    console.error('Failed to send restore OTP:', err.message)
+  }
+  console.log(`\n🔄 Restore OTP for ${email}: ${otp}\n`)
+
+  const devData = (!emailSent && process.env.NODE_ENV !== 'production') ? { otp } : {}
+  ok(res, devData, emailSent
+    ? 'Verification code sent to your email.'
+    : `Email delivery failed. Your OTP is: ${otp}`)
+}
+
+// POST /api/auth/restore-confirm — verify OTP and restore account
+const restoreConfirm = async (req, res) => {
+  const { email, otp } = req.body
+  if (!email || !otp) return fail(res, 'Email and OTP are required')
+
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user || !user.otpCode) return fail(res, 'Invalid or expired code.', 400)
+  if (user.otpCode !== otp) return fail(res, 'Invalid code. Please check and try again.', 400)
+  if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) return fail(res, 'Code has expired. Request a new one.', 400)
+
+  const restored = await prisma.user.update({
+    where: { email },
+    data: { isDeleted: false, deletedAt: null, isActive: true, otpCode: null, otpExpiresAt: null },
+    select: {
+      id: true, fullName: true, email: true, phone: true,
+      role: true, avatarUrl: true, createdAt: true,
+    },
+  })
+
+  ok(res, { token: signToken(restored), user: restored }, 'Account restored! Welcome back.')
+}
+
+// GET /api/auth/notifications
+const getNotifications = async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { notifOrderUpdates: true, notifPrescriptionAlerts: true, notifPromotions: true },
+  })
+  ok(res, { notifs: user })
+}
+
+// PUT /api/auth/notifications
+const updateNotifications = async (req, res) => {
+  const { notifOrderUpdates, notifPrescriptionAlerts, notifPromotions } = req.body
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      notifOrderUpdates: !!notifOrderUpdates,
+      notifPrescriptionAlerts: !!notifPrescriptionAlerts,
+      notifPromotions: !!notifPromotions,
+    },
+  })
+  ok(res, {}, 'Notification preferences saved.')
 }
 
 // POST /api/auth/forgot-password
@@ -202,4 +401,10 @@ const resetPassword = async (req, res) => {
   ok(res, {}, 'Password reset successfully')
 }
 
-module.exports = { register, resendOtp, verifyEmail, login, getMe, forgotPassword, resetPassword }
+module.exports = {
+  register, resendOtp, verifyEmail, login, getMe, updateProfile, uploadAvatar,
+  changePassword, softDeleteAccount, deactivateAccount,
+  restoreRequest, restoreConfirm,
+  getNotifications, updateNotifications,
+  forgotPassword, resetPassword,
+}

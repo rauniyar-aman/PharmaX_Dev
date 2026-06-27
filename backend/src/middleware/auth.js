@@ -1,20 +1,32 @@
 const jwt = require('jsonwebtoken')
+const prisma = require('../config/db')
 const { unauthorized } = require('../utils/response')
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {
     return unauthorized(res, 'Access token required')
   }
 
   const token = header.split(' ')[1]
+  let decoded
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = decoded
-    next()
+    decoded = jwt.verify(token, process.env.JWT_SECRET)
   } catch {
-    unauthorized(res, 'Invalid or expired token')
+    return unauthorized(res, 'Invalid or expired token')
   }
+
+  // Re-check isActive from DB so blocked users are kicked out immediately
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.id },
+    select: { id: true, isActive: true, isDeleted: true, role: true },
+  })
+
+  if (!user || user.isDeleted) return unauthorized(res, 'Account not found')
+  if (!user.isActive) return unauthorized(res, 'Your account has been suspended. Please contact support.')
+
+  req.user = decoded
+  next()
 }
 
 const adminOnly = (req, res, next) => {

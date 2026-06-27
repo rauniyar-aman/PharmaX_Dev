@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
 import api from '../../lib/api'
@@ -31,14 +31,14 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout>
-      <div className="max-w-md w-full bg-white p-8 rounded-[32px] shadow-[0_30px_60px_-30px_rgba(15,23,42,0.2)]">
+      <div className="max-w-md w-full bg-surface-container-lowest p-8 rounded-[32px] shadow-[0_30px_60px_-30px_rgba(15,23,42,0.2)]">
         <div className="mb-6">
           <Link
             to="/signin"
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 mb-4"
           >
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-lg leading-none">
-              ‹
+              â€¹
             </span>
             Back to Sign In
           </Link>
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
             disabled={loading}
             className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
-            {loading ? 'Sending OTP…' : 'Send OTP'}
+            {loading ? 'Sending OTPâ€¦' : 'Send OTP'}
           </button>
         </form>
       </div>
