@@ -28,6 +28,7 @@ app.use('/api/orders',        require('./src/routes/orders.routes'))
 app.use('/api/prescriptions', require('./src/routes/prescriptions.routes'))
 app.use('/api/user',          require('./src/routes/user.routes'))
 app.use('/api/admin',         require('./src/routes/admin.routes'))
+app.use('/api/payment',       require('./src/routes/payment.routes'))
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'PharmaX API', version: '1.0.0' })
