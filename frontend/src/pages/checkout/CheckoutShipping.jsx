@@ -1,52 +1,78 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 import CheckoutSteps from '../../components/checkout/CheckoutSteps'
+import AddressModal from '../../components/address/AddressModal'
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api'
 
-const savedAddresses = [
-  {
-    id: 1,
-    label: 'Home',
-    name: 'Aman Rauniyar',
-    phone: '+977-98XXXXXXXX',
-    address: '123 Lazimpat, Ward No. 2',
-    city: 'Kathmandu',
-    province: 'Bagmati Province',
-    zip: '44600',
-    default: true,
-  },
-  {
-    id: 2,
-    label: 'Office',
-    name: 'Aman Rauniyar',
-    phone: '+977-98XXXXXXXX',
-    address: '45 New Baneshwor, Opposite to Baneshwor Chowk',
-    city: 'Kathmandu',
-    province: 'Bagmati Province',
-    zip: '44601',
-    default: false,
-  },
-]
+const LIBRARIES = ['places']
+const MAP_STYLE = { width: '100%', height: '100%' }
+const MAP_OPTIONS = { disableDefaultUI: true, zoomControl: true, streetViewControl: false }
+
+function MiniMap({ lat, lng }) {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_KEY,
+    libraries: LIBRARIES,
+  })
+  if (!isLoaded) return (
+    <div className="w-full h-full flex items-center justify-center bg-surface-container-low">
+      <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+    </div>
+  )
+  return (
+    <GoogleMap mapContainerStyle={MAP_STYLE} center={{ lat, lng }} zoom={15} options={MAP_OPTIONS}>
+      <Marker position={{ lat, lng }} />
+    </GoogleMap>
+  )
+}
 
 export default function CheckoutShipping() {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState(1)
-  const [showNewForm, setShowNewForm] = useState(false)
-  const [newAddr, setNewAddr] = useState({ name: '', phone: '', address: '', city: '', province: '', zip: '' })
+  const [addresses, setAddresses] = useState([])
+  const [addrLoading, setAddrLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [showAddressModal, setShowAddressModal] = useState(false)
   const [cartItems, setCartItems] = useState([])
   const [cartLoading, setCartLoading] = useState(true)
 
   useEffect(() => {
     if (!sessionStorage.getItem('checkoutAllowed')) {
-      navigate('/dashboard/cart', { replace: true })
-      return
+      navigate('/dashboard/cart', { replace: true }); return
     }
     api.get('/cart')
       .then(res => setCartItems(res.data.data.cart.items || []))
       .catch(() => {})
       .finally(() => setCartLoading(false))
+
+    api.get('/user/addresses')
+      .then(res => {
+        const addrs = res.data.data.addresses
+        setAddresses(addrs)
+        const def = addrs.find(a => a.isDefault) || addrs[0]
+        if (def) setSelected(def.id)
+      })
+      .catch(() => {})
+      .finally(() => setAddrLoading(false))
   }, [])
 
+  const handleAddressSaved = (saved) => {
+    setAddresses(prev => {
+      const updated = prev.some(a => a.id === saved.id)
+        ? prev.map(a => a.id === saved.id ? saved : saved.isDefault ? { ...a, isDefault: false } : a)
+        : [...prev.map(a => saved.isDefault ? { ...a, isDefault: false } : a), saved]
+      return updated
+    })
+    setSelected(saved.id)
+  }
+
+  const handleContinue = () => {
+    if (!selected) return
+    const addr = addresses.find(a => a.id === selected)
+    sessionStorage.setItem('checkoutAddress', JSON.stringify(addr))
+    navigate('/dashboard/checkout/prescription')
+  }
+
+  const selectedAddr = addresses.find(a => a.id === selected)
   const subtotal = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
   const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
 
@@ -57,100 +83,83 @@ export default function CheckoutShipping() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left: Shipping */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl custom-shadow p-5">
+
+          {/* Address list */}
+          <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[15px] font-semibold text-on-surface">Saved Addresses</h2>
-              <button
-                onClick={() => setShowNewForm(v => !v)}
-                className="flex items-center gap-1.5 text-sm font-medium text-secondary hover:underline"
-              >
+              <h2 className="text-[15px] font-semibold text-on-surface">Delivery Address</h2>
+              <button onClick={() => setShowAddressModal(true)}
+                className="flex items-center gap-1.5 text-sm font-medium text-secondary hover:underline">
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
-                Add New Address
+                Add New
               </button>
             </div>
 
-            <div className="space-y-3">
-              {savedAddresses.map(addr => (
-                <label
-                  key={addr.id}
-                  className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
-                    selected === addr.id ? 'border-secondary bg-secondary/5' : 'border-outline-variant hover:border-secondary/40'
-                  }`}
-                >
-                  <input type="radio" name="address" value={addr.id} checked={selected === addr.id} onChange={() => setSelected(addr.id)} className="mt-1 accent-[#316bf3]" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${addr.default ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'}`}>
-                        {addr.label}
-                      </span>
-                      {addr.default && <span className="text-xs text-primary font-medium">Default</span>}
-                    </div>
-                    <p className="text-sm font-semibold text-on-surface">{addr.name}</p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">{addr.address}, {addr.city}</p>
-                    <p className="text-xs text-on-surface-variant">{addr.province} — {addr.zip}</p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">{addr.phone}</p>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
-                    </button>
-                    <button className="p-1.5 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error transition-colors">
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
-                    </button>
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            {showNewForm && (
-              <div className="mt-4 pt-4 border-t border-outline-variant">
-                <h3 className="text-sm font-semibold text-on-surface mb-3">New Delivery Address</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { key: 'name', label: 'Full Name', placeholder: 'Your full name' },
-                    { key: 'phone', label: 'Phone Number', placeholder: '+977-XXXXXXXXXX' },
-                    { key: 'address', label: 'Street Address', placeholder: 'House No., Street, Ward' },
-                    { key: 'city', label: 'City', placeholder: 'Kathmandu' },
-                    { key: 'province', label: 'Province', placeholder: 'Bagmati Province' },
-                    { key: 'zip', label: 'ZIP Code', placeholder: '44600' },
-                  ].map(f => (
-                    <div key={f.key} className={f.key === 'address' ? 'sm:col-span-2' : ''}>
-                      <label className="text-xs font-medium text-on-surface-variant mb-1 block">{f.label}</label>
-                      <input
-                        type="text"
-                        placeholder={f.placeholder}
-                        value={newAddr[f.key]}
-                        onChange={e => setNewAddr(p => ({ ...p, [f.key]: e.target.value }))}
-                        className="w-full text-sm border border-outline-variant rounded-xl px-3 py-2.5 bg-surface-container-low focus:outline-none focus:border-secondary transition"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <button className="mt-3 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
-                  Save Address
+            {addrLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map(i => <div key={i} className="h-20 bg-surface-container-low rounded-xl animate-pulse" />)}
+              </div>
+            ) : addresses.length === 0 ? (
+              <div className="text-center py-8">
+                <span className="material-symbols-outlined text-on-surface-variant/40 mb-2" style={{ fontSize: '40px' }}>location_off</span>
+                <p className="text-sm text-on-surface-variant mb-3">No saved addresses</p>
+                <button onClick={() => setShowAddressModal(true)}
+                  className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:opacity-90 transition-all">
+                  + Add Delivery Address
                 </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {addresses.map(addr => (
+                  <label key={addr.id}
+                    className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${selected === addr.id ? 'border-secondary bg-secondary/5' : 'border-outline-variant hover:border-secondary/40'}`}>
+                    <input type="radio" name="address" value={addr.id} checked={selected === addr.id}
+                      onChange={() => setSelected(addr.id)} className="mt-1 accent-[#316bf3]" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${addr.isDefault ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}>
+                          {addr.label}
+                        </span>
+                        {addr.isDefault && <span className="text-xs text-primary font-medium">Default</span>}
+                        {addr.lat && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+                            <span className="material-symbols-outlined" style={{ fontSize: '10px', fontVariationSettings: "'FILL' 1" }}>pin_drop</span>
+                            Pinned
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-on-surface">{addr.name}</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">{addr.address}, {addr.city}</p>
+                      <p className="text-xs text-on-surface-variant">{addr.province} - {addr.zip}</p>
+                      <p className="text-xs text-on-surface-variant">{addr.phone}</p>
+                    </div>
+                  </label>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Map Placeholder */}
-          <div className="bg-white rounded-2xl custom-shadow p-5">
-            <h3 className="text-sm font-semibold text-on-surface mb-3">Pick Delivery Location on Map</h3>
-            <div className="relative h-48 bg-surface-container-low rounded-xl overflow-hidden flex items-center justify-center">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 flex flex-col items-center justify-center gap-3">
-                <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '48px' }}>map</span>
-                <p className="text-sm text-on-surface-variant">Map view coming soon</p>
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container transition-colors custom-shadow">
-                  <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '18px' }}>my_location</span>
-                  Pick Current Location
-                </button>
+          {/* Map preview of selected address */}
+          {selectedAddr?.lat && (
+            <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>pin_drop</span>
+                <h3 className="text-sm font-semibold text-on-surface">Delivery Location</h3>
+                <span className="text-xs text-on-surface-variant ml-auto">{selectedAddr.lat.toFixed(5)}, {selectedAddr.lng.toFixed(5)}</span>
               </div>
+              <div className="h-48 rounded-xl overflow-hidden border border-outline-variant">
+                <MiniMap lat={selectedAddr.lat} lng={selectedAddr.lng} />
+              </div>
+              <p className="text-xs text-on-surface-variant mt-2 flex items-center gap-1">
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>info</span>
+                {selectedAddr.address}, {selectedAddr.city}
+              </p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right: Order Summary */}
-        <div className="bg-white rounded-2xl custom-shadow p-5 h-fit">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 h-fit">
           <h2 className="text-[15px] font-semibold text-on-surface mb-4">Order Summary</h2>
 
           {cartLoading ? (
@@ -190,23 +199,34 @@ export default function CheckoutShipping() {
             </div>
           </div>
 
+          {!selected && addresses.length > 0 && (
+            <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Please select a delivery address to continue.
+            </p>
+          )}
+
           <button
-            onClick={() => navigate('/dashboard/checkout/prescription')}
-            disabled={cartLoading || cartItems.length === 0}
-            className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            onClick={handleContinue}
+            disabled={cartLoading || cartItems.length === 0 || !selected}
+            className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-on-primary rounded-xl font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             Continue to Prescription
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
           </button>
           <button
-            onClick={() => { sessionStorage.removeItem('checkoutAllowed'); navigate('/dashboard/cart') }}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
-          >
+            onClick={() => { ['checkoutAllowed','checkoutAddress','checkoutRxDraft','checkoutPrescriptions'].forEach(k => sessionStorage.removeItem(k)); navigate('/dashboard/cart') }}
+            className="mt-3 w-full flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors">
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
             Back to Cart
           </button>
         </div>
       </div>
+
+      {showAddressModal && (
+        <AddressModal
+          onClose={() => setShowAddressModal(false)}
+          onSaved={handleAddressSaved}
+        />
+      )}
     </div>
   )
 }
