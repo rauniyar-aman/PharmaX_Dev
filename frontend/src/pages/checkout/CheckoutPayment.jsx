@@ -1,33 +1,153 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+﻿import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../../lib/api'
+import checkoutStore from '../../lib/checkoutStore'
 import CheckoutSteps from '../../components/checkout/CheckoutSteps'
+
+function clearCheckoutSession() {
+  ;['checkoutAllowed', 'checkoutAddress', 'checkoutRxDraft', 'checkoutPrescriptions'].forEach(k =>
+    sessionStorage.removeItem(k)
+  )
+}
+
+// Upload any prescriptions that were only staged locally (id starts with "staged:").
+// Returns a new map with real prescription IDs substituted in.
+// Also updates checkoutRxDraft in sessionStorage so the prescription step shows
+// the real uploaded prescription if the user navigates back (e.g. after eSewa cancel).
+async function uploadStagedPrescriptions(prescriptionMap) {
+  const result = { ...prescriptionMap }
+  const rxDraftUpdates = {}
+
+  for (const [medId, pId] of Object.entries(prescriptionMap)) {
+    if (String(pId).startsWith('staged:')) {
+      const staged = checkoutStore.get(medId)
+      if (!staged) { delete result[medId]; continue }
+      const fd = new FormData()
+      staged.files.forEach(f => fd.append('files', f))
+      fd.append('checkoutDraft', 'true')
+      const res = await api.post('/prescriptions', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const prescription = res.data.data.prescription
+      result[medId] = prescription.id
+      rxDraftUpdates[medId] = prescription
+    }
+  }
+
+  // Persist real prescription data back into checkoutRxDraft so the prescription
+  // step can show the real record (with fileUrl) if the user navigates back.
+  if (Object.keys(rxDraftUpdates).length > 0) {
+    try {
+      const rxDraft = JSON.parse(sessionStorage.getItem('checkoutRxDraft') || '{}')
+      for (const [medId, prescription] of Object.entries(rxDraftUpdates)) {
+        rxDraft[medId] = { ...prescription, isNew: true, isDraft: false }
+      }
+      sessionStorage.setItem('checkoutRxDraft', JSON.stringify(rxDraft))
+    } catch {}
+  }
+
+  return result
+}
 
 export default function CheckoutPayment() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const esewaCancelled = searchParams.get('esewa_cancelled') === '1'
   const [method, setMethod] = useState('esewa')
   const [promo, setPromo] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
   const [cartItems, setCartItems] = useState([])
   const [cartLoading, setCartLoading] = useState(true)
+  const [placing, setPlacing] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!sessionStorage.getItem('checkoutAllowed')) {
+      navigate('/dashboard/cart', { replace: true }); return
+    }
     api.get('/cart')
       .then(res => setCartItems(res.data.data.cart.items || []))
       .catch(() => {})
       .finally(() => setCartLoading(false))
   }, [])
 
-  const subtotal = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
-  const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
-  const discount = promoApplied ? Math.round(subtotal * 0.1) : 0
-  const total = subtotal + delivery - discount
+  const subtotal  = cartItems.reduce((s, i) => s + Number(i.medicine.price) * i.quantity, 0)
+  const delivery  = subtotal > 0 && subtotal >= 500 ? 0 : 80
+  const discount  = promoApplied ? Math.round(subtotal * 0.1) : 0
+  const total     = subtotal + delivery - discount
+
+  const getPayload = () => {
+    const addr = JSON.parse(sessionStorage.getItem('checkoutAddress') || '{}')
+    const prescriptionMap = JSON.parse(sessionStorage.getItem('checkoutPrescriptions') || '{}')
+    return { addressId: addr.id, prescriptionMap }
+  }
+
+  // ─── eSewa ─────────────────────────────────────────────────────────────────
+  const handleEsewa = async () => {
+    setError('')
+    setPlacing(true)
+    try {
+      const { addressId, prescriptionMap } = getPayload()
+      if (!addressId) { setError('Delivery address not found. Go back to shipping.'); setPlacing(false); return }
+
+      const finalMap = await uploadStagedPrescriptions(prescriptionMap)
+
+      // Persist real prescription IDs back into sessionStorage so that if eSewa
+      // is cancelled and the user retries, we reuse existing prescriptions instead
+      // of re-uploading. Do NOT clear checkoutStore here — keep files as a safety
+      // net for preview if the user navigates back to the prescription step.
+      sessionStorage.setItem('checkoutPrescriptions', JSON.stringify(finalMap))
+
+      const res = await api.post('/payment/esewa/initiate', { addressId, prescriptionMap: finalMap })
+      const { formUrl, params } = res.data.data
+
+      // Build and auto-submit a hidden form → browser navigates to eSewa
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = formUrl
+      Object.entries(params).forEach(([key, val]) => {
+        const input = document.createElement('input')
+        input.type  = 'hidden'
+        input.name  = key
+        input.value = val
+        form.appendChild(input)
+      })
+      document.body.appendChild(form)
+      // Do NOT clear checkout session here — it must survive the eSewa redirect
+      // so the user can retry if payment is cancelled.
+      // clearCheckoutSession() is called by OrderConfirmation on success.
+      form.submit()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to initiate eSewa payment.')
+      setPlacing(false)
+    }
+  }
+
+  // ─── Cash on Delivery ──────────────────────────────────────────────────────
+  const handleCod = async () => {
+    setError('')
+    setPlacing(true)
+    try {
+      const { addressId, prescriptionMap } = getPayload()
+      if (!addressId) { setError('Delivery address not found. Go back to shipping.'); setPlacing(false); return }
+
+      const finalMap = await uploadStagedPrescriptions(prescriptionMap)
+      const res = await api.post('/payment/cod/place', { addressId, prescriptionMap: finalMap })
+      const { order } = res.data.data
+      clearCheckoutSession()
+      checkoutStore.clear()
+      navigate(`/dashboard/checkout/confirmation?orderId=${order.id}`)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to place order.')
+      setPlacing(false)
+    }
+  }
+
+  const handlePay = () => method === 'esewa' ? handleEsewa() : handleCod()
 
   const trustBadges = [
-    { icon: 'verified', label: 'Certified Pharmacy' },
-    { icon: 'lock', label: 'SSL Secure' },
-    { icon: 'local_shipping', label: 'Fast Tracking' },
-    { icon: 'support_agent', label: '24/7 Support' },
+    { icon: 'verified',        label: 'Certified Pharmacy' },
+    { icon: 'lock',            label: 'SSL Secure' },
+    { icon: 'local_shipping',  label: 'Fast Delivery' },
+    { icon: 'support_agent',   label: '24/7 Support' },
   ]
 
   return (
@@ -35,44 +155,53 @@ export default function CheckoutPayment() {
       <CheckoutSteps current={2} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Payment Methods */}
+        {/* Left - payment methods */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl custom-shadow p-5">
+          {esewaCancelled && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-700/30">
+              <span className="material-symbols-outlined text-amber-600 flex-shrink-0 mt-0.5" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>info</span>
+              <div>
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">eSewa payment was not completed</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Your cart and prescription are saved. Select a payment method and try again.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <h2 className="text-[15px] font-semibold text-on-surface mb-4">Choose Payment Method</h2>
 
             <div className="space-y-3">
               {/* eSewa */}
               <label className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
-                method === 'esewa' ? 'border-secondary bg-secondary/5' : 'border-outline-variant hover:border-secondary/40'
+                method === 'esewa' ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : 'border-outline-variant hover:border-green-400/60'
               }`}>
-                <input type="radio" name="payment" value="esewa" checked={method === 'esewa'} onChange={() => setMethod('esewa')} className="mt-1 accent-[#316bf3]" />
+                <input type="radio" name="payment" value="esewa" checked={method === 'esewa'}
+                  onChange={() => setMethod('esewa')} className="mt-1 accent-green-600" />
                 <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                        <span className="text-green-700 font-bold text-xs">eSewa</span>
+                      <div className="w-12 h-10 rounded-xl bg-green-600 flex items-center justify-center px-2">
+                        <span className="text-white font-extrabold text-sm tracking-tight">eSewa</span>
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-on-surface">eSewa Wallet</p>
-                        <p className="text-xs text-on-surface-variant">Pay via eSewa digital wallet</p>
+                        <p className="text-xs text-on-surface-variant">Redirect to eSewa to complete payment</p>
                       </div>
                     </div>
-                    <span className="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-1 rounded-full flex items-center gap-1">
-                      <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '12px' }}>lock</span>
-                      Secure Gateway
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2.5 py-1 rounded-full">
+                      <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>verified</span>
+                      PCI-DSS Secure
                     </span>
                   </div>
                   {method === 'esewa' && (
                     <div className="mt-3 pt-3 border-t border-outline-variant">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="text-xs font-medium text-on-surface-variant mb-1 block">eSewa ID / Phone</label>
-                          <input type="text" placeholder="98XXXXXXXX" className="w-full text-sm border border-outline-variant rounded-xl px-3 py-2.5 bg-surface-container-low focus:outline-none focus:border-secondary transition" />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium text-on-surface-variant mb-1 block">MPIN</label>
-                          <input type="password" placeholder="••••" className="w-full text-sm border border-outline-variant rounded-xl px-3 py-2.5 bg-surface-container-low focus:outline-none focus:border-secondary transition" />
-                        </div>
+                      <div className="flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-low rounded-lg px-3 py-2.5">
+                        <span className="material-symbols-outlined text-green-600 flex-shrink-0" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>info</span>
+                        <p>You will be redirected to the eSewa payment portal. After completing the payment, you will be automatically brought back here.</p>
+                      </div>
+                      <div className="flex items-center gap-3 mt-2.5 text-xs text-on-surface-variant">
+                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-green-600" style={{ fontSize: '14px' }}>check</span> Instant confirmation</span>
+                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-green-600" style={{ fontSize: '14px' }}>check</span> eSewa cashback eligible</span>
                       </div>
                     </div>
                   )}
@@ -81,13 +210,14 @@ export default function CheckoutPayment() {
 
               {/* Cash on Delivery */}
               <label className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
-                method === 'cod' ? 'border-secondary bg-secondary/5' : 'border-outline-variant hover:border-secondary/40'
+                method === 'cod' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' : 'border-outline-variant hover:border-amber-400/60'
               }`}>
-                <input type="radio" name="payment" value="cod" checked={method === 'cod'} onChange={() => setMethod('cod')} className="mt-1 accent-[#316bf3]" />
+                <input type="radio" name="payment" value="cod" checked={method === 'cod'}
+                  onChange={() => setMethod('cod')} className="mt-1 accent-amber-600" />
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined ms-filled text-amber-700" style={{ fontSize: '22px' }}>payments</span>
+                    <div className="w-12 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-amber-700 dark:text-amber-400" style={{ fontSize: '24px', fontVariationSettings: "'FILL' 1" }}>payments</span>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-on-surface">Cash on Delivery</p>
@@ -95,30 +225,28 @@ export default function CheckoutPayment() {
                     </div>
                   </div>
                   {method === 'cod' && (
-                    <div className="mt-3 pt-3 border-t border-outline-variant">
-                      <p className="text-xs text-on-surface-variant leading-relaxed">Please keep exact change ready. Our delivery agent will collect the payment upon delivery. COD is available for orders up to NPR 5000.</p>
+                    <div className="mt-3 pt-3 border-t border-outline-variant text-xs text-on-surface-variant leading-relaxed">
+                      Please keep the exact amount ready. Our delivery agent will collect payment on arrival. COD is available for orders up to NPR 5,000.
                     </div>
                   )}
                 </div>
               </label>
             </div>
 
-            {/* Trust Badges */}
-            <div className="mt-5 pt-4 border-t border-outline-variant">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {trustBadges.map(badge => (
-                  <div key={badge.label} className="flex flex-col items-center gap-1.5 p-3 bg-surface-container-low rounded-xl">
-                    <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '24px' }}>{badge.icon}</span>
-                    <span className="text-xs font-medium text-on-surface text-center leading-tight">{badge.label}</span>
-                  </div>
-                ))}
-              </div>
+            {/* Trust badges */}
+            <div className="mt-5 pt-4 border-t border-outline-variant grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {trustBadges.map(b => (
+                <div key={b.label} className="flex flex-col items-center gap-1.5 p-3 bg-surface-container-low rounded-xl">
+                  <span className="material-symbols-outlined text-secondary" style={{ fontSize: '24px', fontVariationSettings: "'FILL' 1" }}>{b.icon}</span>
+                  <span className="text-xs font-medium text-on-surface text-center leading-tight">{b.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Order Summary */}
-        <div className="bg-white rounded-2xl custom-shadow p-5 h-fit space-y-4">
+        {/* Right - order summary + pay button */}
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 h-fit space-y-4">
           <h2 className="text-[15px] font-semibold text-on-surface">Order Summary</h2>
 
           {cartLoading ? (
@@ -131,11 +259,11 @@ export default function CheckoutPayment() {
               ))}
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {cartItems.map(item => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-on-surface-variant">{item.medicine.name} × {item.quantity}</span>
-                  <span className="font-medium text-on-surface">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</span>
+                  <span className="text-on-surface-variant truncate mr-2">{item.medicine.name} × {item.quantity}</span>
+                  <span className="font-medium text-on-surface flex-shrink-0">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -145,23 +273,16 @@ export default function CheckoutPayment() {
           <div>
             <p className="text-xs font-medium text-on-surface mb-1.5">Promo Code</p>
             <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter code"
-                value={promo}
-                onChange={e => setPromo(e.target.value)}
-                disabled={promoApplied}
-                className="flex-1 text-sm border border-outline-variant rounded-xl px-3 py-2 bg-surface-container-low focus:outline-none focus:border-secondary transition disabled:opacity-50"
-              />
-              <button
-                onClick={() => { if (promo.toUpperCase() === 'PHARMA10') setPromoApplied(true) }}
+              <input type="text" placeholder="Enter code" value={promo}
+                onChange={e => setPromo(e.target.value)} disabled={promoApplied}
+                className="flex-1 text-sm border border-outline-variant rounded-xl px-3 py-2 focus:outline-none focus:border-secondary transition disabled:opacity-50" />
+              <button onClick={() => { if (promo.toUpperCase() === 'PHARMA10') setPromoApplied(true) }}
                 disabled={promoApplied || !promo}
-                className="px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors"
-              >
+                className="px-3 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold disabled:opacity-50 hover:opacity-90 transition">
                 {promoApplied ? 'Applied' : 'Apply'}
               </button>
             </div>
-            {promoApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied — 10% off!</p>}
+            {promoApplied && <p className="text-xs text-primary mt-1 font-medium">PHARMA10 applied - 10% off!</p>}
           </div>
 
           <div className="border-t border-outline-variant pt-3 space-y-2">
@@ -177,8 +298,8 @@ export default function CheckoutPayment() {
             </div>
             {promoApplied && (
               <div className="flex justify-between text-sm">
-                <span className="text-on-surface-variant">Discount (PHARMA10)</span>
-                <span className="font-medium text-primary">– NPR {discount.toLocaleString()}</span>
+                <span className="text-on-surface-variant">Discount</span>
+                <span className="font-medium text-primary">− NPR {discount.toLocaleString()}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-base border-t border-outline-variant pt-2">
@@ -187,16 +308,37 @@ export default function CheckoutPayment() {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate('/dashboard/checkout/confirmation')}
-            disabled={cartLoading || cartItems.length === 0}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-            Place Order · NPR {total.toLocaleString()}
+          {error && (
+            <p className="text-xs text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2">{error}</p>
+          )}
+
+          <button onClick={handlePay}
+            disabled={placing || cartLoading || cartItems.length === 0}
+            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+              method === 'esewa'
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-amber-500 text-white hover:bg-amber-600'
+            }`}>
+            {placing ? (
+              <>
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
+                {method === 'esewa' ? 'Redirecting to eSewa…' : 'Placing order…'}
+              </>
+            ) : method === 'esewa' ? (
+              <>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
+                Pay with eSewa · NPR {total.toLocaleString()}
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                Place Order · NPR {total.toLocaleString()}
+              </>
+            )}
           </button>
 
-          <Link to="/dashboard/checkout/prescription" className="flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors">
+          <Link to="/dashboard/checkout/prescription"
+            className="flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors">
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back</span>
             Back to Prescription
           </Link>
