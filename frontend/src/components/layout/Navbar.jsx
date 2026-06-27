@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 function Logo() {
   return (
     <div className="inline-flex items-center">
-      <img src="/PharmaX_Logo.png" alt="PharmaX" className="h-10 w-auto" />
+      <img src="/PharmaX_Logo.png" alt="PharmaX" className="h-14 w-auto" />
     </div>
   )
 }

@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
@@ -21,6 +22,7 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
   const [notifOpen, setNotifOpen] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
   const { cartCount } = useCart()
+  const { user } = useAuth()
 
   const getTitle = () => {
     const path = location.pathname
@@ -32,7 +34,7 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
 
   return (
     <header
-      className="fixed top-0 right-0 z-20 flex items-center justify-between h-16 bg-white border-b border-outline-variant px-5 transition-all duration-300"
+      className="fixed top-0 right-0 z-20 flex items-center justify-between h-16 bg-surface-container-lowest border-b border-outline-variant px-5 transition-all duration-300"
       style={{ left: sidebarCollapsed ? '72px' : '256px' }}
     >
       {/* Page Title */}
@@ -76,7 +78,7 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl border border-outline-variant custom-shadow z-50">
+            <div className="absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-2xl border border-outline-variant custom-shadow z-50">
               <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
                 <p className="text-sm font-semibold text-on-surface">Notifications</p>
                 <span className="text-xs text-secondary font-medium cursor-pointer hover:underline">Mark all read</span>
@@ -110,14 +112,15 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
 
         {/* Avatar */}
         <Link to="/dashboard/profile" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-surface-container transition-colors">
-          <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-bold ring-2 ring-primary ring-offset-2">
-            A
+          <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-bold ring-2 ring-primary ring-offset-2 overflow-hidden flex-shrink-0">
+            {user?.avatarUrl
+              ? <img src={`http://localhost:5000${user.avatarUrl}`} alt="avatar" className="w-full h-full object-cover" />
+              : user?.fullName?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-semibold text-on-surface leading-tight">Aman Rauniyar</p>
+            <p className="text-xs font-semibold text-on-surface leading-tight">{user?.fullName || 'User'}</p>
             <p className="text-[11px] text-on-surface-variant leading-tight">Customer</p>
           </div>
-          <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '16px' }}>expand_more</span>
         </Link>
       </div>
 

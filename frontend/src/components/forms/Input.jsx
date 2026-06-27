@@ -11,7 +11,7 @@ export default function Input({ label, type = 'text', placeholder, icon, right, 
         <input
           type={type}
           placeholder={placeholder}
-          className={`w-full rounded-2xl border border-surface-container bg-white px-4 py-3 text-sm text-on-surface placeholder:text-slate-400 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 ${icon ? 'pl-12' : ''} ${right ? 'pr-14' : ''}`}
+          className={`w-full rounded-2xl border border-surface-container bg-surface px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 ${icon ? 'pl-12' : ''} ${right ? 'pr-14' : ''}`}
           {...props}
         />
         {right && (

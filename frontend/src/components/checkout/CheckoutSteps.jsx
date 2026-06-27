@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 
 const steps = [
   { label: 'Shipping', icon: 'local_shipping' },
@@ -9,7 +9,7 @@ const steps = [
 
 export default function CheckoutSteps({ current }) {
   return (
-    <div className="bg-white rounded-2xl custom-shadow p-5 mb-5">
+    <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 mb-5">
       <div className="flex items-center">
         {steps.map((step, index) => (
           <React.Fragment key={step.label}>

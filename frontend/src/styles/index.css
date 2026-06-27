@@ -2,6 +2,136 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Light palette (RGB channels, no parentheses — needed for Tailwind opacity modifiers) ─── */
+:root {
+  --c-primary:                    0 107 44;
+  --c-primary-dark:               0 82 32;
+  --c-primary-container:          0 135 58;
+  --c-inverse-primary:            98 223 125;
+  --c-primary-fixed:              127 252 151;
+  --c-primary-fixed-dim:          98 223 125;
+  --c-on-primary:                 255 255 255;
+  --c-on-primary-fixed:           0 33 9;
+  --c-on-primary-fixed-variant:   0 83 32;
+  --c-on-primary-container:       247 255 242;
+
+  --c-secondary:                  0 81 213;
+  --c-secondary-container:        49 107 243;
+  --c-secondary-fixed:            219 225 255;
+  --c-secondary-fixed-dim:        180 197 255;
+  --c-on-secondary:               255 255 255;
+  --c-on-secondary-container:     254 252 255;
+  --c-on-secondary-fixed:         0 23 75;
+  --c-on-secondary-fixed-variant: 0 62 168;
+
+  --c-tertiary:                   82 93 108;
+  --c-tertiary-container:         107 117 134;
+  --c-tertiary-fixed:             217 227 246;
+  --c-tertiary-fixed-dim:         189 199 217;
+  --c-on-tertiary:                255 255 255;
+  --c-on-tertiary-container:      253 252 255;
+  --c-on-tertiary-fixed:          18 28 42;
+  --c-on-tertiary-fixed-variant:  61 71 86;
+
+  --c-background:                 249 249 255;
+  --c-on-background:              21 28 39;
+
+  --c-surface:                    255 255 255;
+  --c-surface-dim:                211 218 234;
+  --c-surface-bright:             249 249 255;
+  --c-surface-container-lowest:   255 255 255;
+  --c-surface-container-low:      240 243 255;
+  --c-surface-container:          231 238 254;
+  --c-surface-container-high:     226 232 248;
+  --c-surface-container-highest:  220 226 243;
+  --c-on-surface:                 21 28 39;
+  --c-on-surface-variant:         62 74 61;
+  --c-inverse-surface:            42 49 61;
+  --c-inverse-on-surface:         235 241 255;
+
+  --c-outline:                    110 123 108;
+  --c-outline-variant:            189 202 186;
+  --c-surface-tint:               0 110 45;
+  --c-surface-variant:            220 226 243;
+
+  --c-error:                      186 26 26;
+  --c-on-error:                   255 255 255;
+  --c-error-container:            255 218 214;
+  --c-on-error-container:         147 0 10;
+
+  --c-success:                    0 107 44;
+  --c-success-container:          214 245 224;
+  --c-warning:                    230 81 0;
+  --c-warning-container:          255 243 224;
+  --c-info:                       0 81 213;
+  --c-info-container:             219 225 255;
+}
+
+/* ─── Dark palette ─── */
+.dark {
+  --c-primary:                    98 223 125;
+  --c-primary-dark:               62 170 85;
+  --c-primary-container:          0 82 32;
+  --c-inverse-primary:            0 107 44;
+  --c-primary-fixed:              127 252 151;
+  --c-primary-fixed-dim:          98 223 125;
+  --c-on-primary:                 0 33 9;
+  --c-on-primary-fixed:           0 33 9;
+  --c-on-primary-fixed-variant:   0 83 32;
+  --c-on-primary-container:       127 252 151;
+
+  --c-secondary:                  180 197 255;
+  --c-secondary-container:        0 62 168;
+  --c-secondary-fixed:            219 225 255;
+  --c-secondary-fixed-dim:        180 197 255;
+  --c-on-secondary:               0 23 75;
+  --c-on-secondary-container:     219 225 255;
+  --c-on-secondary-fixed:         0 23 75;
+  --c-on-secondary-fixed-variant: 0 62 168;
+
+  --c-tertiary:                   189 199 217;
+  --c-tertiary-container:         61 71 86;
+  --c-tertiary-fixed:             217 227 246;
+  --c-tertiary-fixed-dim:         189 199 217;
+  --c-on-tertiary:                18 28 42;
+  --c-on-tertiary-container:      217 227 246;
+  --c-on-tertiary-fixed:          18 28 42;
+  --c-on-tertiary-fixed-variant:  61 71 86;
+
+  --c-background:                 15 17 23;
+  --c-on-background:              228 231 247;
+
+  --c-surface:                    15 17 23;
+  --c-surface-dim:                10 13 20;
+  --c-surface-bright:             53 58 74;
+  --c-surface-container-lowest:   10 14 25;
+  --c-surface-container-low:      23 29 45;
+  --c-surface-container:          27 33 50;
+  --c-surface-container-high:     34 40 57;
+  --c-surface-container-highest:  45 51 66;
+  --c-on-surface:                 228 231 247;
+  --c-on-surface-variant:         184 196 188;
+  --c-inverse-surface:            228 231 247;
+  --c-inverse-on-surface:         42 49 61;
+
+  --c-outline:                    138 151 137;
+  --c-outline-variant:            62 74 61;
+  --c-surface-tint:               98 223 125;
+  --c-surface-variant:            42 49 61;
+
+  --c-error:                      255 180 171;
+  --c-on-error:                   105 0 5;
+  --c-error-container:            147 0 10;
+  --c-on-error-container:         255 218 214;
+
+  --c-success:                    98 223 125;
+  --c-success-container:          0 58 18;
+  --c-warning:                    255 183 124;
+  --c-warning-container:          58 26 0;
+  --c-info:                       180 197 255;
+  --c-info-container:             0 62 168;
+}
+
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
@@ -9,11 +139,17 @@
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
-    background-color: #f9f9ff;
-    color: #151c27;
+    background-color: rgb(var(--c-background));
+    color: rgb(var(--c-on-background));
     min-height: 100vh;
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   }
@@ -29,6 +165,11 @@
   }
 
   input, textarea, select, button { font-family: inherit; }
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  textarea, select {
+    background-color: rgb(var(--c-surface));
+    color: rgb(var(--c-on-surface));
+  }
   img { max-width: 100%; display: block; }
 }
 
