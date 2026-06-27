@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 
@@ -36,7 +36,7 @@ export default function Categories() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-outline-variant p-5 animate-pulse">
+          <div key={i} className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 animate-pulse">
             <div className="w-12 h-12 rounded-xl bg-surface-variant mb-3" />
             <div className="h-4 bg-surface-variant rounded w-3/4 mb-2" />
             <div className="h-3 bg-surface-variant rounded w-1/2" />
@@ -53,7 +53,7 @@ export default function Categories() {
         <p className="text-sm text-on-surface-variant mt-0.5">Browse medicines by category</p>
       </div>
       <div className="flex flex-col items-center gap-3 py-16 text-on-surface-variant">
-        <span className="text-5xl">📦</span>
+        <span className="text-5xl">ðŸ"¦</span>
         <p className="text-sm font-medium">No categories available yet.</p>
       </div>
     </div>
@@ -73,10 +73,13 @@ export default function Categories() {
             <Link
               key={cat.id}
               to={`/dashboard/medicines?category=${encodeURIComponent(cat.name)}`}
-              className={`group bg-white rounded-xl border shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 p-5 ${palette.color}`}
+              className={`group bg-surface-container-lowest rounded-xl border shadow-card hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5 p-5 ${palette.color}`}
             >
-              <div className={`w-12 h-12 rounded-xl ${palette.iconBg} flex items-center justify-center text-2xl mb-3`}>
-                {cat.icon || '💊'}
+              <div className={`w-12 h-12 rounded-xl ${palette.iconBg} flex items-center justify-center mb-3`}>
+                {cat.icon && /^[a-z_]+$/.test(cat.icon)
+                  ? <span className="material-symbols-outlined" style={{ fontSize: '24px', fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                  : <span className="text-2xl">{cat.icon || '💊'}</span>
+                }
               </div>
               <h3 className="text-sm font-semibold group-hover:underline">{cat.name}</h3>
               <p className="text-xs mt-1 opacity-70">{cat._count?.medicines ?? 0} medicines</p>

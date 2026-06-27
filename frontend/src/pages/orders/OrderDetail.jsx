@@ -1,27 +1,118 @@
-import React, { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+﻿import React, { useState, useEffect } from 'react'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
 
-const orderItems = [
-  { name: 'Amoxicillin 500mg', brand: 'GlaxoSmithKline', qty: 2, price: 180, type: 'Rx', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop' },
-  { name: 'Paracetamol 500mg', brand: 'Cipla', qty: 3, price: 45, type: 'OTC', img: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=200&h=200&fit=crop' },
-  { name: 'Vitamin D3 1000 IU', brand: 'Abbott', qty: 1, price: 320, type: 'OTC', img: 'https://images.unsplash.com/photo-1550572017-edd951b55104?w=200&h=200&fit=crop' },
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+
+const STATUS_STEP = {
+  PLACED: 0,
+  CONFIRMED: 1,
+  PROCESSING: 2,
+  SHIPPED: 3,
+  OUT_FOR_DELIVERY: 4,
+  DELIVERED: 5,
+}
+
+const TIMELINE_STEPS = [
+  'Order Placed',
+  'Prescription Verified',
+  'Processing',
+  'Shipped',
+  'Out for Delivery',
+  'Delivered',
 ]
 
-const timeline = [
-  { label: 'Order Placed', time: 'Jun 24, 2024, 10:32 AM', done: true },
-  { label: 'Prescription Verified', time: 'Jun 24, 2024, 11:15 AM', done: true },
-  { label: 'Processing', time: 'Jun 24, 2024, 2:00 PM', done: true },
-  { label: 'Shipped', time: 'Jun 25, 2024, 9:00 AM', done: false },
-  { label: 'Out for Delivery', time: 'Estimated: Jun 26', done: false },
-  { label: 'Delivered', time: 'Estimated: Jun 26-28', done: false },
-]
+const STATUS_CONFIG = {
+  PLACED:           { label: 'Placed',           color: 'bg-secondary/10 text-secondary',    icon: 'receipt' },
+  CONFIRMED:        { label: 'Confirmed',         color: 'bg-blue-50 text-blue-600',          icon: 'check' },
+  PROCESSING:       { label: 'Processing',        color: 'bg-amber-50 text-amber-700',        icon: 'autorenew' },
+  SHIPPED:          { label: 'Shipped',           color: 'bg-indigo-50 text-indigo-600',      icon: 'local_shipping' },
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery',  color: 'bg-orange-50 text-orange-600',      icon: 'delivery_dining' },
+  DELIVERED:        { label: 'Delivered',         color: 'bg-primary/10 text-primary',        icon: 'check_circle' },
+  CANCELLED:        { label: 'Cancelled',         color: 'bg-error/10 text-error',            icon: 'cancel' },
+}
 
-const subtotal = orderItems.reduce((s, i) => s + i.price * i.qty, 0)
+const PAYMENT_STATUS_CONFIG = {
+  PENDING:  { label: 'Payment Pending',   color: 'text-amber-600', icon: 'schedule' },
+  PAID:     { label: 'Payment Confirmed', color: 'text-primary',   icon: 'check_circle' },
+  FAILED:   { label: 'Payment Failed',    color: 'text-error',     icon: 'cancel' },
+  REFUNDED: { label: 'Refunded',          color: 'text-secondary', icon: 'currency_exchange' },
+}
+
+function fmtDate(iso) {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
 
 export default function OrderDetail() {
   const { orderId } = useParams()
-  const [rating, setRating] = useState(0)
-  const [hover, setHover] = useState(0)
+  const navigate    = useNavigate()
+  const [order, setOrder]       = useState(null)
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
+  const [cancelling, setCancelling] = useState(false)
+  const [rating, setRating]     = useState(0)
+  const [hover, setHover]       = useState(0)
+
+  useEffect(() => {
+    if (!orderId) return
+    api.get(`/orders/${orderId}`)
+      .then(res => setOrder(res.data.data.order))
+      .catch(() => setError('Order not found or you do not have access to it.'))
+      .finally(() => setLoading(false))
+  }, [orderId])
+
+  const handleCancel = async () => {
+    if (!confirm('Are you sure you want to cancel this order?')) return
+    setCancelling(true)
+    try {
+      await api.put(`/orders/${orderId}/cancel`)
+      setOrder(prev => ({ ...prev, status: 'CANCELLED' }))
+    } catch (err) {
+      alert(err.response?.data?.message || 'Could not cancel order.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 bg-surface-container rounded-xl w-56" />
+        <div className="h-40 bg-surface-container-lowest rounded-2xl" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-32 bg-surface-container-lowest rounded-2xl" />
+          <div className="h-32 bg-surface-container-lowest rounded-2xl" />
+        </div>
+        <div className="h-48 bg-surface-container-lowest rounded-2xl" />
+      </div>
+    )
+  }
+
+  if (error || !order) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '48px' }}>error_outline</span>
+        <p className="text-base font-bold text-on-surface mt-4">{error || 'Order not found'}</p>
+        <Link to="/dashboard/orders" className="mt-4 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold">Back to Orders</Link>
+      </div>
+    )
+  }
+
+  const cfg         = STATUS_CONFIG[order.status] || STATUS_CONFIG.PLACED
+  const paymentCfg  = PAYMENT_STATUS_CONFIG[order.paymentStatus] || PAYMENT_STATUS_CONFIG.PENDING
+  const step        = STATUS_STEP[order.status] ?? 0
+  const cancelled   = order.status === 'CANCELLED'
+  const canCancel   = ['PLACED', 'CONFIRMED'].includes(order.status)
+  const subtotal    = (order.items || []).reduce((s, i) => s + parseFloat(i.unitPrice) * i.quantity, 0)
+  const delivery    = parseFloat(order.deliveryCharge || 0)
+  const discount    = parseFloat(order.discount || 0)
+  const total       = parseFloat(order.totalAmount)
 
   return (
     <div className="space-y-5">
@@ -34,135 +125,207 @@ export default function OrderDetail() {
               Orders
             </Link>
           </div>
-          <h1 className="text-xl font-bold text-on-surface">Order #{orderId || 'ORD-2024-007'}</h1>
-          <p className="text-sm text-on-surface-variant mt-0.5">Placed on Jun 24, 2024</p>
+          <h1 className="text-xl font-bold text-on-surface font-mono">
+            Order #{order.id.slice(0, 8).toUpperCase()}
+          </h1>
+          <p className="text-sm text-on-surface-variant mt-0.5">Placed on {fmtDateShort(order.placedAt)}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold">Processing</span>
-          <Link to={`/dashboard/track-order/${orderId || 'ORD-2024-007'}`}
-            className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-white rounded-xl text-sm font-semibold hover:bg-secondary/90 transition-colors">
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>route</span>
-            Track Order
-          </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${cfg.color} border-current/20`}>
+            {cfg.label}
+          </span>
+          {!cancelled && (
+            <Link to={`/dashboard/track-order/${order.id}`}
+              className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-white rounded-xl text-sm font-semibold hover:bg-secondary/90 transition-colors">
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>route</span>
+              Track Order
+            </Link>
+          )}
+          {canCancel && (
+            <button onClick={handleCancel} disabled={cancelling}
+              className="flex items-center gap-1.5 px-4 py-2 border border-error text-error rounded-xl text-sm font-semibold hover:bg-error/5 transition-colors disabled:opacity-50">
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>cancel</span>
+              {cancelling ? 'Cancelling…' : 'Cancel Order'}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Rate Your Experience */}
-      <div className="bg-white rounded-2xl custom-shadow p-5">
-        <h2 className="text-sm font-semibold text-on-surface mb-3">Rate Your Experience</h2>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map(star => (
-              <button
-                key={star}
-                onMouseEnter={() => setHover(star)}
-                onMouseLeave={() => setHover(0)}
-                onClick={() => setRating(star)}
-                className="transition-transform hover:scale-110"
-              >
-                <span className={`material-symbols-outlined ${(hover || rating) >= star ? 'ms-filled text-amber-400' : 'text-outline-variant'}`} style={{ fontSize: '28px' }}>star</span>
-              </button>
-            ))}
+      {/* Delivery Timeline */}
+      <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
+        <h2 className="text-[15px] font-semibold text-on-surface mb-4">
+          {cancelled ? 'Order Cancelled' : 'Delivery Timeline'}
+        </h2>
+
+        {cancelled ? (
+          <div className="flex items-center gap-3 p-4 bg-error/5 rounded-xl border border-error/20">
+            <span className="material-symbols-outlined text-error" style={{ fontSize: '28px', fontVariationSettings: "'FILL' 1" }}>cancel</span>
+            <div>
+              <p className="text-sm font-semibold text-on-surface">This order has been cancelled</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Cancelled on {fmtDateShort(order.updatedAt)}</p>
+            </div>
           </div>
-          {rating > 0 && <span className="text-sm text-on-surface-variant ml-1">{['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]}</span>}
-        </div>
-        {rating > 0 && (
-          <button className="mt-3 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
-            Submit Review
-          </button>
+        ) : (
+          <div className="space-y-0">
+            {TIMELINE_STEPS.map((stepLabel, i) => {
+              const done   = i <= step
+              const active = i === step
+              return (
+                <div key={i} className="flex gap-4 relative pb-5 last:pb-0">
+                  {i < TIMELINE_STEPS.length - 1 && (
+                    <div className={`absolute left-[13px] top-7 bottom-0 w-0.5 ${done && i < step ? 'bg-primary' : 'bg-outline-variant'}`} />
+                  )}
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10 mt-0.5 border-2 ${
+                    i < step ? 'bg-primary border-primary' : active ? 'bg-surface-container-lowest border-secondary' : 'bg-surface-container-lowest border-outline-variant'
+                  }`}>
+                    {i < step
+                      ? <span className="material-symbols-outlined text-white" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>check</span>
+                      : active
+                      ? <div className="w-2.5 h-2.5 bg-secondary rounded-full" />
+                      : <div className="w-2 h-2 bg-outline-variant rounded-full" />
+                    }
+                  </div>
+                  <div className="pt-0.5">
+                    <p className={`text-sm font-semibold ${i <= step ? 'text-on-surface' : 'text-on-surface-variant'}`}>{stepLabel}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">
+                      {i === 0 ? fmtDate(order.placedAt)
+                        : i < step ? fmtDate(order.updatedAt)
+                        : active ? 'In progress'
+                        : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
 
       {/* Delivery + Payment Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl custom-shadow p-5">
+        {/* Delivery */}
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '20px' }}>location_on</span>
+            <span className="material-symbols-outlined text-secondary" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>location_on</span>
             <h3 className="text-sm font-semibold text-on-surface">Delivery Information</h3>
           </div>
-          <p className="text-sm font-semibold text-on-surface">Aman Rauniyar</p>
-          <p className="text-xs text-on-surface-variant mt-1">123 Lazimpat, Ward No. 2</p>
-          <p className="text-xs text-on-surface-variant">Kathmandu, Bagmati Province — 44600</p>
-          <p className="text-xs text-on-surface-variant mt-0.5">+977-98XXXXXXXX</p>
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '14px' }}>local_shipping</span>
-            <span className="text-xs text-on-surface-variant">Estimated: Jun 26–28, 2024</span>
-          </div>
+          {order.address ? (
+            <>
+              <p className="text-sm font-semibold text-on-surface">{order.address.name}</p>
+              <p className="text-xs text-on-surface-variant mt-1">{order.address.address}</p>
+              <p className="text-xs text-on-surface-variant">{order.address.city}, {order.address.province} - {order.address.zip}</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">{order.address.phone}</p>
+              {order.address.label && (
+                <span className="mt-2 inline-block px-2 py-0.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full">{order.address.label}</span>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-on-surface-variant">No delivery address recorded</p>
+          )}
         </div>
 
-        <div className="bg-white rounded-2xl custom-shadow p-5">
+        {/* Payment */}
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined ms-filled text-secondary" style={{ fontSize: '20px' }}>payment</span>
+            <span className="material-symbols-outlined text-secondary" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>payment</span>
             <h3 className="text-sm font-semibold text-on-surface">Payment Information</h3>
           </div>
-          <p className="text-sm font-semibold text-on-surface">eSewa Wallet</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <span className="material-symbols-outlined ms-filled text-primary" style={{ fontSize: '14px' }}>check_circle</span>
-            <span className="text-xs text-primary font-medium">Payment Confirmed</span>
+          <p className="text-sm font-semibold text-on-surface capitalize">
+            {order.paymentMethod === 'ESEWA' ? 'eSewa Wallet'
+              : order.paymentMethod === 'COD' ? 'Cash on Delivery'
+              : order.paymentMethod || 'Not specified'}
+          </p>
+          <div className={`flex items-center gap-1.5 mt-1 ${paymentCfg.color}`}>
+            <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>{paymentCfg.icon}</span>
+            <span className="text-xs font-medium">{paymentCfg.label}</span>
           </div>
           <div className="mt-3 space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-on-surface-variant">Subtotal</span>
-              <span className="text-on-surface">NPR {subtotal}</span>
+              <span className="text-on-surface">NPR {subtotal.toFixed(0)}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-on-surface-variant">Delivery</span>
-              <span className="text-primary font-medium">FREE</span>
+              <span className={delivery === 0 ? 'text-primary font-medium' : 'text-on-surface'}>
+                {delivery === 0 ? 'FREE' : `NPR ${delivery.toFixed(0)}`}
+              </span>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-xs">
+                <span className="text-on-surface-variant">Discount</span>
+                <span className="text-primary font-medium">- NPR {discount.toFixed(0)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm font-bold border-t border-outline-variant pt-1.5 mt-1.5">
               <span>Total</span>
-              <span>NPR {subtotal}</span>
+              <span>NPR {total.toFixed(0)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Delivery Timeline */}
-      <div className="bg-white rounded-2xl custom-shadow p-5">
-        <h2 className="text-[15px] font-semibold text-on-surface mb-4">Delivery Timeline</h2>
-        <div className="space-y-0">
-          {timeline.map((step, i) => (
-            <div key={i} className="flex gap-4 relative pb-5 last:pb-0">
-              {i < timeline.length - 1 && (
-                <div className={`absolute left-[13px] top-7 bottom-0 w-0.5 ${step.done ? 'bg-primary' : 'bg-outline-variant'}`} />
-              )}
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10 mt-0.5 border-2 ${
-                step.done ? 'bg-primary border-primary' : 'bg-white border-outline-variant'
-              }`}>
-                {step.done && <span className="material-symbols-outlined ms-filled text-white" style={{ fontSize: '14px' }}>check</span>}
+      {/* Items in Order */}
+      <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
+        <h2 className="text-[15px] font-semibold text-on-surface mb-4">
+          Items in Order <span className="text-on-surface-variant font-normal text-sm">({order.items?.length || 0})</span>
+        </h2>
+        <div className="space-y-3">
+          {(order.items || []).map(item => {
+            const med = item.medicine || {}
+            const imgSrc = med.imageUrl ? `${BACKEND}${med.imageUrl}` : null
+            return (
+              <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-colors">
+                <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container flex items-center justify-center">
+                  {imgSrc ? (
+                    <img src={imgSrc} alt={med.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined text-on-surface-variant/40" style={{ fontSize: '28px' }}>medication</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  {med.type && (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${med.type === 'Rx' ? 'bg-primary text-white' : 'bg-secondary text-white'}`}>{med.type}</span>
+                  )}
+                  <p className="text-sm font-semibold text-on-surface mt-0.5">{med.name || 'Medicine'}</p>
+                  <p className="text-xs text-on-surface-variant">{med.brand || ''}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs text-on-surface-variant">× {item.quantity}</p>
+                  <p className="text-sm font-bold text-on-surface">NPR {(parseFloat(item.unitPrice) * item.quantity).toFixed(0)}</p>
+                  <p className="text-[11px] text-on-surface-variant">NPR {parseFloat(item.unitPrice).toFixed(0)} each</p>
+                </div>
               </div>
-              <div>
-                <p className={`text-sm font-semibold ${step.done ? 'text-on-surface' : 'text-on-surface-variant'}`}>{step.label}</p>
-                <p className="text-xs text-on-surface-variant mt-0.5">{step.time}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
-      {/* Items in Order */}
-      <div className="bg-white rounded-2xl custom-shadow p-5">
-        <h2 className="text-[15px] font-semibold text-on-surface mb-4">Items in Order</h2>
-        <div className="space-y-3">
-          {orderItems.map(item => (
-            <div key={item.name} className="flex items-center gap-4 p-3 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-colors">
-              <img src={item.img} alt={item.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.type === 'Rx' ? 'bg-primary text-white' : 'bg-secondary text-white'}`}>{item.type}</span>
-                </div>
-                <p className="text-sm font-semibold text-on-surface">{item.name}</p>
-                <p className="text-xs text-on-surface-variant">{item.brand}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs text-on-surface-variant">× {item.qty}</p>
-                <p className="text-sm font-bold text-on-surface">NPR {item.price * item.qty}</p>
-                <button className="text-xs font-medium text-secondary hover:underline mt-1">Write a Review</button>
-              </div>
+      {/* Rate Your Experience - only for delivered orders */}
+      {order.status === 'DELIVERED' && (
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
+          <h2 className="text-sm font-semibold text-on-surface mb-3">Rate Your Experience</h2>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button key={star}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                  onClick={() => setRating(star)}
+                  className="transition-transform hover:scale-110">
+                  <span className={`material-symbols-outlined ${(hover || rating) >= star ? 'text-amber-400' : 'text-outline-variant'}`}
+                    style={{ fontSize: '28px', fontVariationSettings: (hover || rating) >= star ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                </button>
+              ))}
             </div>
-          ))}
+            {rating > 0 && <span className="text-sm text-on-surface-variant ml-1">{['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]}</span>}
+          </div>
+          {rating > 0 && (
+            <button className="mt-3 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
+              Submit Review
+            </button>
+          )}
         </div>
-      </div>
+      )}
     </div>
   )
 }

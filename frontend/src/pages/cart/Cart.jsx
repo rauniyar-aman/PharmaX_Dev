@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
@@ -66,7 +66,7 @@ export default function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-3">
             {[1, 2].map(i => (
-              <div key={i} className="bg-white rounded-2xl custom-shadow p-4 flex gap-4 animate-pulse">
+              <div key={i} className="bg-surface-container-lowest rounded-2xl custom-shadow p-4 flex gap-4 animate-pulse">
                 <div className="w-24 h-24 rounded-xl bg-surface-container flex-shrink-0" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-surface-container rounded w-2/3" />
@@ -76,7 +76,7 @@ export default function Cart() {
               </div>
             ))}
           </div>
-          <div className="h-64 bg-white rounded-2xl custom-shadow animate-pulse" />
+          <div className="h-64 bg-surface-container-lowest rounded-2xl custom-shadow animate-pulse" />
         </div>
       </div>
     )
@@ -96,7 +96,7 @@ export default function Cart() {
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-white rounded-2xl custom-shadow text-center py-20">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-20">
           <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '64px' }}>shopping_cart</span>
           <p className="text-lg font-semibold text-on-surface mt-4">Your cart is empty</p>
           <p className="text-sm text-on-surface-variant mt-1">Browse our medicines and add items to your cart</p>
@@ -113,7 +113,7 @@ export default function Cart() {
               const med = item.medicine
               const isRx = med.type === 'Rx'
               return (
-                <div key={item.id} className="bg-white rounded-2xl custom-shadow p-4 flex gap-4">
+                <div key={item.id} className="bg-surface-container-lowest rounded-2xl custom-shadow p-4 flex gap-4">
                   <Link to={`/dashboard/medicines/${med.id}`} className="flex-shrink-0">
                     {med.imageUrl ? (
                       <img src={med.imageUrl} alt={med.name} className="w-24 h-24 rounded-xl object-cover" />
@@ -157,7 +157,7 @@ export default function Cart() {
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>remove</span>
                         </button>
                         <span className="w-10 text-center text-sm font-semibold text-on-surface">
-                          {updating[med.id] ? '…' : item.quantity}
+                          {updating[med.id] ? 'â€¦' : item.quantity}
                         </span>
                         <button
                           onClick={() => updateQty(med.id, item.quantity + 1)}
@@ -169,7 +169,7 @@ export default function Cart() {
                       </div>
 
                       <div className="text-right">
-                        <p className="text-xs text-on-surface-variant">NPR {Number(med.price).toFixed(0)} × {item.quantity}</p>
+                        <p className="text-xs text-on-surface-variant">NPR {Number(med.price).toFixed(0)} Ã- {item.quantity}</p>
                         <p className="text-base font-bold text-on-surface">NPR {(Number(med.price) * item.quantity).toFixed(0)}</p>
                       </div>
                     </div>
@@ -199,7 +199,7 @@ export default function Cart() {
 
           {/* Order Summary */}
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl custom-shadow p-5">
+            <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
               <h2 className="text-[15px] font-semibold text-on-surface mb-4">Order Summary</h2>
 
               <div className="space-y-3">
@@ -214,7 +214,7 @@ export default function Cart() {
                 {couponApplied && (
                   <div className="flex justify-between text-sm">
                     <span className="text-on-surface-variant">Discount (PHARMA10)</span>
-                    <span className="font-medium text-primary">– NPR {discount}</span>
+                    <span className="font-medium text-primary">â€" NPR {discount}</span>
                   </div>
                 )}
                 <div className="border-t border-outline-variant pt-3 flex justify-between">
@@ -243,7 +243,7 @@ export default function Cart() {
                     {couponApplied ? 'Applied' : 'Apply'}
                   </button>
                 </div>
-                {couponApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied — 10% off!</p>}
+                {couponApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied â€" 10% off!</p>}
               </div>
 
               <button

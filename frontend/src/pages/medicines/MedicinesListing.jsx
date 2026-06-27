@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+﻿import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
+import { useCart } from '../../context/CartContext'
 
 const ITEMS_PER_PAGE = 8
 
@@ -18,7 +19,7 @@ const categoryColors = {
 
 function MedicineSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden custom-shadow animate-pulse">
+    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden custom-shadow animate-pulse">
       <div className="h-48 bg-surface-container" />
       <div className="p-4 space-y-2">
         <div className="h-3 bg-surface-container rounded w-1/3" />
@@ -33,6 +34,7 @@ function MedicineSkeleton() {
 export default function MedicinesListing() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const { refreshCart } = useCart()
   const [searchParams] = useSearchParams()
 
   const [medicines, setMedicines] = useState([])
@@ -91,6 +93,7 @@ export default function MedicinesListing() {
     setCartLoading(prev => ({ ...prev, [medicineId]: true }))
     try {
       await api.post('/cart/items', { medicineId, quantity: 1 })
+      refreshCart()
     } catch (err) {
       alert(err.response?.data?.message || 'Could not add to cart.')
     } finally {
@@ -136,7 +139,7 @@ export default function MedicinesListing() {
       </div>
 
       {/* Search + Filters */}
-      <div className="bg-white rounded-2xl p-4 custom-shadow space-y-3">
+      <div className="bg-surface-container-lowest rounded-2xl p-4 custom-shadow space-y-3">
         <div className="relative">
           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '20px' }}>search</span>
           <input
@@ -150,21 +153,21 @@ export default function MedicinesListing() {
 
         <div className="flex flex-wrap gap-2 items-center">
           <select value={category} onChange={handleFilterChange(setCategory)}
-            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[140px]">
+            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary transition min-w-[140px]">
             <option value="">All Categories</option>
             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
 
           <select value={priceRange} onChange={handleFilterChange(setPriceRange)}
-            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
+            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
             <option value="">All Prices</option>
             <option value="under-100">Under NPR 100</option>
-            <option value="100-300">NPR 100–300</option>
+            <option value="100-300">NPR 100â€"300</option>
             <option value="over-300">Over NPR 300</option>
           </select>
 
           <select value={availability} onChange={handleFilterChange(setAvailability)}
-            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
+            className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
             <option value="">Availability</option>
             <option value="in-stock">In Stock</option>
             <option value="out-of-stock">Out of Stock</option>
@@ -173,11 +176,11 @@ export default function MedicinesListing() {
           <div className="ml-auto flex items-center gap-1 bg-surface-container-low rounded-xl p-1">
             {[
               { val: 'popular', label: 'Popularity' },
-              { val: 'price-asc', label: 'Price ↑' },
+              { val: 'price-asc', label: 'Low to High' },
               { val: 'newest', label: 'Newest' },
             ].map(opt => (
               <button key={opt.val} onClick={() => { setSortBy(opt.val); setPage(1) }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sortBy === opt.val ? 'bg-white text-on-surface custom-shadow' : 'text-on-surface-variant hover:text-on-surface'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sortBy === opt.val ? 'bg-surface-container-lowest text-on-surface custom-shadow' : 'text-on-surface-variant hover:text-on-surface'}`}>
                 {opt.label}
               </button>
             ))}
@@ -189,7 +192,7 @@ export default function MedicinesListing() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-white rounded-2xl custom-shadow text-center py-12">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-12">
           <span className="material-symbols-outlined text-error" style={{ fontSize: '48px' }}>error_outline</span>
           <p className="text-base font-medium text-on-surface mt-3">{error}</p>
           <button onClick={fetchMedicines} className="mt-4 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
@@ -207,7 +210,7 @@ export default function MedicinesListing() {
 
       {/* Empty State */}
       {!loading && !error && medicines.length === 0 && (
-        <div className="bg-white rounded-2xl custom-shadow text-center py-16">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-16">
           <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '48px' }}>search_off</span>
           <p className="text-base font-medium text-on-surface mt-3">No medicines found</p>
           <p className="text-sm text-on-surface-variant mt-1">Try adjusting your search or filters</p>
@@ -222,7 +225,7 @@ export default function MedicinesListing() {
             const typeLabel = isRx ? 'Rx' : 'OTC'
             const catName = med.category?.name || ''
             return (
-              <div key={med.id} className="bg-white rounded-2xl overflow-hidden custom-shadow hover:-translate-y-1 transition-all duration-200 flex flex-col group">
+              <div key={med.id} className="bg-surface-container-lowest rounded-2xl overflow-hidden custom-shadow hover:-translate-y-1 transition-all duration-200 flex flex-col group">
                 <Link to={`/dashboard/medicines/${med.id}`} className="relative block overflow-hidden">
                   {med.imageUrl ? (
                     <img
@@ -241,7 +244,7 @@ export default function MedicinesListing() {
                   </span>
                   <button
                     onClick={e => { e.preventDefault(); toggleWishlist(med.id) }}
-                    className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                    className="absolute top-3 right-3 w-8 h-8 bg-surface-container-lowest rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
                   >
                     <span className={`material-symbols-outlined ${wishlist.includes(med.id) ? 'ms-filled text-error' : 'text-on-surface-variant'}`} style={{ fontSize: '18px' }}>favorite</span>
                   </button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 import { useCart } from '../../context/CartContext'
@@ -94,7 +94,7 @@ export default function MedicineDetails() {
       {/* Main Product Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Image */}
-        <div className="bg-white rounded-2xl overflow-hidden custom-shadow flex items-center justify-center min-h-[280px]">
+        <div className="bg-surface-container-lowest rounded-2xl overflow-hidden custom-shadow flex items-center justify-center min-h-[280px]">
           {med.imageUrl ? (
             <img src={med.imageUrl} alt={med.name} className="w-full h-80 object-contain p-4" />
           ) : (
@@ -117,7 +117,7 @@ export default function MedicineDetails() {
           <h1 className="text-2xl font-bold text-on-surface">{med.name}</h1>
           <p className="text-sm text-on-surface-variant">
             {med.brand}
-            {med.packageSize ? ` · ${med.packageSize}` : ''}
+            {med.packageSize ? ` Â· ${med.packageSize}` : ''}
           </p>
 
           {/* Rating */}
@@ -198,7 +198,7 @@ export default function MedicineDetails() {
               }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_shopping_cart</span>
-              {cartLoading ? 'Adding…' : 'Add to Cart'}
+              {cartLoading ? 'Addingâ€¦' : 'Add to Cart'}
             </button>
             <button
               onClick={handleBuyNow}
@@ -208,7 +208,7 @@ export default function MedicineDetails() {
               }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>flash_on</span>
-              {buyLoading ? 'Processing…' : 'Buy Now'}
+              {buyLoading ? 'Processingâ€¦' : 'Buy Now'}
             </button>
           </div>
 
@@ -243,7 +243,7 @@ export default function MedicineDetails() {
       </div>
 
       {/* Description Tabs */}
-      <div className="bg-white rounded-2xl custom-shadow overflow-hidden">
+      <div className="bg-surface-container-lowest rounded-2xl custom-shadow overflow-hidden">
         <div className="flex border-b border-outline-variant">
           {tabs.map(tab => (
             <button
@@ -265,7 +265,7 @@ export default function MedicineDetails() {
       </div>
 
       {/* Customer Reviews */}
-      <div className="bg-white rounded-2xl custom-shadow p-6">
+      <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-[15px] font-semibold text-on-surface">Customer Reviews</h2>
           <div className="flex items-center gap-2">

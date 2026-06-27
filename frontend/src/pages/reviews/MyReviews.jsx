@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const reviewsData = [
@@ -83,7 +83,7 @@ export default function MyReviews() {
       {/* Overall Satisfaction + Rating Distribution */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Overall Score */}
-        <div className="bg-white rounded-2xl custom-shadow p-6 flex flex-col items-center justify-center text-center">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-6 flex flex-col items-center justify-center text-center">
           <p className="text-5xl font-black text-on-surface">{avgRating}</p>
           <div className="flex items-center gap-1 mt-2 justify-center">
             {[...Array(5)].map((_, i) => (
@@ -95,7 +95,7 @@ export default function MyReviews() {
         </div>
 
         {/* Distribution */}
-        <div className="bg-white rounded-2xl custom-shadow p-5">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
           <h3 className="text-sm font-semibold text-on-surface mb-3">Rating Distribution</h3>
           <div className="space-y-2.5">
             {ratingDist.map(r => (
@@ -118,7 +118,7 @@ export default function MyReviews() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl custom-shadow p-4 flex flex-wrap items-center gap-3">
+      <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
           <input
@@ -130,9 +130,9 @@ export default function MyReviews() {
           />
         </div>
         <select value={ratingFilter} onChange={e => setRatingFilter(e.target.value)}
-          className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-white focus:outline-none focus:border-secondary transition min-w-[120px]">
+          className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-surface-container-lowest focus:outline-none focus:border-secondary transition min-w-[120px]">
           <option value="">All Ratings</option>
-          {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r}★</option>)}
+          {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r}â˜…</option>)}
         </select>
         <button className="flex items-center gap-1.5 px-3 py-2 border border-outline-variant rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>filter_list</span>
@@ -144,7 +144,7 @@ export default function MyReviews() {
       {/* Review Cards */}
       <div className="space-y-4">
         {filtered.map(review => (
-          <div key={review.id} className="bg-white rounded-2xl custom-shadow p-5">
+          <div key={review.id} className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <div className="flex items-start gap-4">
               {/* Medicine Image */}
               <Link to={`/dashboard/medicines/${review.id}`} className="flex-shrink-0">
@@ -209,7 +209,7 @@ export default function MyReviews() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="bg-white rounded-2xl custom-shadow text-center py-14">
+        <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-14">
           <span className="material-symbols-outlined ms-filled text-on-surface-variant" style={{ fontSize: '48px' }}>rate_review</span>
           <p className="text-base font-semibold text-on-surface mt-3">No reviews found</p>
           <p className="text-sm text-on-surface-variant mt-1">Try adjusting your search or filters</p>

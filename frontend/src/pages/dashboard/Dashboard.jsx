@@ -1,5 +1,6 @@
-import React from 'react'
+﻿import React from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 const statCards = [
   {
@@ -78,19 +79,29 @@ const recentActivity = [
   },
 ]
 
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good Morning'
+  if (h < 17) return 'Good Afternoon'
+  return 'Good Evening'
+}
+
 export default function Dashboard() {
+  const { user } = useAuth()
+  const firstName = user?.fullName?.split(' ')[0] || 'there'
+
   return (
     <div className="space-y-6">
       {/* Greeting */}
       <div>
-        <h2 className="text-2xl font-bold text-on-surface">Good Morning, Alex!</h2>
+        <h2 className="text-2xl font-bold text-on-surface">{getGreeting()}, {firstName}!</h2>
         <p className="text-sm text-on-surface-variant mt-1">Here's what's happening with your health orders today.</p>
       </div>
 
       {/* Stat Widgets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((card) => (
-          <div key={card.label} className="bg-white rounded-2xl p-5 custom-shadow flex items-center gap-4">
+          <div key={card.label} className="bg-surface-container-lowest rounded-2xl p-5 custom-shadow flex items-center gap-4">
             <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${card.iconBg}`}>
               <span className={`material-symbols-outlined ms-filled ${card.iconColor}`} style={{ fontSize: '26px' }}>{card.icon}</span>
             </div>
@@ -121,7 +132,7 @@ export default function Dashboard() {
             </div>
             <Link
               to="/dashboard/prescriptions"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-primary text-sm font-semibold rounded-xl hover:bg-white/90 transition-colors w-full justify-center"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest text-primary text-sm font-semibold rounded-xl hover:bg-white/90 transition-colors w-full justify-center"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
               Upload Now
@@ -129,7 +140,7 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Shortcuts */}
-          <div className="bg-white rounded-2xl p-5 custom-shadow">
+          <div className="bg-surface-container-lowest rounded-2xl p-5 custom-shadow">
             <h3 className="text-sm font-semibold text-on-surface mb-3">Quick Shortcuts</h3>
             <div className="grid grid-cols-2 gap-2.5">
               {shortcuts.map((s) => (
@@ -147,7 +158,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Column: Recent Activity */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-5 custom-shadow">
+        <div className="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-5 custom-shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-semibold text-on-surface">Recent Activity</h3>
             <Link to="/dashboard/orders" className="text-sm font-medium text-secondary hover:underline">View All</Link>

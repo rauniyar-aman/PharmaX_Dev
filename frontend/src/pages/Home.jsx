@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import { Link } from 'react-router-dom'
@@ -7,32 +7,32 @@ const features = [
   {
     title: 'Fast Delivery',
     description: 'Get your medicines delivered within 24 hours of ordering. Track your order in real-time.',
-    icon: '🚚'
+    icon: 'local_shipping'
   },
   {
     title: 'Genuine Medicines',
     description: 'Directly sourced from certified manufacturers to ensure the highest quality standards.',
-    icon: '💊'
+    icon: 'medication'
   },
   {
     title: 'Secure Payments',
     description: 'Industry-standard encryption for all your financial transactions and medical records.',
-    icon: '🔒'
+    icon: 'lock'
   },
   {
     title: 'Prescription Verification',
     description: 'Our licensed pharmacists verify every prescription before processing your order.',
-    icon: '📝'
+    icon: 'description'
   },
   {
     title: '24/7 Support',
     description: 'Have questions? Our support team and pharmacists are available around the clock.',
-    icon: '📞'
+    icon: 'support_agent'
   },
   {
     title: 'Best Prices',
     description: 'We offer competitive pricing and regular discounts on essential healthcare products.',
-    icon: '🏷️'
+    icon: 'sell'
   }
 ]
 
@@ -56,7 +56,7 @@ const testimonials = [
     role: 'Marketing Director'
   },
   {
-    quote: 'The best prices I’ve found online for my family’s needs. The fast delivery is just the cherry on top. Highly recommended!',
+    quote: 'The best prices Iâ€™ve found online for my familyâ€™s needs. The fast delivery is just the cherry on top. Highly recommended!',
     name: 'Michael Chen',
     role: 'Parent & Caregiver'
   }
@@ -68,7 +68,7 @@ export default function Home() {
       <Navbar />
 
       <main>
-        <section className="bg-white">
+        <section className="bg-surface-container-lowest">
           <div className="container grid gap-10 lg:grid-cols-[1.2fr_0.8fr] items-center py-16">
             <div className="space-y-8">
               <div className="inline-flex items-center rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
@@ -87,7 +87,7 @@ export default function Home() {
                 <Link to="/signin" className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
                   Shop Medicines
                 </Link>
-                <Link to="/signup" className="inline-flex items-center justify-center rounded-full border border-surface-container bg-white px-6 py-3 text-sm font-semibold text-on-surface shadow-sm hover:bg-surface-container-low">
+                <Link to="/signup" className="inline-flex items-center justify-center rounded-full border border-surface-container bg-surface-container-lowest px-6 py-3 text-sm font-semibold text-on-surface shadow-sm hover:bg-surface-container-low">
                   Upload Prescription
                 </Link>
               </div>
@@ -128,9 +128,9 @@ export default function Home() {
 
           <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.title} className="rounded-[28px] border border-surface-container bg-white p-6 shadow-sm">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary text-xl">
-                  {feature.icon}
+              <div key={feature.title} className="rounded-[28px] border border-surface-container bg-surface-container-lowest p-6 shadow-sm">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <span className="material-symbols-outlined" style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1" }}>{feature.icon}</span>
                 </div>
                 <h3 className="text-lg font-semibold text-on-surface">{feature.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-on-surface-variant">{feature.description}</p>
@@ -149,7 +149,7 @@ export default function Home() {
 
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {processSteps.map((step, index) => (
-                <div key={step.label} className="rounded-[28px] border border-surface-container bg-white p-6 text-center shadow-sm">
+                <div key={step.label} className="rounded-[28px] border border-surface-container bg-surface-container-lowest p-6 text-center shadow-sm">
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary font-semibold">
                     {String(index + 1).padStart(2, '0')}
                   </div>
@@ -166,9 +166,9 @@ export default function Home() {
             <h2 className="text-3xl font-semibold text-on-surface">Trusted by Patients</h2>
             <div className="grid gap-6 md:grid-cols-3">
               {testimonials.map((item) => (
-                <div key={item.name} className="rounded-[28px] border border-surface-container bg-white p-6 text-left shadow-sm">
+                <div key={item.name} className="rounded-[28px] border border-surface-container bg-surface-container-lowest p-6 text-left shadow-sm">
                   <div className="mb-4 flex items-center gap-2 text-sm text-primary">
-                    <span>★★★★★</span>
+                    <span>â˜…â˜…â˜…â˜…â˜…</span>
                     <span className="font-semibold">99</span>
                   </div>
                   <p className="text-sm leading-6 text-on-surface-variant">{item.quote}</p>
@@ -190,7 +190,7 @@ export default function Home() {
                 <h2 className="mt-3 text-3xl font-semibold">Join thousands of users who trust PharmaX for their healthcare needs.</h2>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link to="/signup" className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-primary shadow-sm hover:bg-slate-100">
+                <Link to="/signup" className="inline-flex items-center justify-center rounded-full bg-surface-container-lowest px-6 py-3 text-sm font-semibold text-primary shadow-sm hover:bg-slate-100">
                   Create Account
                 </Link>
                 <button className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/20">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
@@ -65,7 +65,7 @@ export default function Orders() {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="h-8 bg-surface-container rounded-xl w-48" />
-        {[1, 2].map(i => <div key={i} className="h-40 bg-white rounded-2xl custom-shadow" />)}
+        {[1, 2].map(i => <div key={i} className="h-40 bg-surface-container-lowest rounded-2xl custom-shadow" />)}
       </div>
     )
   }
@@ -94,7 +94,7 @@ export default function Orders() {
         </h2>
 
         {activeOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl custom-shadow text-center py-10">
+          <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-10">
             <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '40px' }}>inbox</span>
             <p className="text-sm font-medium text-on-surface mt-2">No active orders</p>
             <p className="text-xs text-on-surface-variant mt-1">Orders you place will appear here</p>
@@ -105,13 +105,13 @@ export default function Orders() {
               const step = STATUS_STEP[order.status] ?? 0
               const itemNames = (order.items || []).map(i => i.medicine?.name).filter(Boolean)
               return (
-                <div key={order.id} className="bg-white rounded-2xl custom-shadow p-5">
+                <div key={order.id} className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="text-sm font-bold text-on-surface font-mono">{order.id.slice(0, 8).toUpperCase()}</p>
-                      <p className="text-xs text-on-surface-variant mt-0.5">{formatDate(order.placedAt)} · {order.items?.length || 0} items</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">{formatDate(order.placedAt)} Â· {order.items?.length || 0} items</p>
                       {itemNames.length > 0 && (
-                        <p className="text-xs text-on-surface-variant mt-0.5 truncate max-w-xs">{itemNames.slice(0, 3).join(', ')}{itemNames.length > 3 ? '…' : ''}</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5 truncate max-w-xs">{itemNames.slice(0, 3).join(', ')}{itemNames.length > 3 ? 'â€¦' : ''}</p>
                       )}
                     </div>
                     <div className="text-right">
@@ -130,7 +130,7 @@ export default function Orders() {
                           <React.Fragment key={stepLabel}>
                             <div className="flex flex-col items-center gap-1 flex-shrink-0">
                               <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${
-                                done ? 'bg-primary border-primary' : active ? 'bg-white border-secondary' : 'bg-white border-outline-variant'
+                                done ? 'bg-primary border-primary' : active ? 'bg-surface-container-lowest border-secondary' : 'bg-surface-container-lowest border-outline-variant'
                               }`}>
                                 {done ? (
                                   <span className="material-symbols-outlined ms-filled text-white" style={{ fontSize: '14px' }}>check</span>
@@ -178,13 +178,13 @@ export default function Orders() {
       <div>
         <h2 className="text-[15px] font-semibold text-on-surface mb-3">Order History</h2>
         {historyOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl custom-shadow text-center py-10">
+          <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-10">
             <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '40px' }}>history</span>
             <p className="text-sm font-medium text-on-surface mt-2">No past orders yet</p>
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-2xl custom-shadow overflow-hidden">
+            <div className="bg-surface-container-lowest rounded-2xl custom-shadow overflow-hidden">
               <div className="hidden sm:grid grid-cols-12 gap-4 px-5 py-3 bg-surface-container-low border-b border-outline-variant text-xs font-semibold text-on-surface-variant uppercase tracking-wide">
                 <span className="col-span-3">Order ID</span>
                 <span className="col-span-2">Date</span>
