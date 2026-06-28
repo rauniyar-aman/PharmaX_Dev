@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
@@ -25,12 +26,13 @@ function parseUrls(fileUrl) {
 }
 
 // ─── Verification Side Panel ──────────────────────────────────────────────────
-function VerificationPanel({ rx, onClose, onUpdate }) {
+function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
+  const navigate = useNavigate()
   const [rejectionReason, setRejectionReason] = useState(rx.rejectionReason || '')
   const [loading, setLoading]   = useState(false)
+  const [actionDone, setActionDone] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewIndex, setPreviewIndex] = useState(0)
-  // revokeMode: shows rejection reason textarea when admin wants to revoke an approval
   const [revokeMode, setRevokeMode] = useState(false)
 
   const urls     = parseUrls(rx.fileUrl)
@@ -53,7 +55,7 @@ function VerificationPanel({ rx, onClose, onUpdate }) {
         rejectionReason: status === 'REJECTED' ? rejectionReason.trim() : undefined,
       })
       onUpdate(res.data.data.prescription)
-      onClose()
+      if (orderId) { setActionDone(true) } else { onClose() }
     } catch (err) {
       alert(err.response?.data?.message || 'Action failed.')
     } finally {
@@ -271,6 +273,14 @@ function VerificationPanel({ rx, onClose, onUpdate }) {
 
         {/* Footer actions */}
         <div className="p-5 border-t border-outline-variant bg-surface-container-low space-y-2">
+          {actionDone && orderId && (
+            <button
+              onClick={() => navigate(`/admin/orders?orderId=${orderId}`)}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-secondary text-on-secondary rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-sm mb-1">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+              Back to Order #{orderId.slice(0, 8).toUpperCase()}
+            </button>
+          )}
           {rx.status === 'PENDING' && (
             <div className="flex gap-3">
               <button onClick={() => submitAction('REJECTED')} disabled={loading}
@@ -329,16 +339,21 @@ function VerificationPanel({ rx, onClose, onUpdate }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminPrescriptions() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [prescriptions, setPrescriptions] = useState([])
-  const [stats, setStats]   = useState(null)
+  const [statusCounts, setStatusCounts] = useState({})
   const [loading, setLoading] = useState(true)
-  const [tab, setTab]       = useState('') // '' = All
+  const [tab, setTab]       = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage]     = useState(1)
   const [pages, setPages]   = useState(1)
   const [total, setTotal]   = useState(0)
   const [selectedRx, setSelectedRx] = useState(null)
+  const [linkedOrderId, setLinkedOrderId] = useState(null)
+  const [exporting, setExporting] = useState(false)
   const searchRef = useRef()
+  const autoPrescriptionId = searchParams.get('prescriptionId')
+  const autoOrderId        = searchParams.get('orderId')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -346,19 +361,27 @@ export default function AdminPrescriptions() {
       const params = { page, limit: 15 }
       if (tab)    params.status = tab
       if (search) params.search = search
+      if (autoPrescriptionId && !search) params.search = autoPrescriptionId
 
-      const [rxRes, statsRes] = await Promise.all([
-        api.get('/admin/prescriptions', { params }),
-        api.get('/admin/stats'),
-      ])
+      const rxRes = await api.get('/admin/prescriptions', { params })
       const d = rxRes.data.data
-      setPrescriptions(d.prescriptions || [])
+      const loaded = d.prescriptions || []
+      setPrescriptions(loaded)
       setPages(d.pagination.pages)
       setTotal(d.pagination.total)
-      setStats(statsRes.data.data)
+      setStatusCounts(d.statusCounts || {})
+
+      if (autoPrescriptionId) {
+        const match = loaded.find(r => r.id === autoPrescriptionId)
+        if (match) {
+          setSelectedRx(match)
+          if (autoOrderId) setLinkedOrderId(autoOrderId)
+        }
+        setSearchParams({}, { replace: true })
+      }
     } catch {}
     finally { setLoading(false) }
-  }, [page, tab, search])
+  }, [page, tab, search, autoPrescriptionId])
 
   useEffect(() => { load() }, [load])
 
@@ -367,14 +390,45 @@ export default function AdminPrescriptions() {
     if (selectedRx?.id === updated.id) setSelectedRx(prev => ({ ...prev, ...updated }))
   }
 
-  const pendingCount = stats?.pendingPrescriptions ?? 0
+  const totalAll     = (statusCounts.PENDING || 0) + (statusCounts.VERIFIED || 0) + (statusCounts.REJECTED || 0) + (statusCounts.EXPIRED || 0)
+  const pendingCount = statusCounts.PENDING || 0
 
   const statCards = [
-    { label: 'Total',   value: total,                                                    icon: 'history_edu',     color: 'text-secondary bg-secondary/10' },
-    { label: 'Pending', value: prescriptions.filter(r => r.status === 'PENDING').length, icon: 'pending_actions', color: 'text-amber-700 bg-amber-100' },
-    { label: 'Approved',value: prescriptions.filter(r => r.status === 'VERIFIED').length,icon: 'check_circle',    color: 'text-primary bg-primary/10' },
-    { label: 'Rejected',value: prescriptions.filter(r => r.status === 'REJECTED').length,icon: 'cancel',          color: 'text-error bg-error/10' },
+    { label: 'Total',    value: totalAll,                    icon: 'history_edu',     color: 'text-secondary bg-secondary/10' },
+    { label: 'Pending',  value: pendingCount,                icon: 'pending_actions', color: 'text-amber-700 bg-amber-100' },
+    { label: 'Approved', value: statusCounts.VERIFIED || 0,  icon: 'check_circle',    color: 'text-primary bg-primary/10' },
+    { label: 'Rejected', value: statusCounts.REJECTED || 0,  icon: 'cancel',          color: 'text-error bg-error/10' },
   ]
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const res = await api.get('/admin/prescriptions', { params: { limit: 1000 } })
+      const rows = res.data.data.prescriptions || []
+      const header = ['ID', 'Customer', 'Email', 'Phone', 'Status', 'File', 'Uploaded', 'Order ID']
+      const csv = [
+        header.join(','),
+        ...rows.map(r => [
+          r.id,
+          `"${r.user?.fullName || ''}"`,
+          r.user?.email || '',
+          r.user?.phone || '',
+          r.status,
+          `"${r.fileName || ''}"`,
+          r.uploadedAt ? new Date(r.uploadedAt).toLocaleDateString() : '',
+          r.orderItems?.[0]?.orderId || '',
+        ].join(',')),
+      ].join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `prescriptions_${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {}
+    setExporting(false)
+  }
 
   return (
     <div className="space-y-6 relative">
@@ -383,7 +437,7 @@ export default function AdminPrescriptions() {
         <div className="fixed inset-0 bg-inverse-surface/30 backdrop-blur-sm z-50" onClick={() => setSelectedRx(null)} />
       )}
       {selectedRx && (
-        <VerificationPanel rx={selectedRx} onClose={() => setSelectedRx(null)} onUpdate={handleUpdate} />
+        <VerificationPanel rx={selectedRx} onClose={() => { setSelectedRx(null); setLinkedOrderId(null) }} onUpdate={handleUpdate} orderId={linkedOrderId} />
       )}
 
       {/* Header */}
@@ -391,9 +445,10 @@ export default function AdminPrescriptions() {
         <div>
           <p className="text-sm text-on-surface-variant">Verify and approve medicine requests from registered customers.</p>
         </div>
-        <button className="self-start px-4 py-2 border border-outline-variant rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container flex items-center gap-2 transition-all">
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>file_download</span>
-          Export Data
+        <button onClick={handleExport} disabled={exporting}
+          className="self-start px-4 py-2 border border-outline-variant rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container flex items-center gap-2 transition-all disabled:opacity-50">
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{exporting ? 'hourglass_top' : 'file_download'}</span>
+          {exporting ? 'Exporting…' : 'Export Data'}
         </button>
       </div>
 

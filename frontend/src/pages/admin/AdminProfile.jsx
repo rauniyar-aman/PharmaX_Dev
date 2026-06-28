@@ -6,6 +6,12 @@ import { useAuth } from '../../context/AuthContext'
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
+
 function fmtDate(iso) {
   if (!iso) return '-'
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -226,7 +232,7 @@ export default function AdminProfile() {
     }
   }
 
-  const avatarUrl = profile?.avatarUrl ? `${BACKEND}${profile.avatarUrl}` : null
+  const avatarUrl = resolveImg(profile?.avatarUrl)
   const [firstName, lastName] = (profile?.fullName || '').split(' ')
 
   // ─── Loading skeleton ────────────────────────────────────────────────────

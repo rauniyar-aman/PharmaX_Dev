@@ -3,6 +3,12 @@ import api from '../../lib/api'
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
+
 const STATUS_CFG = {
   PLACED:           { label: 'Placed',          color: 'bg-surface-container-highest text-on-surface-variant', dot: 'bg-on-surface-variant' },
   CONFIRMED:        { label: 'Confirmed',        color: 'bg-blue-100 text-blue-700',         dot: 'bg-blue-500' },
@@ -121,8 +127,8 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
               {order.items?.map(item => (
                 <div key={item.id} className="flex items-center gap-3 bg-surface-container-low rounded-lg p-3">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
-                    {item.medicine?.imageUrl
-                      ? <img src={`${BACKEND}${item.medicine.imageUrl}`} className="w-full h-full object-cover" alt="" />
+                    {resolveImg(item.medicine?.imageUrl)
+                      ? <img src={resolveImg(item.medicine?.imageUrl)} className="w-full h-full object-cover" alt="" />
                       : <span className="material-symbols-outlined text-on-surface-variant w-full h-full flex items-center justify-center" style={{ fontSize: '20px' }}>medication</span>}
                   </div>
                   <div className="flex-1 min-w-0">

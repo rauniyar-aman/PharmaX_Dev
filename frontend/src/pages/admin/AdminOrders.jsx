@@ -1,8 +1,14 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../../lib/api'
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
 
 const ORDER_STATUSES = ['PLACED', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
 
@@ -39,14 +45,33 @@ function initials(name = '') {
 
 // ─── Order Detail Side Panel ──────────────────────────────────────────────────
 function OrderPanel({ order, onClose, onStatusUpdate }) {
+  const navigate = useNavigate()
   const [updating, setUpdating]   = useState(false)
   const [rejecting, setRejecting] = useState(false)
   const nextStatus = NEXT_STATUS[order.status]
+
+  const rxItems  = (order.items || []).filter(i => i.medicine?.type === 'Rx')
+  const hasRx    = rxItems.length > 0
+  const orderLevelVerified = order.prescription?.status === 'VERIFIED'
+  const allRxVerified = orderLevelVerified || rxItems.every(i => i.prescription?.status === 'VERIFIED')
+  const needsRxVerification = hasRx && !allRxVerified
+  const firstUnverifiedRxPrescriptionId =
+    rxItems.find(i => i.prescription?.status !== 'VERIFIED' && i.prescription?.id)?.prescription?.id
+    || (order.prescription?.status !== 'VERIFIED' ? order.prescription?.id : null)
 
   const handleStatus = async (status) => {
     setUpdating(true)
     try {
       const res = await api.put(`/admin/orders/${order.id}/status`, { status })
+      onStatusUpdate(res.data.data.order)
+    } catch {}
+    finally { setUpdating(false) }
+  }
+
+  const handleMarkPaid = async () => {
+    setUpdating(true)
+    try {
+      const res = await api.put(`/admin/orders/${order.id}/payment`, { paymentStatus: 'PAID' })
       onStatusUpdate(res.data.data.order)
     } catch {}
     finally { setUpdating(false) }
@@ -124,7 +149,7 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
           <div className="space-y-3">
             {(order.items || []).map(item => {
               const med = item.medicine || {}
-              const imgSrc = med.imageUrl ? `${BACKEND}${med.imageUrl}` : null
+              const imgSrc = resolveImg(med.imageUrl)
               return (
                 <div key={item.id} className="flex items-start gap-3 pb-3 border-b border-outline-variant last:border-0">
                   <div className="w-11 h-11 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant flex-shrink-0 overflow-hidden">
@@ -184,27 +209,57 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
             <span className="material-symbols-outlined text-secondary" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>payment</span>
             <div className="flex-1">
               <p className="text-sm font-bold text-on-surface">
-                {order.paymentMethod === 'ESEWA' ? 'eSewa' : order.paymentMethod === 'COD' ? 'Cash on Delivery' : order.paymentMethod || '-'}
+                {order.paymentMethod === 'esewa' ? 'eSewa Wallet'
+                  : order.paymentMethod === 'khalti' ? 'Khalti Wallet'
+                  : order.paymentMethod === 'cod' ? 'Cash on Delivery'
+                  : order.paymentMethod || '-'}
               </p>
               <div className={`flex items-center gap-1.5 mt-0.5 ${PAYMENT_CFG[order.paymentStatus]?.text || ''}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${PAYMENT_CFG[order.paymentStatus]?.dot || 'bg-on-surface-variant'}`} />
                 <span className="text-xs font-bold">{PAYMENT_CFG[order.paymentStatus]?.label || order.paymentStatus}</span>
               </div>
             </div>
+            {order.paymentMethod === 'cod' && order.paymentStatus === 'PENDING' && (
+              <button
+                onClick={handleMarkPaid}
+                disabled={updating}
+                className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 flex-shrink-0"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>payments</span>
+                Mark Paid
+              </button>
+            )}
           </div>
         </section>
       </div>
 
       {/* Footer actions */}
       <div className="p-5 border-t border-outline-variant bg-surface-container-low space-y-3">
+        {/* Rx prescription verification warning */}
+        {needsRxVerification && (
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-300 dark:bg-amber-900/20 dark:border-amber-700/40">
+            <span className="material-symbols-outlined text-amber-600 flex-shrink-0 mt-0.5" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>verified_user</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-amber-800 dark:text-amber-300">Prescription verification required</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">This order contains Rx medicines. Please verify the prescription before processing.</p>
+              <button
+                onClick={() => navigate(`/admin/prescriptions?prescriptionId=${firstUnverifiedRxPrescriptionId}&orderId=${order.id}`)}
+                className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900">
+                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>open_in_new</span>
+                Go to Prescriptions
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Status update dropdown */}
         <div>
           <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1.5">Update Status</label>
           <select
-            className="w-full border border-outline-variant rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none bg-surface-container-lowest"
-            defaultValue={order.status}
+            className="w-full border border-outline-variant rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none bg-surface-container-lowest disabled:opacity-50 disabled:cursor-not-allowed"
+            value={order.status}
             onChange={e => handleStatus(e.target.value)}
-            disabled={updating || order.status === 'CANCELLED' || order.status === 'DELIVERED'}
+            disabled={updating || order.status === 'CANCELLED' || order.status === 'DELIVERED' || needsRxVerification}
           >
             {ORDER_STATUSES.map(s => (
               <option key={s} value={s}>{STATUS_CFG[s]?.label || s}</option>
@@ -220,8 +275,8 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
             </button>
           )}
           {nextStatus && (
-            <button onClick={() => handleStatus(nextStatus)} disabled={updating}
-              className="flex-1 bg-primary text-on-primary py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-sm">
+            <button onClick={() => handleStatus(nextStatus)} disabled={updating || needsRxVerification}
+              className="flex-1 bg-primary text-on-primary py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
               {updating ? 'Updating…' : `Mark as ${STATUS_CFG[nextStatus]?.label}`}
             </button>
           )}
@@ -233,6 +288,7 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminOrders() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [orders, setOrders]     = useState([])
   const [stats, setStats]       = useState(null)
   const [loading, setLoading]   = useState(true)
@@ -244,6 +300,7 @@ export default function AdminOrders() {
   const [filterPayment, setFilterPayment] = useState('')
   const [selectedOrder, setSelectedOrder] = useState(null)
   const searchRef = useRef()
+  const autoOrderId = searchParams.get('orderId')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -258,13 +315,19 @@ export default function AdminOrders() {
         api.get('/admin/stats'),
       ])
       const d = ordersRes.data.data
-      setOrders(d.orders || [])
+      const loaded = d.orders || []
+      setOrders(loaded)
       setPages(d.pagination.pages)
       setTotal(d.pagination.total)
       setStats(statsRes.data.data)
+
+      if (autoOrderId) {
+        const match = loaded.find(o => o.id === autoOrderId)
+        if (match) { setSelectedOrder(match); setSearchParams({}, { replace: true }) }
+      }
     } catch {}
     finally { setLoading(false) }
-  }, [page, filterStatus, filterPayment, search])
+  }, [page, filterStatus, filterPayment, search, autoOrderId])
 
   useEffect(() => { load() }, [load])
 
@@ -315,11 +378,11 @@ export default function AdminOrders() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[
-          { label: 'Total Orders',   value: stats?.totalOrders ?? '…', color: 'text-on-surface',          sub: null },
-          { label: 'Pending',        value: total && orders.filter(o=>o.status==='PLACED').length,           color: 'text-amber-700', sub: null },
-          { label: 'Processing',     value: total && orders.filter(o=>o.status==='PROCESSING').length,       color: 'text-secondary',  sub: null },
-          { label: 'Shipped',        value: total && orders.filter(o=>['SHIPPED','OUT_FOR_DELIVERY'].includes(o.status)).length, color: 'text-indigo-700', sub: null },
-          { label: 'Delivered',      value: total && orders.filter(o=>o.status==='DELIVERED').length,        color: 'text-primary',    sub: null },
+          { label: 'Total Orders',   value: stats ? stats.totalOrders : '…',                                                               color: 'text-on-surface' },
+          { label: 'Pending',        value: stats ? (stats.ordersByStatus?.PLACED || 0) : '…',                                            color: 'text-amber-700' },
+          { label: 'Processing',     value: stats ? (stats.ordersByStatus?.PROCESSING || 0) : '…',                                        color: 'text-secondary' },
+          { label: 'Shipped',        value: stats ? ((stats.ordersByStatus?.SHIPPED || 0) + (stats.ordersByStatus?.OUT_FOR_DELIVERY || 0)) : '…', color: 'text-indigo-700' },
+          { label: 'Delivered',      value: stats ? (stats.ordersByStatus?.DELIVERED || 0) : '…',                                         color: 'text-primary' },
           { label: 'Revenue (Month)',value: stats ? `NPR ${Number(stats.monthlyRevenue).toLocaleString()}` : '…', color: 'text-primary', highlight: true },
         ].map(c => (
           <div key={c.label} className={`p-5 rounded-xl border border-outline-variant shadow-sm ${c.highlight ? 'bg-primary/5 border-primary/20' : 'bg-surface-container-lowest'}`}>
