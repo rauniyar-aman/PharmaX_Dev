@@ -1,10 +1,19 @@
 const prisma = require('../config/db')
 const { ok, created, notFound, fail } = require('../utils/response')
+const { createNotification, notifyAdmins } = require('../utils/notify')
 
 // GET /api/orders
 const getOrders = async (req, res) => {
   const { status, page = 1, limit = 10 } = req.query
-  const where = { userId: req.user.id }
+  const where = {
+    userId: req.user.id,
+    NOT: { status: 'CANCELLED' },
+    OR: [
+      { paymentMethod: 'cod' },
+      { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+      { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+    ],
+  }
   if (status) where.status = status
 
   const [total, orders] = await Promise.all([
@@ -29,7 +38,19 @@ const getOrderById = async (req, res) => {
   const order = await prisma.order.findFirst({
     where: { id: req.params.id, userId: req.user.id },
     include: {
-      items: { include: { medicine: { include: { category: { select: { name: true } } } } } },
+      items: {
+        include: {
+          medicine: {
+            include: {
+              category: { select: { name: true } },
+              reviews: {
+                where: { userId: req.user.id },
+                select: { id: true, rating: true, comment: true, createdAt: true },
+              },
+            },
+          },
+        },
+      },
       address: true,
       prescription: true,
     },
@@ -81,6 +102,13 @@ const createOrder = async (req, res) => {
   const cart = await prisma.cart.findUnique({ where: { userId: req.user.id } })
   if (cart) await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
 
+  // Notify customer + admins
+  const shortId = order.id.slice(0, 8).toUpperCase()
+  await Promise.all([
+    createNotification({ userId: req.user.id, type: 'ORDER_PLACED', title: 'Order Placed', message: `Your order #${shortId} has been placed successfully.`, link: `/dashboard/orders/${order.id}` }),
+    notifyAdmins({ type: 'NEW_ORDER', title: 'New Order Received', message: `A new order #${shortId} was placed (NPR ${Math.round(totalAmount)}).`, link: `/admin/orders` }),
+  ])
+
   created(res, { order }, 'Order placed successfully')
 }
 
@@ -101,4 +129,20 @@ const cancelOrder = async (req, res) => {
   ok(res, { order: updated }, 'Order cancelled')
 }
 
-module.exports = { getOrders, getOrderById, createOrder, cancelOrder }
+const rateOrder = async (req, res) => {
+  const { orderRating, orderComment } = req.body
+  if (!orderRating || orderRating < 1 || orderRating > 5) return fail(res, 'Rating must be between 1 and 5')
+
+  const order = await prisma.order.findFirst({
+    where: { id: req.params.id, userId: req.user.id, status: 'DELIVERED' },
+  })
+  if (!order) return notFound(res, 'Delivered order not found')
+
+  const updated = await prisma.order.update({
+    where: { id: req.params.id },
+    data: { orderRating: parseInt(orderRating), orderComment: orderComment || null },
+  })
+  ok(res, { order: updated }, 'Order rated')
+}
+
+module.exports = { getOrders, getOrderById, createOrder, cancelOrder, rateOrder }
