@@ -5,7 +5,7 @@ const { ok, created, notFound, fail } = require('../utils/response')
 const getProfile = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: { id: true, fullName: true, email: true, phone: true, dob: true, gender: true, bloodGroup: true, allergies: true, role: true, createdAt: true },
+    select: { id: true, fullName: true, email: true, phone: true, dob: true, gender: true, bloodGroup: true, allergies: true, avatarUrl: true, role: true, createdAt: true },
   })
   if (!user) return notFound(res, 'User not found')
   ok(res, { user })

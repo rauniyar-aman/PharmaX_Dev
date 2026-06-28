@@ -3,7 +3,7 @@ const { ok, created, notFound, fail } = require('../utils/response')
 
 // GET /api/medicines
 const getMedicines = async (req, res) => {
-  const { search, category, type, inStock, minPrice, maxPrice, sortBy = 'totalReviews', page = 1, limit = 12 } = req.query
+  const { search, category, type, inStock, lowStock, minPrice, maxPrice, sortBy = 'totalReviews', page = 1, limit = 12 } = req.query
 
   const where = {}
   if (search) {
@@ -16,6 +16,7 @@ const getMedicines = async (req, res) => {
   if (type) where.type = type
   if (inStock === 'true') where.inStock = true
   if (inStock === 'false') where.inStock = false
+  if (lowStock === 'true') where.OR = [{ inStock: false }, { stockQuantity: { lte: 10 } }]
   if (minPrice || maxPrice) {
     where.price = {}
     if (minPrice) where.price.gte = parseFloat(minPrice)
@@ -105,6 +106,66 @@ const addReview = async (req, res) => {
   ok(res, { review }, 'Review submitted')
 }
 
+// PUT /api/medicines/:id/reviews  (update own review)
+const updateReview = async (req, res) => {
+  const { rating, comment } = req.body
+  if (!rating || rating < 1 || rating > 5) return fail(res, 'Rating must be between 1 and 5')
+
+  const existing = await prisma.review.findUnique({
+    where: { userId_medicineId: { userId: req.user.id, medicineId: req.params.id } },
+  })
+  if (!existing) return notFound(res, 'Review not found')
+
+  const review = await prisma.review.update({
+    where: { id: existing.id },
+    data: { rating: parseInt(rating), comment },
+  })
+
+  const agg = await prisma.review.aggregate({
+    where: { medicineId: req.params.id },
+    _avg: { rating: true },
+    _count: true,
+  })
+  await prisma.medicine.update({
+    where: { id: req.params.id },
+    data: { rating: agg._avg.rating || 0, totalReviews: agg._count },
+  })
+  ok(res, { review }, 'Review updated')
+}
+
+// DELETE /api/medicines/:id/reviews  (delete own review)
+const deleteReview = async (req, res) => {
+  const existing = await prisma.review.findUnique({
+    where: { userId_medicineId: { userId: req.user.id, medicineId: req.params.id } },
+  })
+  if (!existing) return notFound(res, 'Review not found')
+
+  await prisma.review.delete({ where: { id: existing.id } })
+
+  const agg = await prisma.review.aggregate({
+    where: { medicineId: req.params.id },
+    _avg: { rating: true },
+    _count: true,
+  })
+  await prisma.medicine.update({
+    where: { id: req.params.id },
+    data: { rating: agg._avg.rating || 0, totalReviews: agg._count },
+  })
+  ok(res, {}, 'Review deleted')
+}
+
+// GET /api/medicines/my-reviews  (all reviews by current user)
+const getMyReviews = async (req, res) => {
+  const reviews = await prisma.review.findMany({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      medicine: { select: { id: true, name: true, brand: true, imageUrl: true } },
+    },
+  })
+  ok(res, { reviews })
+}
+
 // POST /api/medicines
 const createMedicine = async (req, res) => {
   const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId, expiryDate } = req.body
@@ -174,4 +235,4 @@ const deleteMedicine = async (req, res) => {
   ok(res, {}, 'Medicine deleted successfully')
 }
 
-module.exports = { getMedicines, getMedicineById, getMedicineReviews, addReview, createMedicine, updateMedicine, deleteMedicine }
+module.exports = { getMedicines, getMedicineById, getMedicineReviews, addReview, updateReview, deleteReview, getMyReviews, createMedicine, updateMedicine, deleteMedicine }
