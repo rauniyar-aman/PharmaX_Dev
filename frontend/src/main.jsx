@@ -5,6 +5,7 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { NotificationsProvider } from './context/NotificationsContext'
 import './styles/index.css'
 
 const root = createRoot(document.getElementById('root'))
@@ -14,7 +15,9 @@ root.render(
       <ThemeProvider>
         <AuthProvider>
           <CartProvider>
-            <App />
+            <NotificationsProvider>
+              <App />
+            </NotificationsProvider>
           </CartProvider>
         </AuthProvider>
       </ThemeProvider>
