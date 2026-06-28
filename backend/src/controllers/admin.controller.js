@@ -1,42 +1,97 @@
 const prisma = require('../config/db')
-const { ok } = require('../utils/response')
+const { ok, fail } = require('../utils/response')
+const { createNotification, notifyAdmins } = require('../utils/notify')
 
 const getStats = async (req, res) => {
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
-  const [totalMedicines, totalOrders, totalCustomers, pendingPrescriptions, outOfStock, revenueAgg, monthlyRevenueAgg] = await Promise.all([
+  const activeOrderFilter = {
+    NOT: { status: 'CANCELLED' },
+    OR: [
+      { paymentMethod: 'cod' },
+      { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+      { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+    ],
+  }
+
+  // Same filter used in getAdminPrescriptions — excludes orphaned checkout drafts
+  const prescriptionBaseWhere = {
+    OR: [
+      { checkoutDraft: false },
+      {
+        checkoutDraft: true,
+        orderItems: {
+          some: {
+            order: {
+              OR: [
+                { paymentMethod: 'cod',    status: { not: 'CANCELLED' } },
+                { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+                { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+              ],
+            },
+          },
+        },
+      },
+    ],
+  }
+
+  const thresholdSetting = await prisma.systemSetting.findUnique({ where: { key: 'lowStockThreshold' } })
+  const lowStockThreshold = parseInt(thresholdSetting?.value || '10')
+
+  const [totalMedicines, totalOrders, totalCustomers, pendingPrescriptions, lowStockCount, outOfStock, revenueAgg, monthlyRevenueAgg, monthlyOrders, newCustomers, orderStatusCounts] = await Promise.all([
     prisma.medicine.count(),
-    prisma.order.count(),
-    prisma.user.count({ where: { role: 'CUSTOMER' } }),
-    prisma.prescription.count({ where: { status: 'PENDING' } }),
+    prisma.order.count({ where: activeOrderFilter }),
+    prisma.user.count({ where: { role: 'CUSTOMER', isDeleted: false } }),
+    prisma.prescription.count({ where: { status: 'PENDING', ...prescriptionBaseWhere } }),
+    prisma.medicine.count({ where: { OR: [{ inStock: false }, { stockQuantity: { lte: lowStockThreshold } }] } }),
     prisma.medicine.count({ where: { inStock: false } }),
     prisma.order.aggregate({ _sum: { totalAmount: true }, where: { paymentStatus: 'PAID' } }),
     prisma.order.aggregate({ _sum: { totalAmount: true }, where: { paymentStatus: 'PAID', placedAt: { gte: startOfMonth } } }),
+    prisma.order.count({ where: { ...activeOrderFilter, placedAt: { gte: startOfMonth } } }),
+    prisma.user.count({ where: { role: 'CUSTOMER', isDeleted: false, createdAt: { gte: startOfMonth } } }),
+    prisma.order.groupBy({ by: ['status'], _count: true, where: activeOrderFilter }),
   ])
+
+  const statusMap = Object.fromEntries(orderStatusCounts.map(s => [s.status, s._count]))
 
   ok(res, {
     totalMedicines,
     totalOrders,
     totalCustomers,
     pendingPrescriptions,
+    lowStockCount,
     outOfStock,
     totalRevenue: revenueAgg._sum.totalAmount || 0,
     monthlyRevenue: monthlyRevenueAgg._sum.totalAmount || 0,
+    monthlyOrders,
+    newCustomers,
+    ordersByStatus: statusMap,
   })
 }
 
 // GET /api/admin/orders
 const getAdminOrders = async (req, res) => {
   const { status, payment, search, page = 1, limit = 15 } = req.query
-  const where = {}
+  const where = {
+    NOT: { status: 'CANCELLED' },
+    OR: [
+      { paymentMethod: 'cod' },
+      { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+      { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+    ],
+  }
   if (status) where.status = status
   if (payment) where.paymentStatus = payment
   if (search) {
-    where.OR = [
-      { id: { contains: search, mode: 'insensitive' } },
-      { user: { fullName: { contains: search, mode: 'insensitive' } } },
+    where.AND = [
+      {
+        OR: [
+          { id: { contains: search, mode: 'insensitive' } },
+          { user: { fullName: { contains: search, mode: 'insensitive' } } },
+        ],
+      },
     ]
   }
 
@@ -50,12 +105,44 @@ const getAdminOrders = async (req, res) => {
       include: {
         user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true } },
         address: true,
-        items: { include: { medicine: { select: { id: true, name: true, brand: true, type: true, imageUrl: true } } } },
+        items: {
+          include: {
+            medicine: { select: { id: true, name: true, brand: true, type: true, imageUrl: true } },
+            prescription: { select: { id: true, status: true, fileName: true } },
+          },
+        },
         prescription: { select: { id: true, status: true, fileName: true } },
       },
     }),
   ])
   ok(res, { orders, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } })
+}
+
+// PUT /api/admin/orders/:id/payment
+const updatePaymentStatus = async (req, res) => {
+  const { paymentStatus } = req.body
+  const { fail } = require('../utils/response')
+  if (!['PAID', 'PENDING', 'FAILED', 'REFUNDED'].includes(paymentStatus)) {
+    return fail(res, 'Invalid payment status')
+  }
+  const order = await prisma.order.update({
+    where: { id: req.params.id },
+    data: { paymentStatus },
+    include: {
+      user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true } },
+      address: true,
+      items: {
+        include: {
+          medicine: { select: { id: true, name: true, brand: true, type: true, imageUrl: true } },
+          prescription: { select: { id: true, status: true, fileName: true } },
+        },
+      },
+      prescription: { select: { id: true, status: true, fileName: true } },
+    },
+  })
+  const shortId = order.id.slice(0, 8).toUpperCase()
+  createNotification({ userId: order.user.id, type: 'PAYMENT_UPDATE', title: 'Payment Confirmed', message: `Payment for order #${shortId} has been marked as received.`, link: `/dashboard/orders/${order.id}` })
+  ok(res, { order }, 'Payment status updated')
 }
 
 // PUT /api/admin/orders/:id/status
@@ -70,29 +157,94 @@ const updateOrderStatus = async (req, res) => {
     where: { id: req.params.id },
     data: { status },
     include: {
-      user: { select: { id: true, fullName: true, email: true } },
+      user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true } },
       address: true,
-      items: { include: { medicine: { select: { id: true, name: true, brand: true, type: true, imageUrl: true } } } },
-      prescription: { select: { id: true, status: true } },
+      items: {
+        include: {
+          medicine: { select: { id: true, name: true, brand: true, type: true, imageUrl: true } },
+          prescription: { select: { id: true, status: true, fileName: true } },
+        },
+      },
+      prescription: { select: { id: true, status: true, fileName: true } },
     },
   })
+  const STATUS_MESSAGES = {
+    CONFIRMED:        'Your order has been confirmed and is being prepared.',
+    PROCESSING:       'Your order is now being processed by our pharmacy.',
+    SHIPPED:          'Your order has been shipped and is on the way.',
+    OUT_FOR_DELIVERY: 'Your order is out for delivery — expect it soon!',
+    DELIVERED:        'Your order has been delivered successfully.',
+    CANCELLED:        'Your order has been cancelled.',
+  }
+  const msg = STATUS_MESSAGES[status]
+  if (msg) {
+    const shortId = order.id.slice(0, 8).toUpperCase()
+    createNotification({ userId: order.user.id, type: 'ORDER_UPDATE', title: `Order ${status.charAt(0) + status.slice(1).toLowerCase()}`, message: `Order #${shortId}: ${msg}`, link: `/dashboard/orders/${order.id}` })
+  }
   ok(res, { order }, 'Order status updated')
 }
 
 // GET /api/admin/prescriptions
 const getAdminPrescriptions = async (req, res) => {
   const { status, search, page = 1, limit = 15 } = req.query
-  const where = {}
+  const where = {
+    OR: [
+      { checkoutDraft: false },
+      {
+        checkoutDraft: true,
+        orderItems: {
+          some: {
+            order: {
+              OR: [
+                { paymentMethod: 'cod',    status: { not: 'CANCELLED' } },
+                { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+                { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+              ],
+            },
+          },
+        },
+      },
+    ],
+  }
   if (status) where.status = status
   if (search) {
-    where.OR = [
-      { user: { fullName: { contains: search, mode: 'insensitive' } } },
-      { user: { email:    { contains: search, mode: 'insensitive' } } },
-      { fileName: { contains: search, mode: 'insensitive' } },
+    where.AND = [
+      {
+        OR: [
+          { id:       { contains: search, mode: 'insensitive' } },
+          { user: { fullName: { contains: search, mode: 'insensitive' } } },
+          { user: { email:    { contains: search, mode: 'insensitive' } } },
+          { fileName: { contains: search, mode: 'insensitive' } },
+        ],
+      },
     ]
   }
 
-  const [total, prescriptions] = await Promise.all([
+  // base filter without status — for global counts
+  const baseWhere = {
+    OR: [
+      { checkoutDraft: false },
+      {
+        checkoutDraft: true,
+        orderItems: {
+          some: {
+            order: {
+              OR: [
+                { paymentMethod: 'cod',    status: { not: 'CANCELLED' } },
+                { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+                { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+              ],
+            },
+          },
+        },
+      },
+    ],
+  }
+  if (search) {
+    baseWhere.AND = where.AND
+  }
+
+  const [total, prescriptions, statusGroups] = await Promise.all([
     prisma.prescription.count({ where }),
     prisma.prescription.findMany({
       where,
@@ -104,8 +256,11 @@ const getAdminPrescriptions = async (req, res) => {
         orderItems: { select: { orderId: true }, take: 1 },
       },
     }),
+    prisma.prescription.groupBy({ by: ['status'], _count: true, where: baseWhere }),
   ])
-  ok(res, { prescriptions, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } })
+
+  const statusCounts = Object.fromEntries(statusGroups.map(g => [g.status, g._count]))
+  ok(res, { prescriptions, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) }, statusCounts })
 }
 
 // PUT /api/admin/prescriptions/:id
@@ -123,6 +278,12 @@ const updatePrescriptionStatus = async (req, res) => {
       orderItems: { select: { orderId: true }, take: 1 },
     },
   })
+  const shortId = prescription.id.slice(0, 8).toUpperCase()
+  if (status === 'VERIFIED') {
+    createNotification({ userId: prescription.user.id, type: 'PRESCRIPTION_VERIFIED', title: 'Prescription Approved', message: `Your prescription #${shortId} has been verified. You can now proceed with your order.`, link: '/dashboard/prescriptions' })
+  } else {
+    createNotification({ userId: prescription.user.id, type: 'PRESCRIPTION_REJECTED', title: 'Prescription Rejected', message: `Your prescription #${shortId} was rejected: ${rejectionReason}`, link: '/dashboard/prescriptions' })
+  }
   ok(res, { prescription }, `Prescription ${status === 'VERIFIED' ? 'approved' : 'rejected'}`)
 }
 
@@ -214,22 +375,34 @@ const toggleBlockCustomer = async (req, res) => {
 const getReports = async (req, res) => {
   const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0)
 
+  const activeFilter = {
+    NOT: { status: 'CANCELLED' },
+    OR: [
+      { paymentMethod: 'cod' },
+      { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+      { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+    ],
+  }
+
   const [
-    totalRevenue, monthlyRevenue, totalOrders, totalCustomers, pendingPrescriptions,
+    totalRevenueAgg, monthlyRevenueAgg, totalOrders, paidOrderCount,
+    totalCustomers, pendingPrescriptions,
     orderStatusCounts, paymentMethodCounts, topMedicines,
   ] = await Promise.all([
     prisma.order.aggregate({ _sum: { totalAmount: true }, where: { paymentStatus: 'PAID' } }),
     prisma.order.aggregate({ _sum: { totalAmount: true }, where: { paymentStatus: 'PAID', placedAt: { gte: startOfMonth } } }),
-    prisma.order.count(),
+    prisma.order.count({ where: activeFilter }),
+    prisma.order.count({ where: { paymentStatus: 'PAID' } }),
     prisma.user.count({ where: { role: 'CUSTOMER' } }),
     prisma.prescription.count({ where: { status: 'PENDING' } }),
-    prisma.order.groupBy({ by: ['status'], _count: true }),
-    prisma.order.groupBy({ by: ['paymentMethod'], _count: true, where: { paymentMethod: { not: null } } }),
+    prisma.order.groupBy({ by: ['status'], _count: true, where: activeFilter }),
+    prisma.order.groupBy({ by: ['paymentMethod'], _count: true, where: { ...activeFilter, paymentMethod: { not: null } } }),
     prisma.orderItem.groupBy({
       by: ['medicineId'],
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 8,
+      where: { order: activeFilter },
     }),
   ])
 
@@ -244,14 +417,13 @@ const getReports = async (req, res) => {
     revenue: (m._sum.quantity || 0) * parseFloat(medMap[m.medicineId]?.price || 0),
   }))
 
-  // Monthly orders for last 6 months
+  // Monthly trend for last 6 months (active orders only)
   const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); sixMonthsAgo.setDate(1); sixMonthsAgo.setHours(0,0,0,0)
   const recentOrders = await prisma.order.findMany({
-    where: { placedAt: { gte: sixMonthsAgo } },
+    where: { ...activeFilter, placedAt: { gte: sixMonthsAgo } },
     select: { placedAt: true, totalAmount: true, paymentStatus: true },
   })
 
-  // Group by month
   const monthlyMap = {}
   recentOrders.forEach(o => {
     const key = `${o.placedAt.getFullYear()}-${String(o.placedAt.getMonth()+1).padStart(2,'0')}`
@@ -261,10 +433,16 @@ const getReports = async (req, res) => {
   })
   const monthlyTrend = Object.entries(monthlyMap).sort(([a],[b]) => a.localeCompare(b)).map(([month, data]) => ({ month, ...data }))
 
+  const cancelledCount = await prisma.order.count({ where: { status: 'CANCELLED' } })
+  const allOrderCount  = totalOrders + cancelledCount
+
   ok(res, {
-    totalRevenue: parseFloat(totalRevenue._sum.totalAmount || 0),
-    monthlyRevenue: parseFloat(monthlyRevenue._sum.totalAmount || 0),
+    totalRevenue: parseFloat(totalRevenueAgg._sum.totalAmount || 0),
+    monthlyRevenue: parseFloat(monthlyRevenueAgg._sum.totalAmount || 0),
     totalOrders,
+    paidOrderCount,
+    cancelledCount,
+    allOrderCount,
     totalCustomers,
     pendingPrescriptions,
     orderStatusCounts,
@@ -274,4 +452,29 @@ const getReports = async (req, res) => {
   })
 }
 
-module.exports = { getStats, getAdminOrders, updateOrderStatus, getAdminPrescriptions, updatePrescriptionStatus, getCustomers, getCustomerById, toggleBlockCustomer, getReports }
+// GET /api/admin/settings
+const getSettings = async (req, res) => {
+  const rows = await prisma.systemSetting.findMany()
+  const settings = Object.fromEntries(rows.map(r => [r.key, r.value]))
+  ok(res, { settings })
+}
+
+// PUT /api/admin/settings
+const updateSettings = async (req, res) => {
+  const entries = Object.entries(req.body)
+  if (!entries.length) return fail(res, 'No settings provided')
+
+  await Promise.all(entries.map(([key, value]) =>
+    prisma.systemSetting.upsert({
+      where: { key },
+      update: { value: String(value) },
+      create: { key, value: String(value) },
+    })
+  ))
+
+  const rows = await prisma.systemSetting.findMany()
+  const settings = Object.fromEntries(rows.map(r => [r.key, r.value]))
+  ok(res, { settings }, 'Settings saved')
+}
+
+module.exports = { getStats, getAdminOrders, updateOrderStatus, updatePaymentStatus, getAdminPrescriptions, updatePrescriptionStatus, getCustomers, getCustomerById, toggleBlockCustomer, getReports, getSettings, updateSettings }
