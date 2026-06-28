@@ -1,7 +1,12 @@
-﻿import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
+import NotificationPanel from '../notifications/NotificationPanel'
+import { useNotificationsCtx } from '../../context/NotificationsContext'
+import api from '../../lib/api'
+
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
@@ -17,12 +22,26 @@ const pageTitles = {
   '/dashboard/track-order': 'Track Order',
 }
 
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
+
 export default function DashboardNavbar({ sidebarCollapsed }) {
-  const location = useLocation()
-  const [notifOpen, setNotifOpen] = useState(false)
-  const [searchFocused, setSearchFocused] = useState(false)
+  const location  = useLocation()
+  const navigate  = useNavigate()
   const { cartCount } = useCart()
-  const { user } = useAuth()
+  const { user }  = useAuth()
+  const { unread } = useNotificationsCtx()
+
+  const [notifOpen,     setNotifOpen]     = useState(false)
+  const [query,         setQuery]         = useState('')
+  const [results,       setResults]       = useState([])
+  const [searching,     setSearching]     = useState(false)
+  const [dropdownOpen,  setDropdownOpen]  = useState(false)
+  const searchWrapRef = useRef(null)
+  const debounceRef   = useRef(null)
 
   const getTitle = () => {
     const path = location.pathname
@@ -31,6 +50,48 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
     if (path.startsWith('/dashboard/track-order/')) return 'Track Order'
     return pageTitles[path] || 'Dashboard'
   }
+
+  const doSearch = useCallback(async (q) => {
+    if (!q.trim()) { setResults([]); setDropdownOpen(false); return }
+    setSearching(true)
+    try {
+      const res = await api.get('/medicines', { params: { search: q, limit: 6 } })
+      setResults(res.data.data.medicines || [])
+      setDropdownOpen(true)
+    } catch {}
+    setSearching(false)
+  }, [])
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => doSearch(query), 300)
+    return () => clearTimeout(debounceRef.current)
+  }, [query, doSearch])
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = e => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target)) setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const handleSelect = (id) => {
+    navigate(`/dashboard/medicines/${id}`)
+    setQuery('')
+    setDropdownOpen(false)
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && query.trim()) {
+      navigate(`/dashboard/medicines?search=${encodeURIComponent(query.trim())}`)
+      setDropdownOpen(false)
+    }
+    if (e.key === 'Escape') { setDropdownOpen(false); setQuery('') }
+  }
+
+  const avatarSrc = resolveImg(user?.avatarUrl)
 
   return (
     <header
@@ -42,23 +103,70 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        {/* Search bar */}
-        <div className={`relative flex items-center transition-all duration-200 ${searchFocused ? 'w-60' : 'w-48'}`}>
-          <span className="material-symbols-outlined absolute left-3 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
-          <input
-            type="text"
-            placeholder="Search medicines..."
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            className="w-full pl-9 pr-3 py-2 text-sm bg-surface-container-low rounded-full border border-transparent focus:border-secondary focus:outline-none text-on-surface placeholder:text-on-surface-variant transition-all duration-200"
-          />
+
+        {/* Search */}
+        <div ref={searchWrapRef} className="relative">
+          <div className={`relative flex items-center transition-all duration-200 ${query || dropdownOpen ? 'w-64' : 'w-48'}`}>
+            <span className="material-symbols-outlined absolute left-3 text-on-surface-variant pointer-events-none" style={{ fontSize: '18px' }}>search</span>
+            {searching && (
+              <span className="absolute right-3 w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+            )}
+            <input
+              type="text"
+              placeholder="Search medicines..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onFocus={() => query.trim() && setDropdownOpen(true)}
+              onKeyDown={handleKeyDown}
+              className="w-full pl-9 pr-8 py-2 text-sm bg-surface-container-low rounded-full border border-transparent focus:border-secondary focus:outline-none text-on-surface placeholder:text-on-surface-variant transition-all duration-200"
+            />
+          </div>
+
+          {/* Dropdown */}
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-72 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xl z-50 overflow-hidden">
+              {results.length === 0 ? (
+                <div className="px-4 py-5 text-center text-sm text-on-surface-variant">
+                  No medicines found for "{query}"
+                </div>
+              ) : (
+                <>
+                  <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+                    {results.length} result{results.length !== 1 ? 's' : ''}
+                  </p>
+                  <div className="divide-y divide-outline-variant max-h-72 overflow-y-auto">
+                    {results.map(m => (
+                      <button key={m.id} onClick={() => handleSelect(m.id)}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-low transition-colors text-left">
+                        <div className="w-9 h-9 rounded-xl bg-surface-container flex-shrink-0 overflow-hidden">
+                          {m.imageUrl
+                            ? <img src={resolveImg(m.imageUrl)} className="w-full h-full object-cover" alt="" />
+                            : <span className="w-full h-full flex items-center justify-center material-symbols-outlined text-on-surface-variant" style={{ fontSize: '18px' }}>medication</span>
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-on-surface truncate">{m.name}</p>
+                          <p className="text-xs text-on-surface-variant truncate">{m.brand} · Rs {Number(m.price).toLocaleString()}</p>
+                        </div>
+                        <span className={`text-[10px] font-bold flex-shrink-0 ${m.inStock ? 'text-primary' : 'text-error'}`}>
+                          {m.inStock ? 'In Stock' : 'Out'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { navigate(`/dashboard/medicines?search=${encodeURIComponent(query)}`); setDropdownOpen(false) }}
+                    className="w-full px-4 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-container-low transition-colors border-t border-outline-variant text-center">
+                    See all results for "{query}"
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Cart */}
-        <Link
-          to="/dashboard/cart"
-          className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors"
-        >
+        <Link to="/dashboard/cart" className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
           <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>shopping_cart</span>
           {cartCount > 0 && (
             <span className="absolute top-1 right-1 w-4 h-4 bg-secondary text-on-secondary-container text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
@@ -69,41 +177,22 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
 
         {/* Notifications */}
         <div className="relative">
-          <button
-            onClick={() => setNotifOpen(o => !o)}
-            className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors"
-          >
+          <button onClick={() => setNotifOpen(o => !o)}
+            className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
             <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>notifications</span>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full border-2 border-white" />
+            {unread > 0 && (
+              <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-error text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none border-2 border-surface-container-lowest">
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
           </button>
-
           {notifOpen && (
-            <div className="absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-2xl border border-outline-variant custom-shadow z-50">
-              <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
-                <p className="text-sm font-semibold text-on-surface">Notifications</p>
-                <span className="text-xs text-secondary font-medium cursor-pointer hover:underline">Mark all read</span>
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+              <div className="absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl z-50 overflow-hidden">
+                <NotificationPanel onClose={() => setNotifOpen(false)} />
               </div>
-              <ul>
-                {[
-                  { title: 'Order #ORD-2024-001 shipped', time: '2 min ago', icon: 'local_shipping', color: 'text-secondary' },
-                  { title: 'Prescription verified successfully', time: '1 hour ago', icon: 'verified', color: 'text-primary' },
-                  { title: 'Special offer on Paracetamol', time: '3 hours ago', icon: 'sell', color: 'text-tertiary' },
-                ].map((n, i) => (
-                  <li key={i} className="px-4 py-3 hover:bg-surface-container-low transition-colors cursor-pointer border-b border-outline-variant last:border-0">
-                    <div className="flex items-start gap-3">
-                      <span className={`material-symbols-outlined flex-shrink-0 ${n.color}`} style={{ fontSize: '18px' }}>{n.icon}</span>
-                      <div>
-                        <p className="text-sm text-on-surface">{n.title}</p>
-                        <p className="text-xs text-on-surface-variant mt-0.5">{n.time}</p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className="px-4 py-2.5 text-center">
-                <button className="text-sm font-medium text-secondary hover:underline">View all notifications</button>
-              </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -113,8 +202,8 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
         {/* Avatar */}
         <Link to="/dashboard/profile" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-surface-container transition-colors">
           <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-bold ring-2 ring-primary ring-offset-2 overflow-hidden flex-shrink-0">
-            {user?.avatarUrl
-              ? <img src={`http://localhost:5000${user.avatarUrl}`} alt="avatar" className="w-full h-full object-cover" />
+            {avatarSrc
+              ? <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
               : user?.fullName?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="hidden sm:block text-left">
@@ -123,11 +212,6 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
           </div>
         </Link>
       </div>
-
-      {/* Click outside to close notif */}
-      {notifOpen && (
-        <div className="fixed inset-0 z-10" onClick={() => setNotifOpen(false)} />
-      )}
     </header>
   )
 }
