@@ -17,7 +17,7 @@ const generateOtp = () =>
 // POST /api/auth/register
 const register = async (req, res) => {
   const { fullName, email, phone, password } = req.body
-  if (!fullName || !email || !password) return fail(res, 'fullName, email, and password are required')
+  if (!fullName || !email || !phone || !password) return fail(res, 'fullName, email, phone, and password are required')
 
   const existing = await prisma.user.findUnique({ where: { email } })
 
@@ -32,11 +32,9 @@ const register = async (req, res) => {
 
   if (existing && !existing.otpCode) return fail(res, 'An account with this email already exists', 409)
 
-  if (phone) {
-    const phoneUser = await prisma.user.findUnique({ where: { phone } })
-    if (phoneUser && phoneUser.email !== email) {
-      return fail(res, 'This phone number is already registered', 409)
-    }
+  const phoneUser = await prisma.user.findUnique({ where: { phone } })
+  if (phoneUser && phoneUser.email !== email) {
+    return fail(res, 'This phone number is already registered', 409)
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
@@ -233,21 +231,67 @@ const uploadAvatar = async (req, res) => {
   ok(res, { user: updated }, 'Profile picture updated')
 }
 
-// POST /api/auth/change-password
-const changePassword = async (req, res) => {
-  const { currentPassword, newPassword } = req.body
-  if (!currentPassword || !newPassword) return fail(res, 'currentPassword and newPassword are required')
-  if (newPassword.length < 6) return fail(res, 'New password must be at least 6 characters')
+// POST /api/auth/request-password-change
+// Step 1: verify current password, send OTP to email
+const requestPasswordChange = async (req, res) => {
+  const { currentPassword } = req.body
+  if (!currentPassword) return fail(res, 'Current password is required')
 
   const user = await prisma.user.findUnique({ where: { id: req.user.id } })
   const match = await bcrypt.compare(currentPassword, user.passwordHash)
   if (!match) return fail(res, 'Current password is incorrect', 401)
 
+  const otp = generateOtp()
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000)
+  await prisma.user.update({ where: { id: req.user.id }, data: { otpCode: otp, otpExpiresAt } })
+
+  let emailSent = true
+  try {
+    await sendOtpEmail(user.email, user.fullName, otp)
+  } catch (err) {
+    emailSent = false
+    console.error('Failed to send OTP email:', err.message)
+  }
+
+  console.log(`\n🔑 Password change OTP for ${user.email}: ${otp}\n`)
+
+  const devData = (!emailSent && process.env.NODE_ENV !== 'production') ? { otp } : {}
+  const msg = emailSent ? `OTP sent to ${user.email}` : `Email delivery failed. OTP: ${otp}`
+  ok(res, devData, msg)
+}
+
+// POST /api/auth/change-password
+// Supports two modes:
+//   OTP mode (admin):  { otp, newPassword }          — requires prior requestPasswordChange call
+//   Direct mode (user): { currentPassword, newPassword } — verifies current password directly
+const changePassword = async (req, res) => {
+  const { otp, currentPassword, newPassword } = req.body
+  if (!newPassword) return fail(res, 'newPassword is required')
+  if (newPassword.length < 6) return fail(res, 'New password must be at least 6 characters')
+
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+
+  if (otp) {
+    // OTP mode
+    if (!user.otpCode) return fail(res, 'No OTP request found. Please start over.', 400)
+    if (user.otpCode !== otp) return fail(res, 'Incorrect OTP. Please try again.', 400)
+    if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
+      await prisma.user.update({ where: { id: req.user.id }, data: { otpCode: null, otpExpiresAt: null } })
+      return fail(res, 'OTP has expired. Please request a new one.', 400)
+    }
+  } else if (currentPassword) {
+    // Direct mode
+    const match = await bcrypt.compare(currentPassword, user.passwordHash)
+    if (!match) return fail(res, 'Current password is incorrect', 401)
+  } else {
+    return fail(res, 'Either otp or currentPassword is required')
+  }
+
   const isSame = await bcrypt.compare(newPassword, user.passwordHash)
   if (isSame) return fail(res, 'New password cannot be the same as your current password', 400)
 
   const passwordHash = await bcrypt.hash(newPassword, 10)
-  await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash } })
+  await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash, otpCode: null, otpExpiresAt: null } })
 
   ok(res, {}, 'Password changed successfully')
 }
@@ -403,7 +447,7 @@ const resetPassword = async (req, res) => {
 
 module.exports = {
   register, resendOtp, verifyEmail, login, getMe, updateProfile, uploadAvatar,
-  changePassword, softDeleteAccount, deactivateAccount,
+  requestPasswordChange, changePassword, softDeleteAccount, deactivateAccount,
   restoreRequest, restoreConfirm,
   getNotifications, updateNotifications,
   forgotPassword, resetPassword,

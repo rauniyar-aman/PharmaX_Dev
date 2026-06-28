@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const {
   register, resendOtp, verifyEmail, login, getMe, updateProfile, uploadAvatar,
-  changePassword, softDeleteAccount, deactivateAccount,
+  requestPasswordChange, changePassword, softDeleteAccount, deactivateAccount,
   restoreRequest, restoreConfirm,
   getNotifications, updateNotifications,
   forgotPassword, resetPassword,
@@ -20,6 +20,7 @@ router.post('/reset-password', resetPassword)
 
 router.get('/me', protect, getMe)
 router.put('/me', protect, updateProfile)
+router.post('/request-password-change', protect, requestPasswordChange)
 router.post('/change-password', protect, changePassword)
 router.delete('/me', protect, softDeleteAccount)
 router.post('/deactivate', protect, deactivateAccount)

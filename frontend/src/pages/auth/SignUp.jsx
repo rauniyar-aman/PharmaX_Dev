@@ -90,8 +90,8 @@ export default function SignUp() {
     event.preventDefault()
     setError('')
 
-    if (!form.fullName || !form.email || !form.password) {
-      setError('Please fill in all required fields.')
+    if (!form.fullName || !form.email || !form.phone || !form.password) {
+      setError('Please fill in all required fields including phone number.')
       return
     }
 
@@ -115,7 +115,7 @@ export default function SignUp() {
       const data = await register({
         fullName: form.fullName,
         email: form.email,
-        phone: form.phone ? `+977${form.phone.replace(/\D/g, '')}` : undefined,
+        phone: `+977${form.phone.replace(/\D/g, '')}`,
         password: form.password,
       })
       navigate('/verify-otp', { state: { email: data.email, otp: data.otp } })
