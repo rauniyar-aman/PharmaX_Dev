@@ -50,12 +50,14 @@ async function uploadStagedPrescriptions(prescriptionMap) {
 export default function CheckoutPayment() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const esewaCancelled = searchParams.get('esewa_cancelled') === '1'
+  const esewaCancelled  = searchParams.get('esewa_cancelled')  === '1'
+  const khaltiCancelled = searchParams.get('khalti_cancelled') === '1'
   const [method, setMethod] = useState('esewa')
   const [promo, setPromo] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
   const [cartItems, setCartItems] = useState([])
   const [cartLoading, setCartLoading] = useState(true)
+  const [updating, setUpdating] = useState({})
   const [placing, setPlacing] = useState(false)
   const [error, setError] = useState('')
 
@@ -78,6 +80,16 @@ export default function CheckoutPayment() {
     const addr = JSON.parse(sessionStorage.getItem('checkoutAddress') || '{}')
     const prescriptionMap = JSON.parse(sessionStorage.getItem('checkoutPrescriptions') || '{}')
     return { addressId: addr.id, prescriptionMap }
+  }
+
+  const updateQty = async (medicineId, newQty) => {
+    if (newQty < 1) return
+    setUpdating(u => ({ ...u, [medicineId]: true }))
+    try {
+      await api.put(`/cart/items/${medicineId}`, { quantity: newQty })
+      setCartItems(items => items.map(i => i.medicine.id === medicineId ? { ...i, quantity: newQty } : i))
+    } catch {}
+    setUpdating(u => ({ ...u, [medicineId]: false }))
   }
 
   // ─── eSewa ─────────────────────────────────────────────────────────────────
@@ -141,7 +153,30 @@ export default function CheckoutPayment() {
     }
   }
 
-  const handlePay = () => method === 'esewa' ? handleEsewa() : handleCod()
+  // ─── Khalti ────────────────────────────────────────────────────────────────
+  const handleKhalti = async () => {
+    setError('')
+    setPlacing(true)
+    try {
+      const { addressId, prescriptionMap } = getPayload()
+      if (!addressId) { setError('Delivery address not found. Go back to shipping.'); setPlacing(false); return }
+
+      const finalMap = await uploadStagedPrescriptions(prescriptionMap)
+      sessionStorage.setItem('checkoutPrescriptions', JSON.stringify(finalMap))
+
+      const res = await api.post('/payment/khalti/initiate', { addressId, prescriptionMap: finalMap })
+      window.location.href = res.data.data.payment_url
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to initiate Khalti payment.')
+      setPlacing(false)
+    }
+  }
+
+  const handlePay = () => {
+    if (method === 'esewa')  return handleEsewa()
+    if (method === 'khalti') return handleKhalti()
+    return handleCod()
+  }
 
   const trustBadges = [
     { icon: 'verified',        label: 'Certified Pharmacy' },
@@ -163,6 +198,15 @@ export default function CheckoutPayment() {
               <div>
                 <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">eSewa payment was not completed</p>
                 <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Your cart and prescription are saved. Select a payment method and try again.</p>
+              </div>
+            </div>
+          )}
+          {khaltiCancelled && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-purple-50 border border-purple-200 dark:bg-purple-900/20 dark:border-purple-700/30">
+              <span className="material-symbols-outlined text-purple-600 flex-shrink-0 mt-0.5" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>info</span>
+              <div>
+                <p className="text-sm font-semibold text-purple-800 dark:text-purple-300">Khalti payment was not completed</p>
+                <p className="text-xs text-purple-700 dark:text-purple-400 mt-0.5">Your cart and prescription are saved. Select a payment method and try again.</p>
               </div>
             </div>
           )}
@@ -202,6 +246,43 @@ export default function CheckoutPayment() {
                       <div className="flex items-center gap-3 mt-2.5 text-xs text-on-surface-variant">
                         <span className="flex items-center gap-1"><span className="material-symbols-outlined text-green-600" style={{ fontSize: '14px' }}>check</span> Instant confirmation</span>
                         <span className="flex items-center gap-1"><span className="material-symbols-outlined text-green-600" style={{ fontSize: '14px' }}>check</span> eSewa cashback eligible</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              {/* Khalti */}
+              <label className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                method === 'khalti' ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20' : 'border-outline-variant hover:border-purple-400/60'
+              }`}>
+                <input type="radio" name="payment" value="khalti" checked={method === 'khalti'}
+                  onChange={() => setMethod('khalti')} className="mt-1 accent-purple-600" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-10 rounded-xl bg-purple-600 flex items-center justify-center px-2">
+                        <span className="text-white font-extrabold text-sm tracking-tight">Khalti</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-on-surface">Khalti Wallet</p>
+                        <p className="text-xs text-on-surface-variant">Redirect to Khalti to complete payment</p>
+                      </div>
+                    </div>
+                    <span className="flex items-center gap-1 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2.5 py-1 rounded-full">
+                      <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>verified</span>
+                      PCI-DSS Secure
+                    </span>
+                  </div>
+                  {method === 'khalti' && (
+                    <div className="mt-3 pt-3 border-t border-outline-variant">
+                      <div className="flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-low rounded-lg px-3 py-2.5">
+                        <span className="material-symbols-outlined text-purple-600 flex-shrink-0" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>info</span>
+                        <p>You will be redirected to the Khalti payment portal. After completing the payment, you will be automatically brought back here.</p>
+                      </div>
+                      <div className="flex items-center gap-3 mt-2.5 text-xs text-on-surface-variant">
+                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-purple-600" style={{ fontSize: '14px' }}>check</span> Instant confirmation</span>
+                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-purple-600" style={{ fontSize: '14px' }}>check</span> Khalti cashback eligible</span>
                       </div>
                     </div>
                   )}
@@ -259,11 +340,30 @@ export default function CheckoutPayment() {
               ))}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {cartItems.map(item => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-on-surface-variant truncate mr-2">{item.medicine.name} × {item.quantity}</span>
-                  <span className="font-medium text-on-surface flex-shrink-0">NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}</span>
+                <div key={item.id} className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-on-surface-variant truncate flex-1">{item.medicine.name}</span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => updateQty(item.medicine.id, item.quantity - 1)}
+                      disabled={item.quantity <= 1 || updating[item.medicine.id] || placing}
+                      className="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high disabled:opacity-40 transition">
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>remove</span>
+                    </button>
+                    <span className="text-sm font-semibold text-on-surface w-6 text-center">
+                      {updating[item.medicine.id] ? '…' : item.quantity}
+                    </span>
+                    <button
+                      onClick={() => updateQty(item.medicine.id, item.quantity + 1)}
+                      disabled={updating[item.medicine.id] || placing}
+                      className="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high disabled:opacity-40 transition">
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
+                    </button>
+                    <span className="text-sm font-medium text-on-surface w-20 text-right">
+                      NPR {(Number(item.medicine.price) * item.quantity).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -315,19 +415,24 @@ export default function CheckoutPayment() {
           <button onClick={handlePay}
             disabled={placing || cartLoading || cartItems.length === 0}
             className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-              method === 'esewa'
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-amber-500 text-white hover:bg-amber-600'
+              method === 'esewa'  ? 'bg-green-600 text-white hover:bg-green-700'   :
+              method === 'khalti' ? 'bg-purple-600 text-white hover:bg-purple-700' :
+                                    'bg-amber-500 text-white hover:bg-amber-600'
             }`}>
             {placing ? (
               <>
                 <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
-                {method === 'esewa' ? 'Redirecting to eSewa…' : 'Placing order…'}
+                {method === 'esewa' ? 'Redirecting to eSewa…' : method === 'khalti' ? 'Redirecting to Khalti…' : 'Placing order…'}
               </>
             ) : method === 'esewa' ? (
               <>
                 <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
                 Pay with eSewa · NPR {total.toLocaleString()}
+              </>
+            ) : method === 'khalti' ? (
+              <>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
+                Pay with Khalti · NPR {total.toLocaleString()}
               </>
             ) : (
               <>

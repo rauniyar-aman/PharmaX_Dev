@@ -4,6 +4,12 @@ import api from '../../lib/api'
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
+
 const STATUS_STEP = {
   PLACED: 0,
   CONFIRMED: 1,
@@ -126,8 +132,9 @@ export default function TrackOrder() {
             ) : (
               <div className="space-y-0">
                 {TIMELINE_STEPS.map((ts, i) => {
-                  const done   = i < step
-                  const active = i === step
+                  const isTerminal = order.status === 'DELIVERED'
+                  const done   = i < step || (isTerminal && i === step)
+                  const active = i === step && !isTerminal
                   return (
                     <div key={i} className="flex gap-3 relative pb-5 last:pb-0">
                       {i < TIMELINE_STEPS.length - 1 && (
@@ -173,11 +180,22 @@ export default function TrackOrder() {
                 </div>
               )}
             </div>
-            <div className="h-48 bg-surface-container-low rounded-xl overflow-hidden flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-primary/5 flex flex-col items-center justify-center">
-                <span className="material-symbols-outlined text-secondary" style={{ fontSize: '56px' }}>map</span>
-                <p className="text-sm text-on-surface-variant mt-2">Live tracking map coming soon</p>
-              </div>
+            <div className="h-48 rounded-xl overflow-hidden">
+              {order.address?.lat && order.address?.lng ? (
+                <iframe
+                  title="Delivery location"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${order.address.lng - 0.005},${order.address.lat - 0.005},${order.address.lng + 0.005},${order.address.lat + 0.005}&layer=mapnik&marker=${order.address.lat},${order.address.lng}`}
+                />
+              ) : (
+                <div className="h-full bg-surface-container-low flex flex-col items-center justify-center bg-gradient-to-br from-secondary/5 to-primary/5">
+                  <span className="material-symbols-outlined text-secondary" style={{ fontSize: '56px' }}>map</span>
+                  <p className="text-sm text-on-surface-variant mt-2">Map unavailable</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -209,7 +227,7 @@ export default function TrackOrder() {
         <div className="space-y-2.5 mb-4">
           {(order.items || []).map(item => {
             const med    = item.medicine || {}
-            const imgSrc = med.imageUrl ? `${BACKEND}${med.imageUrl}` : null
+            const imgSrc = resolveImg(med.imageUrl)
             return (
               <div key={item.id} className="flex items-center justify-between py-2.5 border-b border-outline-variant last:border-0 gap-3">
                 <div className="flex items-center gap-3 min-w-0">

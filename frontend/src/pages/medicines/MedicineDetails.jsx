@@ -9,6 +9,7 @@ export default function MedicineDetails() {
   const [med, setMed] = useState(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
+  const [isInCart, setIsInCart] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
   const [cartLoading, setCartLoading] = useState(false)
   const [buyLoading, setBuyLoading] = useState(false)
@@ -17,9 +18,18 @@ export default function MedicineDetails() {
 
   useEffect(() => {
     setLoading(true)
-    api.get(`/medicines/${id}`)
-      .then(res => setMed(res.data.data.medicine))
-      .catch(() => navigate('/dashboard/medicines', { replace: true }))
+    Promise.all([
+      api.get(`/medicines/${id}`),
+      api.get('/cart').catch(() => null),
+    ]).then(([medRes, cartRes]) => {
+      setMed(medRes.data.data.medicine)
+      const items = cartRes?.data?.data?.cart?.items || []
+      const cartItem = items.find(i => i.medicineId === id || i.medicine?.id === id)
+      if (cartItem) {
+        setQty(cartItem.quantity)
+        setIsInCart(true)
+      }
+    }).catch(() => navigate('/dashboard/medicines', { replace: true }))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -27,12 +37,17 @@ export default function MedicineDetails() {
     setCartLoading(true)
     setCartMsg('')
     try {
-      await api.post('/cart/items', { medicineId: med.id, quantity: qty })
+      if (isInCart) {
+        await api.put(`/cart/items/${med.id}`, { quantity: qty })
+      } else {
+        await api.post('/cart/items', { medicineId: med.id, quantity: qty })
+        setIsInCart(true)
+      }
       refreshCart()
-      setCartMsg('Added to cart!')
+      setCartMsg(isInCart ? 'Cart updated!' : 'Added to cart!')
       setTimeout(() => setCartMsg(''), 2500)
     } catch (err) {
-      setCartMsg(err.response?.data?.message || 'Failed to add to cart.')
+      setCartMsg(err.response?.data?.message || 'Failed to update cart.')
       setTimeout(() => setCartMsg(''), 2500)
     }
     setCartLoading(false)
@@ -41,7 +56,12 @@ export default function MedicineDetails() {
   const handleBuyNow = async () => {
     setBuyLoading(true)
     try {
-      await api.post('/cart/items', { medicineId: med.id, quantity: qty })
+      if (isInCart) {
+        await api.put(`/cart/items/${med.id}`, { quantity: qty })
+      } else {
+        await api.post('/cart/items', { medicineId: med.id, quantity: qty })
+        setIsInCart(true)
+      }
       refreshCart()
       sessionStorage.setItem('checkoutAllowed', '1')
       navigate('/dashboard/checkout/shipping')

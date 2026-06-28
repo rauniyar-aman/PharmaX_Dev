@@ -40,12 +40,97 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+function buildInvoice(order) {
+  const subtotal = (order.items || []).reduce((s, i) => s + parseFloat(i.unitPrice) * i.quantity, 0)
+  const delivery = parseFloat(order.deliveryCharge || 0)
+  const discount = parseFloat(order.discount || 0)
+  const total    = parseFloat(order.totalAmount)
+  const orderId  = order.id.slice(0, 8).toUpperCase()
+  const date     = new Date(order.placedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const paymentLabel =
+    order.paymentMethod === 'esewa'  ? 'eSewa Wallet' :
+    order.paymentMethod === 'khalti' ? 'Khalti Wallet' :
+    order.paymentMethod === 'cod'    ? 'Cash on Delivery' :
+    order.paymentMethod || 'N/A'
+  const rows = (order.items || []).map(item => {
+    const med = item.medicine || {}
+    return `<tr>
+      <td>${med.name || 'Medicine'}</td>
+      <td>${med.brand || '-'}</td>
+      <td style="text-align:center">${item.quantity}</td>
+      <td style="text-align:right">NPR ${parseFloat(item.unitPrice).toFixed(2)}</td>
+      <td style="text-align:right">NPR ${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}</td>
+    </tr>`
+  }).join('')
+  const addr = order.address
+    ? `${order.address.name}<br>${order.address.address}<br>${order.address.city}, ${order.address.province} ${order.address.zip}<br>${order.address.phone}`
+    : 'N/A'
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Invoice #${orderId}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a2e;background:#fff;padding:40px}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;padding-bottom:24px;border-bottom:2px solid #4CAF82}
+    .brand{font-size:28px;font-weight:800;color:#4CAF82}.brand span{color:#1a1a2e}.brand-sub{font-size:11px;color:#666;margin-top:2px}
+    .invoice-title{text-align:right}.invoice-title h2{font-size:22px;font-weight:700}.invoice-title p{font-size:12px;color:#666;margin-top:4px}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${order.paymentStatus==='PAID'?'#e8f5ee':'#fff3e0'};color:${order.paymentStatus==='PAID'?'#4CAF82':'#e65100'};margin-top:6px}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}
+    .info-box h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:8px}
+    .info-box p{font-size:13px;color:#333;line-height:1.6}
+    table{width:100%;border-collapse:collapse;margin-bottom:24px}
+    thead tr{background:#f0f9f4}thead th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#4CAF82;border-bottom:2px solid #4CAF82}
+    thead th:last-child,thead th:nth-child(4){text-align:right}thead th:nth-child(3){text-align:center}
+    tbody tr{border-bottom:1px solid #f0f0f0}tbody tr:last-child{border-bottom:none}tbody td{padding:10px 12px;color:#333;vertical-align:middle}
+    .totals{margin-left:auto;width:260px}.totals table{margin-bottom:0}.totals td{padding:5px 12px;font-size:13px}.totals td:last-child{text-align:right}
+    .totals tr.total-row td{font-weight:800;font-size:15px;border-top:2px solid #4CAF82;padding-top:10px;color:#4CAF82}
+    .footer{margin-top:48px;padding-top:16px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa}
+    @media print{body{padding:20px}@page{margin:15mm}}
+  </style></head><body>
+  <div class="header">
+    <div><div class="brand">Pharma<span>X</span></div><div class="brand-sub">Your trusted online pharmacy</div></div>
+    <div class="invoice-title"><h2>INVOICE</h2><p>Invoice No: <strong>#${orderId}</strong></p><p>Date: ${date}</p>
+    <span class="badge">${order.paymentStatus==='PAID'?'PAID':'PAYMENT PENDING'}</span></div>
+  </div>
+  <div class="info-grid">
+    <div class="info-box"><h4>Bill To</h4><p><strong>${order.user?.fullName||'Customer'}</strong><br/>${order.user?.email||''}<br/>${order.user?.phone||''}</p></div>
+    <div class="info-box"><h4>Deliver To</h4><p>${addr}</p></div>
+    <div class="info-box"><h4>Payment Method</h4><p>${paymentLabel}</p></div>
+    <div class="info-box"><h4>Order Status</h4><p>${order.status}</p></div>
+  </div>
+  <table><thead><tr><th>Medicine</th><th>Brand</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="totals"><table>
+    <tr><td>Subtotal</td><td>NPR ${subtotal.toFixed(2)}</td></tr>
+    <tr><td>Delivery</td><td>${delivery===0?'FREE':'NPR '+delivery.toFixed(2)}</td></tr>
+    ${discount>0?`<tr><td>Discount</td><td>- NPR ${discount.toFixed(2)}</td></tr>`:''}
+    <tr class="total-row"><td>Total</td><td>NPR ${total.toFixed(2)}</td></tr>
+  </table></div>
+  <div class="footer"><p>Thank you for choosing PharmaX &mdash; Your health is our priority.</p>
+  <p style="margin-top:4px">This is a computer-generated invoice and does not require a signature.</p></div>
+  <script>window.onload=()=>{window.print()}<\/script>
+</body></html>`
+  const win = window.open('', '_blank')
+  win.document.write(html)
+  win.document.close()
+}
+
 export default function Orders() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [historyPage, setHistoryPage] = useState(1)
+  const [downloadingId, setDownloadingId] = useState(null)
+
+  const handleDownload = async (orderId) => {
+    setDownloadingId(orderId)
+    try {
+      const res = await api.get(`/orders/${orderId}`)
+      buildInvoice(res.data.data.order)
+    } catch {
+      alert('Could not load order details.')
+    } finally {
+      setDownloadingId(null)
+    }
+  }
   const perPage = 4
 
   useEffect(() => {
@@ -217,8 +302,11 @@ export default function Orders() {
                       </span>
                     </div>
                     <div className="sm:col-span-1 flex items-center justify-end gap-1.5">
-                      <button title="Download Invoice" className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
+                      <button title="Download Invoice" onClick={() => handleDownload(order.id)} disabled={downloadingId === order.id}
+                        className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors disabled:opacity-50">
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                          {downloadingId === order.id ? 'hourglass_empty' : 'download'}
+                        </span>
                       </button>
                       <Link to={`/dashboard/orders/${order.id}`} title="View Details"
                         className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">

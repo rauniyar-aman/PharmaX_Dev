@@ -45,7 +45,7 @@ export default function MedicinesListing() {
   const [cartLoading, setCartLoading] = useState({})
   const [wishlist, setWishlist] = useState([])
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('search') || '')
   const [category, setCategory] = useState(() => searchParams.get('category') || '')
   const [priceRange, setPriceRange] = useState('')
   const [availability, setAvailability] = useState('')
