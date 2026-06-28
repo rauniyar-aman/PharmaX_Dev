@@ -50,7 +50,7 @@ model User {
   id           String   @id @default(uuid())
   fullName     String
   email        String   @unique
-  phone        String?  @unique
+  phone        String   @unique
   passwordHash String
   dob          DateTime?
   gender       String?
@@ -75,6 +75,7 @@ model User {
   prescriptions Prescription[]
   reviews       Review[]
   wishlist      WishlistItem[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -209,6 +210,9 @@ model Order {
   paymentMethod        String?
   paymentStatus        PaymentStatus @default(PENDING)
   esewaTransactionUuid String?       @unique
+  khaltiPidx           String?       @unique
+  orderRating          Int?
+  orderComment         String?
   placedAt             DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 
@@ -263,4 +267,27 @@ model WishlistItem {
 
   @@unique([userId, medicineId])
   @@map("wishlist_items")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
 }
