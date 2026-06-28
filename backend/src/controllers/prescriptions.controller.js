@@ -1,5 +1,6 @@
 const prisma = require('../config/db')
 const { ok, created, notFound } = require('../utils/response')
+const { createNotification, notifyAdmins } = require('../utils/notify')
 
 // GET /api/prescriptions
 const getPrescriptions = async (req, res) => {
@@ -14,8 +15,9 @@ const getPrescriptions = async (req, res) => {
             some: {
               order: {
                 OR: [
-                  { paymentMethod: 'cod',   status: { not: 'CANCELLED' } },
-                  { paymentMethod: 'esewa', paymentStatus: 'PAID' },
+                  { paymentMethod: 'cod',    status: { not: 'CANCELLED' } },
+                  { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
+                  { paymentMethod: 'khalti', paymentStatus: 'PAID' },
                 ],
               },
             },
@@ -53,6 +55,11 @@ const uploadPrescription = async (req, res) => {
       checkoutDraft: checkoutDraft === 'true' || checkoutDraft === true,
     },
   })
+  const shortId = prescription.id.slice(0, 8).toUpperCase()
+  await Promise.all([
+    createNotification({ userId: req.user.id, type: 'PRESCRIPTION_SUBMITTED', title: 'Prescription Submitted', message: `Your prescription #${shortId} has been submitted and is pending verification.`, link: '/dashboard/prescriptions' }),
+    notifyAdmins({ type: 'NEW_PRESCRIPTION', title: 'New Prescription Submitted', message: `A customer submitted prescription #${shortId} for verification.`, link: '/admin/prescriptions' }),
+  ])
   created(res, { prescription }, 'Prescription uploaded successfully')
 }
 
