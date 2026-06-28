@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Outlet, Navigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import AdminSidebar from './AdminSidebar'
-import api from '../../lib/api'
+import NotificationPanel from '../notifications/NotificationPanel'
+import { useNotificationsCtx } from '../../context/NotificationsContext'
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
@@ -21,30 +22,19 @@ const PAGE_TITLES = {
 }
 
 function getPageMeta(pathname) {
-  // exact match first
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
-  // prefix match (e.g. /admin/medicines/add → Medicines)
   const key = Object.keys(PAGE_TITLES).find(k => k !== '/admin/dashboard' && pathname.startsWith(k))
   return key ? PAGE_TITLES[key] : { title: 'Admin', icon: 'admin_panel_settings' }
 }
 
 export default function AdminLayout() {
   const { user, loading } = useAuth()
-  const [collapsed, setCollapsed]           = useState(false)
-  const [pendingRx, setPendingRx]           = useState(0)
-  const [notifOpen, setNotifOpen]           = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const location = useLocation()
+  const { unread } = useNotificationsCtx()
 
   const { title, icon } = getPageMeta(location.pathname)
-
-  // Poll pending prescriptions count for badge
-  useEffect(() => {
-    if (!user) return
-    const fetch = () => api.get('/admin/stats').then(r => setPendingRx(r.data.data?.pendingPrescriptions ?? 0)).catch(() => {})
-    fetch()
-    const id = setInterval(fetch, 60_000)
-    return () => clearInterval(id)
-  }, [user])
 
   if (loading) {
     return (
@@ -71,6 +61,10 @@ export default function AdminLayout() {
 
   const sidebarW = collapsed ? 72 : 256
 
+  const avatarSrc = user?.avatarUrl
+    ? (user.avatarUrl.startsWith('data:') || user.avatarUrl.startsWith('http') ? user.avatarUrl : `${BACKEND}${user.avatarUrl}`)
+    : null
+
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
@@ -93,32 +87,32 @@ export default function AdminLayout() {
             </div>
           </div>
 
-          {/* Right: badges + admin profile */}
+          {/* Right: notifications + admin profile */}
           <div className="flex items-center gap-2">
-            {/* Pending prescriptions notification */}
+            {/* Notifications bell */}
             <div className="relative">
-              <Link to="/admin/prescriptions"
+              <button
+                onClick={() => setNotifOpen(o => !o)}
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors relative"
-                title="Pending Prescriptions">
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>description</span>
-                {pendingRx > 0 && (
+                title="Notifications">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>notifications</span>
+                {unread > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-error text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
-                    {pendingRx > 99 ? '99+' : pendingRx}
+                    {unread > 99 ? '99+' : unread}
                   </span>
                 )}
-              </Link>
-            </div>
+              </button>
 
-            {/* Notifications bell */}
-            <button
-              onClick={() => setNotifOpen(o => !o)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors relative"
-              title="Notifications">
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>notifications</span>
-              {pendingRx > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" />
+              {notifOpen && (
+                <>
+                  <div className="fixed inset-0 z-[45]" onClick={() => setNotifOpen(false)} />
+                  <div className="fixed z-[46] bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xl w-80 overflow-hidden"
+                    style={{ top: '68px', right: '24px' }}>
+                    <NotificationPanel isAdmin onClose={() => setNotifOpen(false)} />
+                  </div>
+                </>
               )}
-            </button>
+            </div>
 
             {/* Divider */}
             <div className="w-px h-6 bg-outline-variant mx-1" />
@@ -126,8 +120,8 @@ export default function AdminLayout() {
             {/* Admin avatar + name */}
             <Link to="/admin/profile" className="flex items-center gap-2.5 pl-1 pr-3 py-1.5 rounded-xl hover:bg-surface-container transition-colors group">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold flex-shrink-0 overflow-hidden">
-                {user?.avatarUrl
-                  ? <img src={`${BACKEND}${user.avatarUrl}`} className="w-full h-full object-cover" alt="" />
+                {avatarSrc
+                  ? <img src={avatarSrc} className="w-full h-full object-cover" alt="" />
                   : <span>{user?.fullName?.[0]?.toUpperCase() || 'A'}</span>
                 }
               </div>
@@ -135,7 +129,6 @@ export default function AdminLayout() {
                 <p className="text-sm font-bold text-on-surface leading-tight">{user?.fullName || 'Admin'}</p>
                 <p className="text-[10px] text-on-surface-variant leading-tight">Administrator</p>
               </div>
-              <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" style={{ fontSize: '14px' }}>expand_more</span>
             </Link>
           </div>
         </header>
@@ -145,39 +138,6 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
-
-      {/* Notification dropdown (simple) */}
-      {notifOpen && (
-        <>
-          <div className="fixed inset-0 z-[45]" onClick={() => setNotifOpen(false)} />
-          <div className="fixed z-[46] bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xl w-80 overflow-hidden"
-            style={{ top: '68px', right: '24px' }}>
-            <div className="px-4 py-3 border-b border-outline-variant flex justify-between items-center">
-              <p className="text-sm font-bold text-on-surface">Notifications</p>
-              <span className="text-[10px] text-primary font-bold cursor-pointer hover:underline" onClick={() => setNotifOpen(false)}>Mark all read</span>
-            </div>
-            <div className="divide-y divide-outline-variant max-h-72 overflow-y-auto">
-              {pendingRx > 0 ? (
-                <Link to="/admin/prescriptions" onClick={() => setNotifOpen(false)}
-                  className="flex items-start gap-3 p-4 hover:bg-surface-container-low transition-colors">
-                  <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '18px' }}>description</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-on-surface">{pendingRx} Pending Prescription{pendingRx !== 1 ? 's' : ''}</p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">Awaiting pharmacist verification</p>
-                  </div>
-                </Link>
-              ) : (
-                <div className="p-6 text-center text-sm text-on-surface-variant">
-                  <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>notifications_none</span>
-                  <p className="mt-2">No new notifications</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }

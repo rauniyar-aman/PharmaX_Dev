@@ -14,9 +14,18 @@ const navItems = [
   { to: '/admin/settings', icon: 'settings', label: 'Settings' },
 ]
 
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
+
 export default function AdminSidebar({ collapsed, onToggle }) {
   const { logout, user } = useAuth()
   const navigate = useNavigate()
+  const avatarSrc = resolveImg(user?.avatarUrl)
 
   const handleLogout = () => {
     logout()
@@ -95,8 +104,10 @@ export default function AdminSidebar({ collapsed, onToggle }) {
       <div className="mt-auto pt-4 border-t border-outline-variant px-2 space-y-1">
         {!collapsed ? (
           <Link to="/admin/profile" className="flex items-center gap-3 px-3 py-2 mb-1 rounded-lg hover:bg-surface-container-high transition-colors group">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold shrink-0">
-              {user?.fullName?.[0]?.toUpperCase() || 'A'}
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold shrink-0 overflow-hidden">
+              {avatarSrc
+                ? <img src={avatarSrc} className="w-full h-full object-cover" alt="" />
+                : user?.fullName?.[0]?.toUpperCase() || 'A'}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-on-surface truncate">{user?.fullName || 'Admin'}</p>
@@ -108,9 +119,11 @@ export default function AdminSidebar({ collapsed, onToggle }) {
           <div className="flex justify-center py-2 mb-1">
             <Link to="/admin/profile"
               title={user?.fullName || 'Admin'}
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold hover:opacity-90 transition-opacity"
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold hover:opacity-90 transition-opacity overflow-hidden"
             >
-              {user?.fullName?.[0]?.toUpperCase() || 'A'}
+              {avatarSrc
+                ? <img src={avatarSrc} className="w-full h-full object-cover" alt="" />
+                : user?.fullName?.[0]?.toUpperCase() || 'A'}
             </Link>
           </div>
         )}
