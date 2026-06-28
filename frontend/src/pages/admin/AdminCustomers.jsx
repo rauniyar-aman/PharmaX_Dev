@@ -18,18 +18,26 @@ export default function AdminCustomers() {
   const [customers, setCustomers] = useState([])
   const [stats, setStats]         = useState(null)
   const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
+  const [search, setSearch]             = useState('')
+  const [debouncedSearch, setDebounced] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [page, setPage]           = useState(1)
-  const [pages, setPages]         = useState(1)
-  const [total, setTotal]         = useState(0)
-  const searchRef = useRef()
+  const [page, setPage]                 = useState(1)
+  const [pages, setPages]               = useState(1)
+  const [total, setTotal]               = useState(0)
+  const debounceRef = useRef(null)
+
+  // Debounce search input so we don't fire on every keystroke
+  useEffect(() => {
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => { setDebounced(search); setPage(1) }, 300)
+    return () => clearTimeout(debounceRef.current)
+  }, [search])
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const params = { page, limit: 15 }
-      if (search) params.search = search
+      if (debouncedSearch) params.search = debouncedSearch
       if (filterStatus) params.status = filterStatus
 
       const [custRes, statsRes] = await Promise.all([
@@ -43,7 +51,7 @@ export default function AdminCustomers() {
       setStats(statsRes.data.data)
     } catch {}
     finally { setLoading(false) }
-  }, [page, search, filterStatus])
+  }, [page, debouncedSearch, filterStatus])
 
   useEffect(() => { load() }, [load])
 
@@ -75,7 +83,7 @@ export default function AdminCustomers() {
           { label: 'Total Customers', value: stats?.totalCustomers ?? '…', icon: 'group',        color: 'text-primary bg-primary/10',     badge: null },
           { label: 'Active',          value: activeCount,                  icon: 'person_check', color: 'text-secondary bg-secondary/10', badge: null },
           { label: 'Blocked',         value: blockedCount,                 icon: 'block',        color: 'text-error bg-error/10',         badge: null },
-          { label: 'New This Month',  value: '-',                          icon: 'person_add',   color: 'text-tertiary bg-tertiary/10',   badge: null },
+          { label: 'New This Month',  value: stats?.newCustomers ?? '…',   icon: 'person_add',   color: 'text-tertiary bg-tertiary/10',   badge: null },
         ].map(s => (
           <div key={s.label} className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
@@ -93,10 +101,13 @@ export default function AdminCustomers() {
       <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap items-center gap-5">
         <div className="flex-1 min-w-[260px] relative">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
-          <input ref={searchRef} type="text" placeholder="Search by name, email or ID…"
+          <input
+            type="text"
+            placeholder="Search by name or email…"
             className="w-full pl-9 pr-4 py-2.5 border border-outline-variant rounded-xl text-sm focus:ring-2 focus:ring-primary focus:outline-none bg-surface-container-lowest"
-            defaultValue={search}
-            onKeyDown={e => { if (e.key === 'Enter') { setSearch(e.target.value); setPage(1) } }} />
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-on-surface-variant uppercase font-bold">Status:</span>
@@ -107,7 +118,7 @@ export default function AdminCustomers() {
             <option value="blocked">Blocked</option>
           </select>
         </div>
-        <button onClick={() => { setSearch(''); setFilterStatus(''); setPage(1); if (searchRef.current) searchRef.current.value = '' }}
+        <button onClick={() => { setSearch(''); setFilterStatus(''); setPage(1) }}
           className="p-2.5 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors" title="Clear">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>filter_list_off</span>
         </button>
