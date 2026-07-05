@@ -2,6 +2,14 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+
+function resolveImg(url) {
+  if (!url) return null
+  if (url.startsWith('data:') || url.startsWith('http')) return url
+  return `${BACKEND}${url}`
+}
+
 const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
   { label: 'Medicines', path: '/dashboard/medicines', icon: 'pill' },
@@ -13,13 +21,13 @@ const navItems = [
 ]
 
 const bottomItems = [
-  { label: 'Profile', path: '/dashboard/profile', icon: 'account_circle' },
   { label: 'Settings', path: '/dashboard/settings', icon: 'settings' },
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+  const avatarSrc = resolveImg(user?.avatarUrl)
 
   return (
     <aside
@@ -92,6 +100,26 @@ export default function Sidebar({ collapsed, onToggle }) {
       {/* Bottom Items */}
       <div className="border-t border-outline-variant py-2 px-2">
         <ul className="space-y-0.5">
+          <li>
+            <NavLink
+              to="/dashboard/profile"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  isActive
+                    ? 'bg-secondary-container text-on-secondary-container active-glow'
+                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                } ${collapsed ? 'justify-center px-0' : ''}`
+              }
+              title={collapsed ? 'Profile' : undefined}
+            >
+              <div className="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px] font-bold flex-shrink-0 overflow-hidden">
+                {avatarSrc
+                  ? <img src={avatarSrc} className="w-full h-full object-cover" alt="" />
+                  : user?.fullName?.[0]?.toUpperCase() || 'U'}
+              </div>
+              {!collapsed && <span>Profile</span>}
+            </NavLink>
+          </li>
           {bottomItems.map((item) => (
             <li key={item.path}>
               <NavLink
