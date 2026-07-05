@@ -193,7 +193,7 @@ export default function AdminInventory() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || 'â€"'}</td>
+                        <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || '-'}</td>
                         <td className="px-6 py-4">
                           <div className={`text-sm font-medium ${med.stockQuantity < 50 ? 'text-error' : 'text-on-surface'}`}>
                             {med.stockQuantity.toLocaleString()} Units
@@ -229,7 +229,7 @@ export default function AdminInventory() {
                                   </span>
                                 )
                               })()
-                            : <span className="text-on-surface-variant">â€"</span>
+                            : <span className="text-on-surface-variant">-</span>
                           }
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -261,7 +261,7 @@ export default function AdminInventory() {
           {/* Pagination */}
           <div className="px-6 py-4 bg-surface-container-low/50 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-outline-variant">
             <span className="text-xs text-on-surface-variant">
-              {pagination.total === 0 ? 'No medicines found' : `Showing ${((page - 1) * LIMIT) + 1}â€"${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} items`}
+              {pagination.total === 0 ? 'No medicines found' : `Showing ${((page - 1) * LIMIT) + 1}-${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} items`}
             </span>
             <div className="flex items-center gap-1">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container transition-colors disabled:opacity-30">

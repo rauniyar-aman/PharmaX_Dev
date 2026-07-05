@@ -17,7 +17,7 @@ export default function AdminCategoryDetails() {
 
   const handleDelete = async () => {
     if ((category._count?.medicines || 0) > 0) {
-      alert(`Cannot delete "${category.name}" â€" ${category._count.medicines} medicine(s) are assigned to it.`)
+      alert(`Cannot delete "${category.name}" — ${category._count.medicines} medicine(s) are assigned to it.`)
       return
     }
     if (!window.confirm(`Delete "${category.name}"? This cannot be undone.`)) return

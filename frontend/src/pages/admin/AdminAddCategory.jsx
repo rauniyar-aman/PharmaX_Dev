@@ -174,7 +174,7 @@ export default function AdminAddCategory() {
               className="w-full sm:w-auto px-10 py-3 bg-primary text-white rounded-lg font-semibold hover:opacity-90 shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <span className="material-symbols-outlined">save</span>
-              {loading ? 'Savingâ€¦' : isEdit ? 'Update Category' : 'Save Category'}
+              {loading ? 'Saving...' : isEdit ? 'Update Category' : 'Save Category'}
             </button>
             <button
               type="button"

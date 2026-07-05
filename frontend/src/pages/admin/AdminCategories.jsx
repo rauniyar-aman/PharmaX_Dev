@@ -22,7 +22,7 @@ export default function AdminCategories() {
 
   const handleDelete = async (id, name, count) => {
     if (count > 0) {
-      alert(`Cannot delete "${name}" â€" ${count} medicine(s) are assigned to it.`)
+      alert(`Cannot delete "${name}" — ${count} medicine(s) are assigned to it.`)
       return
     }
     if (!window.confirm(`Delete category "${name}"? This cannot be undone.`)) return
@@ -133,7 +133,7 @@ export default function AdminCategories() {
                       <span className="text-[10px] text-on-surface-variant font-mono">{cat.id.slice(0, 8).toUpperCase()}</span>
                     </td>
                     <td className="px-6 py-4 max-w-xs">
-                      <p className="text-sm text-on-surface-variant line-clamp-1">{cat.description || 'â€"'}</p>
+                      <p className="text-sm text-on-surface-variant line-clamp-1">{cat.description || '-'}</p>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="bg-secondary-fixed text-on-secondary-fixed-variant px-2.5 py-0.5 rounded-full text-xs font-bold">
@@ -200,7 +200,7 @@ export default function AdminCategories() {
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-secondary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Most Medicines</p>
             <div className="flex flex-col">
-              <h4 className="text-lg font-bold text-on-surface">{mostActive?.name || 'â€"'}</h4>
+              <h4 className="text-lg font-bold text-on-surface">{mostActive?.name || '-'}</h4>
               <span className="text-on-surface-variant text-xs">{mostActive?._count?.medicines || 0} Medicines</span>
             </div>
           </div>

@@ -102,7 +102,7 @@ export default function AdminMedicines() {
             { icon: 'inventory', bg: 'bg-primary-fixed', color: 'text-on-primary-fixed-variant', label: 'Total Medicines', value: pagination.total, badge: '+12%', badgeCls: 'text-primary bg-primary/10' },
             { icon: 'warning', bg: 'bg-error-container', color: 'text-on-error-container', label: 'Out of Stock', value: medicines.filter(m => !m.inStock).length, badge: 'Alert', badgeCls: 'text-error bg-error/10' },
             { icon: 'receipt_long', bg: 'bg-secondary-fixed', color: 'text-on-secondary-fixed-variant', label: 'Showing', value: medicines.length, badge: '+5%', badgeCls: 'text-secondary bg-secondary/10' },
-            { icon: 'payments', bg: 'bg-tertiary-fixed', color: 'text-on-tertiary-fixed-variant', label: 'Monthly Revenue', value: monthlyRevenue !== null ? `Rs ${Number(monthlyRevenue).toLocaleString()}` : 'â€"', badge: 'This month', badgeCls: 'text-tertiary bg-tertiary/10' },
+            { icon: 'payments', bg: 'bg-tertiary-fixed', color: 'text-on-tertiary-fixed-variant', label: 'Monthly Revenue', value: monthlyRevenue !== null ? `Rs ${Number(monthlyRevenue).toLocaleString()}` : '-', badge: 'This month', badgeCls: 'text-tertiary bg-tertiary/10' },
           ].map(c => (
             <div key={c.label} className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant shadow-sm flex flex-col gap-2">
               <div className="flex justify-between items-start">
@@ -202,7 +202,7 @@ export default function AdminMedicines() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || 'â€"'}</td>
+                      <td className="px-6 py-4 text-sm text-on-surface">{med.category?.name || '-'}</td>
                       <td className="px-6 py-4">
                         {med.type === 'Rx'
                           ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-error-container text-on-error-container border border-error/20">Rx Required</span>
@@ -249,7 +249,7 @@ export default function AdminMedicines() {
             <p className="text-sm text-on-surface-variant">
               {pagination.total === 0
                 ? 'No medicines found'
-                : `Showing ${((page - 1) * LIMIT) + 1}â€"${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} medicines`}
+                : `Showing ${((page - 1) * LIMIT) + 1}-${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} medicines`}
             </p>
             <div className="flex items-center gap-2">
               <button

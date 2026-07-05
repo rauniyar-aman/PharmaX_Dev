@@ -175,7 +175,7 @@ export default function AdminAddMedicine() {
                 <div>
                   <label className={LABEL_CLS}>Price (Rs) *</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium text-sm">â‚¹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium text-sm">Rs</span>
                     <input className={`${FIELD_CLS} pl-8`} name="price" type="number" value={form.price} onChange={handleChange} placeholder="0.00" min="0" step="0.01" />
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export default function AdminAddMedicine() {
                 disabled={loading}
                 className="w-full py-4 bg-primary text-white font-semibold text-lg rounded-xl hover:opacity-90 shadow-md transition-all active:scale-[0.98] disabled:opacity-60"
               >
-                {loading ? 'Savingâ€¦' : isEdit ? 'Update Medicine' : 'Save Medicine'}
+                {loading ? 'Saving...' : isEdit ? 'Update Medicine' : 'Save Medicine'}
               </button>
               <button
                 type="button"

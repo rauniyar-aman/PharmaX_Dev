@@ -204,7 +204,7 @@ export default function AdminViewMedicine() {
                   <h4 className="text-xs font-bold uppercase text-on-surface-variant mb-2">Category</h4>
                   <div className="flex items-center gap-2 text-on-surface">
                     <span className="material-symbols-outlined text-primary">pill</span>
-                    <span className="font-medium text-sm">{medicine.category?.name || 'â€"'}</span>
+                    <span className="font-medium text-sm">{medicine.category?.name || '-'}</span>
                   </div>
                 </div>
                 <div>
