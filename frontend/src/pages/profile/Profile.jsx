@@ -111,6 +111,7 @@ export default function Profile() {
   const [saveMsg, setSaveMsg] = useState('')
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const avatarInputRef = React.useRef(null)
 
   // Addresses
@@ -134,6 +135,19 @@ export default function Profile() {
     }
     setAvatarUploading(false)
     e.target.value = ''
+  }
+
+  const handleAvatarRemove = async () => {
+    if (!confirm('Remove your profile picture?')) return
+    setAvatarUploading(true)
+    try {
+      await api.delete('/user/avatar')
+      setProfile(prev => ({ ...prev, avatarUrl: null }))
+      refreshUser()
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to remove picture.')
+    }
+    setAvatarUploading(false)
   }
 
   useEffect(() => {
@@ -239,15 +253,39 @@ export default function Profile() {
                     : avatarLetter}
                 </div>
                 <button
-                  onClick={() => avatarInputRef.current?.click()}
+                  onClick={() => setAvatarMenuOpen(o => !o)}
                   disabled={avatarUploading}
                   className="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform disabled:opacity-60"
-                  title="Change profile picture"
+                  title="Edit profile picture"
                 >
                   {avatarUploading
                     ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
                     : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>photo_camera</span>}
                 </button>
+
+                {avatarMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setAvatarMenuOpen(false)} />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-20 overflow-hidden">
+                      <button
+                        onClick={() => { setAvatarMenuOpen(false); avatarInputRef.current?.click() }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-low transition-colors text-left"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>upload</span>
+                        Upload new photo
+                      </button>
+                      {avatarSrc && (
+                        <button
+                          onClick={() => { setAvatarMenuOpen(false); handleAvatarRemove() }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error-container/30 transition-colors text-left border-t border-outline-variant"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                          Remove photo
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
                 <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               </div>
 
