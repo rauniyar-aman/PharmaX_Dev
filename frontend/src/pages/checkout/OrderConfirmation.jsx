@@ -84,7 +84,7 @@ export default function OrderConfirmation() {
           ) : (
             <>
               <p className="text-sm font-semibold text-on-surface capitalize">
-                {order?.paymentMethod === 'esewa' ? 'eSewa Wallet' : 'Cash on Delivery'}
+                {order?.paymentMethod === 'esewa' ? 'eSewa Wallet' : order?.paymentMethod === 'khalti' ? 'Khalti Wallet' : 'Cash on Delivery'}
               </p>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>

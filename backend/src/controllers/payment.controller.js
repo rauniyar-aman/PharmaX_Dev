@@ -317,6 +317,18 @@ const khaltiVerify = async (req, res) => {
   const { pidx, status } = req.query
 
   if (!pidx || status !== 'Completed') {
+    // Cancel the pending order so it doesn't become a ghost record
+    if (pidx) {
+      try {
+        const order = await prisma.order.findUnique({ where: { khaltiPidx: pidx } })
+        if (order && order.paymentStatus === 'PENDING') {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { paymentStatus: 'FAILED', status: 'CANCELLED' },
+          })
+        }
+      } catch {}
+    }
     return res.redirect(`${FRONTEND_URL}/dashboard/checkout/payment?khalti_cancelled=1`)
   }
 
@@ -324,6 +336,16 @@ const khaltiVerify = async (req, res) => {
     const verification = await khaltiPost('/epayment/lookup/', { pidx })
 
     if (verification.status !== 'Completed') {
+      // Lookup confirmed payment did not succeed — cancel the order
+      try {
+        const order = await prisma.order.findUnique({ where: { khaltiPidx: pidx } })
+        if (order && order.paymentStatus === 'PENDING') {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { paymentStatus: 'FAILED', status: 'CANCELLED' },
+          })
+        }
+      } catch {}
       return res.redirect(`${FRONTEND_URL}/dashboard/checkout/payment?khalti_cancelled=1&reason=not_verified`)
     }
 
