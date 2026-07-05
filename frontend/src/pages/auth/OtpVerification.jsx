@@ -99,7 +99,7 @@ export default function OtpVerification() {
 
             {devOtp && (
               <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center">
-                <p className="text-xs text-amber-700 font-medium mb-1">Email delivery failed â€" dev mode OTP:</p>
+                <p className="text-xs text-amber-700 font-medium mb-1">Email delivery failed - dev mode OTP:</p>
                 <p className="text-2xl font-bold tracking-[0.3em] text-amber-800">{devOtp}</p>
                 <button
                   type="button"
@@ -144,7 +144,7 @@ export default function OtpVerification() {
                 disabled={loading}
                 className="w-full rounded-3xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? 'Verifyingâ€¦' : 'Verify & Continue'}
+                {loading ? 'Verifying...' : 'Verify & Continue'}
               </button>
             </form>
 
@@ -156,7 +156,7 @@ export default function OtpVerification() {
                 disabled={resendLoading}
                 className="mt-3 text-primary font-semibold hover:text-primary/90 disabled:opacity-60"
               >
-                {resendLoading ? 'Sendingâ€¦' : 'Resend code'}
+                {resendLoading ? 'Sending...' : 'Resend code'}
               </button>
             </div>
 

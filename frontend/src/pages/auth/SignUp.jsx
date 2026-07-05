@@ -167,8 +167,10 @@ export default function SignUp() {
             to="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 mb-5"
           >
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-lg leading-none">
-              â€¹
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </span>
             Back to homepage
           </Link>
@@ -227,7 +229,7 @@ export default function SignUp() {
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={handleChange}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   icon={LockIcon}
                   right={
                     <button
@@ -245,7 +247,7 @@ export default function SignUp() {
                   type={showPassword ? 'text' : 'password'}
                   value={form.confirmPassword}
                   onChange={handleChange}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   icon={LockIcon}
                 />
               </div>
@@ -269,7 +271,7 @@ export default function SignUp() {
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating accountâ€¦' : 'Register'}
+                {loading ? 'Creating account...' : 'Register'}
               </Button>
             </form>
 

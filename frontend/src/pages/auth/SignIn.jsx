@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import AuthLayout from '../../components/common/AuthLayout'
-import AuthHeader from '../../components/layout/AuthHeader'
 import Input from '../../components/forms/Input'
 import Button from '../../components/buttons/Button'
 
@@ -69,13 +68,13 @@ export default function SignIn() {
   return (
     <AuthLayout>
       <div className="w-full max-w-md">
-        <AuthHeader />
-
         <div className="rounded-[32px] border border-surface-container bg-surface p-8 shadow-[0_30px_60px_-30px_rgba(15,23,42,0.2)]">
           <div className="mb-6">
             <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                ‹
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
               </span>
               Back to homepage
             </Link>
@@ -159,15 +158,6 @@ export default function SignIn() {
               {loading ? 'Signing in…' : 'Sign In'}
             </Button>
 
-            <div className="flex items-center gap-3 text-sm text-on-surface-variant">
-              <div className="h-px flex-1 bg-surface-container-high" />
-              <span>OR</span>
-              <div className="h-px flex-1 bg-surface-container-high" />
-            </div>
-
-            <button type="button" className="w-full rounded-xl border border-surface-container bg-surface py-3 text-sm font-semibold text-on-surface transition hover:bg-surface-container">
-              Continue with SSO
-            </button>
           </form>
 
           <div className="mt-7 text-center text-sm text-on-surface-variant">

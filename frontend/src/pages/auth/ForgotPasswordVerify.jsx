@@ -153,7 +153,7 @@ export default function ForgotPasswordVerify() {
                 disabled={loading}
                 className="w-full rounded-3xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? 'Resettingâ€¦' : 'Reset Password'}
+                {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
 
