@@ -162,7 +162,7 @@ export default function MedicinesListing() {
             className="text-sm border border-outline-variant rounded-xl px-3 py-2 bg-surface-container-lowest text-on-surface focus:outline-none focus:border-secondary transition min-w-[130px]">
             <option value="">All Prices</option>
             <option value="under-100">Under NPR 100</option>
-            <option value="100-300">NPR 100â€"300</option>
+            <option value="100-300">NPR 100-300</option>
             <option value="over-300">Over NPR 300</option>
           </select>
 

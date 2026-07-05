@@ -194,9 +194,9 @@ export default function Orders() {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="text-sm font-bold text-on-surface font-mono">{order.id.slice(0, 8).toUpperCase()}</p>
-                      <p className="text-xs text-on-surface-variant mt-0.5">{formatDate(order.placedAt)} Â· {order.items?.length || 0} items</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">{formatDate(order.placedAt)} · {order.items?.length || 0} items</p>
                       {itemNames.length > 0 && (
-                        <p className="text-xs text-on-surface-variant mt-0.5 truncate max-w-xs">{itemNames.slice(0, 3).join(', ')}{itemNames.length > 3 ? 'â€¦' : ''}</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5 truncate max-w-xs">{itemNames.slice(0, 3).join(', ')}{itemNames.length > 3 ? '...' : ''}</p>
                       )}
                     </div>
                     <div className="text-right">

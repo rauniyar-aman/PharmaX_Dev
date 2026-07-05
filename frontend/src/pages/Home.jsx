@@ -56,7 +56,7 @@ const testimonials = [
     role: 'Marketing Director'
   },
   {
-    quote: 'The best prices Iâ€™ve found online for my familyâ€™s needs. The fast delivery is just the cherry on top. Highly recommended!',
+    quote: "The best prices I've found online for my family's needs. The fast delivery is just the cherry on top. Highly recommended!",
     name: 'Michael Chen',
     role: 'Parent & Caregiver'
   }

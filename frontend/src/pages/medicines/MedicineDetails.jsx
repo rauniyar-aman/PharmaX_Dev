@@ -137,7 +137,7 @@ export default function MedicineDetails() {
           <h1 className="text-2xl font-bold text-on-surface">{med.name}</h1>
           <p className="text-sm text-on-surface-variant">
             {med.brand}
-            {med.packageSize ? ` Â· ${med.packageSize}` : ''}
+            {med.packageSize ? ` · ${med.packageSize}` : ''}
           </p>
 
           {/* Rating */}
@@ -218,7 +218,7 @@ export default function MedicineDetails() {
               }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_shopping_cart</span>
-              {cartLoading ? 'Addingâ€¦' : 'Add to Cart'}
+              {cartLoading ? 'Adding...' : 'Add to Cart'}
             </button>
             <button
               onClick={handleBuyNow}
@@ -228,7 +228,7 @@ export default function MedicineDetails() {
               }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>flash_on</span>
-              {buyLoading ? 'Processingâ€¦' : 'Buy Now'}
+              {buyLoading ? 'Processing...' : 'Buy Now'}
             </button>
           </div>
 

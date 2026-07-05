@@ -157,7 +157,7 @@ export default function Cart() {
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>remove</span>
                         </button>
                         <span className="w-10 text-center text-sm font-semibold text-on-surface">
-                          {updating[med.id] ? 'â€¦' : item.quantity}
+                          {updating[med.id] ? '...' : item.quantity}
                         </span>
                         <button
                           onClick={() => updateQty(med.id, item.quantity + 1)}
@@ -214,7 +214,7 @@ export default function Cart() {
                 {couponApplied && (
                   <div className="flex justify-between text-sm">
                     <span className="text-on-surface-variant">Discount (PHARMA10)</span>
-                    <span className="font-medium text-primary">â€" NPR {discount}</span>
+                    <span className="font-medium text-primary">- NPR {discount}</span>
                   </div>
                 )}
                 <div className="border-t border-outline-variant pt-3 flex justify-between">
@@ -243,7 +243,7 @@ export default function Cart() {
                     {couponApplied ? 'Applied' : 'Apply'}
                   </button>
                 </div>
-                {couponApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied â€" 10% off!</p>}
+                {couponApplied && <p className="text-xs text-primary mt-1.5 font-medium">PHARMA10 applied - 10% off!</p>}
               </div>
 
               <button
