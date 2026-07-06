@@ -2,8 +2,6 @@
 import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 
-const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
-
 export default function Wishlist() {
   const [items, setItems]       = useState([])
   const [loading, setLoading]   = useState(true)
@@ -170,7 +168,7 @@ export default function Wishlist() {
                 <Link to={`/dashboard/medicines/${med.id}`}
                   className={`relative block overflow-hidden flex-shrink-0 ${view === 'list' ? 'w-24 h-24' : 'w-full'}`}>
                   {med.imageUrl
-                    ? <img src={`${BACKEND}${med.imageUrl}`} alt={med.name}
+                    ? <img src={med.imageUrl} alt={med.name}
                         className={`object-cover group-hover:scale-105 transition-transform duration-300 ${view === 'list' ? 'w-24 h-24' : 'h-48 w-full'}`} />
                     : <div className={`bg-surface-container flex items-center justify-center ${view === 'list' ? 'w-24 h-24' : 'h-48 w-full'}`}>
                         <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '40px' }}>medication</span>
