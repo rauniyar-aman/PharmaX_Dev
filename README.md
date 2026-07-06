@@ -317,9 +317,9 @@ The app runs at `http://localhost:5173`.
 
 ### Authentication
 
-| Sign Up | Sign In | Forgot Password |
-|---|---|---|
-| ![Sign Up](screenshots/signup.png) | ![Sign In](screenshots/signin.png) | ![Forgot Password](screenshots/forgot-password.png) |
+| Sign Up | Sign In | Forgot Password | OTP Verification |
+|---|---|---|---|
+| ![Sign Up](screenshots/signup.png) | ![Sign In](screenshots/signin.png) | ![Forgot Password](screenshots/forgot-password.png) | ![OTP Verification](screenshots/verifyotp.png) |
 
 ### Customer Panel
 
@@ -331,9 +331,15 @@ The app runs at `http://localhost:5173`.
 |---|---|---|
 | ![Orders](screenshots/orders.png) | ![Track Order](screenshots/track-order.png) | ![Wishlist](screenshots/wishlist.png) |
 
-| Prescriptions |
-|---|
-| ![Prescriptions](screenshots/prescriptions.png) |
+| Prescriptions | Settings |
+|---|---|
+| ![Prescriptions](screenshots/prescriptions.png) | ![Settings](screenshots/Custonmer-settings.png) |
+
+### Admin Panel
+
+| Dashboard | Orders | Customer List |
+|---|---|---|
+| ![Admin Dashboard](screenshots/admin-dashboard.com.png) | ![Admin Orders](screenshots/orders-list.png) | ![Customer List](screenshots/customer-list.png) |
 
 &nbsp;
 
