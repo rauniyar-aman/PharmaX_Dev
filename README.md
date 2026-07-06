@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/public/PharmaX_Logo.png" alt="PharmaX Logo" width="180" />
+</p>
+
 # PharmaX — Online Pharmacy Platform
 
 **PharmaX** is a full-stack online pharmacy web application that lets customers browse, order, and pay for medicines online — with prescription uploads, real-time order tracking, and two Nepali payment gateways — while giving admins complete control over inventory, orders, prescriptions, and customers through a dedicated admin panel.
