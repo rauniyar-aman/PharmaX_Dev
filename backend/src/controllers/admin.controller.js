@@ -73,11 +73,11 @@ const getStats = async (req, res) => {
 const getAdminOrders = async (req, res) => {
   const { status, payment, search, page = 1, limit = 15 } = req.query
   const where = {
-    NOT: { status: 'CANCELLED' },
     OR: [
       { paymentMethod: 'cod' },
       { paymentMethod: 'esewa',  paymentStatus: 'PAID' },
       { paymentMethod: 'khalti', paymentStatus: 'PAID' },
+      { status: 'CANCELLED' },
     ],
   }
   if (status) where.status = status
@@ -144,11 +144,28 @@ const updatePaymentStatus = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   const { status } = req.body
+  const { fail } = require('../utils/response')
   const validStatuses = ['PLACED', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
-  if (!validStatuses.includes(status)) {
-    const { fail } = require('../utils/response')
-    return fail(res, 'Invalid status')
+  if (!validStatuses.includes(status)) return fail(res, 'Invalid status')
+
+  const existing = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: {
+      prescription: { select: { status: true } },
+      items: { include: { prescription: { select: { status: true } } } },
+    },
+  })
+  if (!existing) return fail(res, 'Order not found', 404)
+
+  const blockedStatuses = ['PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED']
+  if (blockedStatuses.includes(status)) {
+    const orderPrescriptionUnverified = existing.prescription && existing.prescription.status !== 'VERIFIED'
+    const itemPrescriptionUnverified = existing.items.some(i => i.prescription && i.prescription.status !== 'VERIFIED')
+    if (orderPrescriptionUnverified || itemPrescriptionUnverified) {
+      return fail(res, 'Cannot advance order status — prescription has not been verified yet.', 400)
+    }
   }
+
   const order = await prisma.order.update({
     where: { id: req.params.id },
     data: { status },

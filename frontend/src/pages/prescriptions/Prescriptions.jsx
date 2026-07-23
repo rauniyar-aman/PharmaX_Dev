@@ -146,10 +146,10 @@ function PreviewModal({ prescription, onClose }) {
               {prescription.doctor && (
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-tertiary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>stethoscope</span>
+                    <span className="material-symbols-outlined text-tertiary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>label</span>
                   </div>
                   <div>
-                    <p className="text-xs text-on-surface-variant">Doctor</p>
+                    <p className="text-xs text-on-surface-variant">Name</p>
                     <p className="text-sm font-semibold text-on-surface">{prescription.doctor}</p>
                     {prescription.hospital && <p className="text-xs text-on-surface-variant">{prescription.hospital}</p>}
                   </div>
@@ -310,7 +310,12 @@ function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
             </Link>
           )}
 
-          <p className="text-sm font-bold text-on-surface mt-1.5 truncate">{rx.fileName?.split(', ')[0]}</p>
+          {rx.doctor && (
+            <p className="text-sm font-bold text-on-surface mt-1.5 truncate">{rx.doctor}</p>
+          )}
+          <p className={`truncate ${rx.doctor ? 'text-[11px] text-on-surface-variant mt-0.5' : 'text-sm font-bold text-on-surface mt-1.5'}`}>
+            {rx.fileName?.split(', ')[0]}
+          </p>
           {urls.length > 1 && (
             <p className="text-[11px] text-on-surface-variant">{urls.length} pages</p>
           )}
@@ -372,6 +377,7 @@ export default function Prescriptions() {
   const [selectedFiles, setSelectedFiles] = useState([])
   const [uploading, setUploading]         = useState(false)
   const [uploadError, setUploadError]     = useState('')
+  const [prescriptionName, setPrescriptionName] = useState('')
   const [viewRx, setViewRx]               = useState(null)
   const [rejectedRx, setRejectedRx]       = useState(null)
 
@@ -397,8 +403,10 @@ export default function Prescriptions() {
     try {
       const fd = new FormData()
       selectedFiles.forEach(f => fd.append('files', f))
+      if (prescriptionName.trim()) fd.append('doctor', prescriptionName.trim())
       await api.post('/prescriptions', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       setSelectedFiles([])
+      setPrescriptionName('')
       load()
     } catch (err) {
       setUploadError(err.response?.data?.message || 'Upload failed. Please try again.')
@@ -507,6 +515,17 @@ export default function Prescriptions() {
               )}
             </div>
 
+            <div>
+              <label className="text-xs font-medium text-on-surface-variant mb-1.5 block">Prescription Name <span className="opacity-50">(optional)</span></label>
+              <input
+                type="text"
+                value={prescriptionName}
+                onChange={e => setPrescriptionName(e.target.value)}
+                placeholder="e.g. Dr. Sharma - Cardiac Checkup"
+                className="w-full text-sm border border-outline-variant rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-primary bg-surface transition"
+              />
+            </div>
+
             {uploadError && (
               <p className="text-xs text-error bg-error/5 border border-error/20 rounded-lg px-3 py-2">{uploadError}</p>
             )}
@@ -572,15 +591,6 @@ export default function Prescriptions() {
         </section>
       </div>
 
-      <section className="bg-secondary-container text-on-secondary-container p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h4 className="text-base font-bold">Need help with verification?</h4>
-          <p className="text-sm opacity-90 mt-1 max-w-lg">Our pharmacists are available 24/7 to assist with your prescription uploads and validation process. Your health is our priority.</p>
-        </div>
-        <button className="px-6 py-3 bg-white text-secondary text-sm font-bold rounded-xl shadow-sm hover:shadow-md transition flex-shrink-0">
-          Chat with Pharmacist
-        </button>
-      </section>
     </div>
   )
 }

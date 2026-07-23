@@ -249,7 +249,7 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
             className="w-full border border-outline-variant rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none bg-surface-container-lowest disabled:opacity-50 disabled:cursor-not-allowed"
             value={order.status}
             onChange={e => handleStatus(e.target.value)}
-            disabled={updating || order.status === 'CANCELLED' || order.status === 'DELIVERED' || needsRxVerification}
+            disabled={updating || order.status === 'DELIVERED' || needsRxVerification}
           >
             {ORDER_STATUSES.map(s => (
               <option key={s} value={s}>{STATUS_CFG[s]?.label || s}</option>

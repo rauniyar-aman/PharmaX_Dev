@@ -30,16 +30,19 @@ function fmtDate(iso) {
 function TrackingPanel({ order, onClose, onStatusUpdate }) {
   const [newStatus, setNewStatus] = useState(order.status)
   const [saving, setSaving] = useState(false)
+  const [updateError, setUpdateError] = useState('')
   const currentStep = STATUS_STEP[order.status] ?? -1
 
   const saveStatus = async () => {
     if (newStatus === order.status) return
     setSaving(true)
+    setUpdateError('')
     try {
       const res = await api.put(`/admin/orders/${order.id}/status`, { status: newStatus })
       onStatusUpdate(res.data.data.order)
-    } catch {}
-    finally { setSaving(false) }
+    } catch (err) {
+      setUpdateError(err.response?.data?.message || 'Failed to update status.')
+    } finally { setSaving(false) }
   }
 
   const cfg = STATUS_CFG[order.status] || STATUS_CFG.PLACED
@@ -135,7 +138,7 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
             </div>
           </div>
 
-          {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+          {order.status !== 'DELIVERED' && (
             <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
               <p className="text-[11px] text-on-surface-variant uppercase font-bold tracking-wider mb-3">Update Delivery Status</p>
               <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
@@ -148,6 +151,9 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
                 className="w-full py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-all">
                 {saving ? 'Updating…' : 'Update Status'}
               </button>
+              {updateError && (
+                <p className="text-xs text-error bg-error/5 border border-error/20 rounded-lg px-3 py-2 mt-2">{updateError}</p>
+              )}
             </div>
           )}
         </div>
