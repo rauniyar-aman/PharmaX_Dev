@@ -15,13 +15,11 @@ const getOrCreateCart = async (userId) => {
   return cart
 }
 
-// GET /api/cart
 const getCart = async (req, res) => {
   const cart = await getOrCreateCart(req.user.id)
   ok(res, { cart })
 }
 
-// POST /api/cart/items
 const addItem = async (req, res) => {
   const { medicineId, quantity = 1 } = req.body
   if (!medicineId) return fail(res, 'medicineId is required')
@@ -50,7 +48,6 @@ const addItem = async (req, res) => {
   ok(res, { cart: updatedCart }, 'Item added to cart')
 }
 
-// PUT /api/cart/items/:medicineId
 const updateItem = async (req, res) => {
   const { quantity } = req.body
   if (!quantity || quantity < 1) return fail(res, 'quantity must be at least 1')
@@ -72,7 +69,6 @@ const updateItem = async (req, res) => {
   ok(res, { cart: updatedCart }, 'Cart updated')
 }
 
-// DELETE /api/cart/items/:medicineId
 const removeItem = async (req, res) => {
   const cart = await prisma.cart.findUnique({ where: { userId: req.user.id } })
   if (!cart) return notFound(res, 'Cart not found')
@@ -85,7 +81,6 @@ const removeItem = async (req, res) => {
   ok(res, { cart: updatedCart }, 'Item removed from cart')
 }
 
-// DELETE /api/cart
 const clearCart = async (req, res) => {
   const cart = await prisma.cart.findUnique({ where: { userId: req.user.id } })
   if (cart) await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })

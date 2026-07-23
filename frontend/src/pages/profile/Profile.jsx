@@ -114,7 +114,6 @@ export default function Profile() {
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const avatarInputRef = React.useRef(null)
 
-  // Addresses
   const [addresses, setAddresses] = useState([])
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [editingAddress, setEditingAddress] = useState(null)
@@ -243,7 +242,6 @@ export default function Profile() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* Hero Card */}
           <section className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="relative flex-shrink-0">
@@ -334,7 +332,6 @@ export default function Profile() {
             </div>
           </section>
 
-          {/* Personal Information */}
           <section className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-on-surface">Personal Information</h3>
@@ -392,7 +389,6 @@ export default function Profile() {
             )}
           </section>
 
-          {/* Account Security */}
           <aside className="lg:col-span-4 space-y-4">
             <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-on-surface mb-4">Account Security</h3>
@@ -437,7 +433,6 @@ export default function Profile() {
             </div>
           </aside>
 
-          {/* Saved Addresses */}
           <section className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
@@ -519,7 +514,6 @@ export default function Profile() {
             )}
           </section>
 
-          {/* Footer */}
           {editing && (
             <footer className="lg:col-span-12 flex items-center justify-end gap-3 py-4 border-t border-outline-variant">
               <button onClick={handleCancel} className="px-8 py-3 rounded-lg border border-outline text-on-surface text-sm font-semibold hover:bg-surface-container transition-colors">

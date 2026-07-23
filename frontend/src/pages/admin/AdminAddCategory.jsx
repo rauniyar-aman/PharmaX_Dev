@@ -53,7 +53,6 @@ export default function AdminAddCategory() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-sm">
         <h2 className="text-lg font-bold text-primary">Categories</h2>
         <div className="flex items-center gap-3">
@@ -62,7 +61,6 @@ export default function AdminAddCategory() {
       </header>
 
       <div className="flex-1 p-8 max-w-5xl mx-auto w-full">
-        {/* Page Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-semibold text-on-surface">{isEdit ? 'Edit Category' : 'Add New Category'}</h1>
@@ -78,7 +76,6 @@ export default function AdminAddCategory() {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Form */}
           <div className="lg:col-span-2 space-y-6">
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-outline-variant">
@@ -113,7 +110,6 @@ export default function AdminAddCategory() {
             </section>
           </div>
 
-          {/* Right: Icon Picker */}
           <div className="space-y-6">
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm sticky top-20">
               <div className="flex items-center gap-2 mb-6 pb-3 border-b border-outline-variant">
@@ -166,7 +162,6 @@ export default function AdminAddCategory() {
             )}
           </div>
 
-          {/* Footer Actions */}
           <div className="lg:col-span-3 flex flex-col sm:flex-row-reverse items-center gap-4 border-t border-outline-variant pt-6 mt-2">
             <button
               type="submit"
@@ -186,7 +181,6 @@ export default function AdminAddCategory() {
           </div>
         </form>
 
-        {/* Info Banner */}
         <div className="mt-6 bg-tertiary-fixed rounded-xl p-4 flex gap-4 items-center">
           <div className="bg-tertiary-container text-white p-2 rounded-lg">
             <span className="material-symbols-outlined">notifications_active</span>

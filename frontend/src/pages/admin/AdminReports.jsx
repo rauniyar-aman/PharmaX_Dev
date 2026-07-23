@@ -148,7 +148,6 @@ export default function AdminReports() {
         <p className="text-sm text-on-surface-variant">Insights across orders, customers, and inventory.</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiCards.map(k => (
           <div key={k.label} className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant shadow-sm">
@@ -162,7 +161,6 @@ export default function AdminReports() {
         ))}
       </div>
 
-      {/* Revenue Trend + Payment Methods */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
           <div className="flex justify-between items-start">
@@ -196,7 +194,6 @@ export default function AdminReports() {
         </div>
       </div>
 
-      {/* Order Status + Top Medicines */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
           <h4 className="text-base font-bold text-on-surface mb-4">Order Status Breakdown</h4>
@@ -255,7 +252,6 @@ export default function AdminReports() {
         </div>
       </div>
 
-      {/* Delivery Performance */}
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
         <h4 className="text-base font-bold text-on-surface mb-5">Delivery Performance</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -278,7 +274,6 @@ export default function AdminReports() {
         </div>
       </div>
 
-      {/* Alerts */}
       {(data?.pendingPrescriptions > 0 || cancelledCount > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {data?.pendingPrescriptions > 0 && (

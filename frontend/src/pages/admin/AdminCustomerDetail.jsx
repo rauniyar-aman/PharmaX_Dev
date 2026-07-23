@@ -65,14 +65,12 @@ export default function AdminCustomerDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-on-surface-variant">
         <Link to="/admin/customers" className="hover:text-primary transition-colors">Customers</Link>
         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_right</span>
         <span className="text-on-surface font-medium">{customer.fullName}</span>
       </div>
 
-      {/* Header card */}
       <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-5">
           <div className="relative flex-shrink-0">
@@ -112,7 +110,6 @@ export default function AdminCustomerDetail() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total Orders',         value: customer._count?.orders ?? 0,        icon: 'shopping_bag', color: 'text-primary bg-primary/10' },
@@ -131,7 +128,6 @@ export default function AdminCustomerDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Account Info */}
         <div className="lg:col-span-4 space-y-5">
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
@@ -164,7 +160,6 @@ export default function AdminCustomerDetail() {
             </div>
           </div>
 
-          {/* Medical observations */}
           {customer.allergies && (
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
               <div className="px-5 py-4 border-b border-outline-variant bg-surface-container-low">
@@ -182,7 +177,6 @@ export default function AdminCustomerDetail() {
             </div>
           )}
 
-          {/* Recent prescriptions */}
           {customer.prescriptions?.length > 0 && (
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
               <div className="px-5 py-4 border-b border-outline-variant bg-surface-container-low">
@@ -208,7 +202,6 @@ export default function AdminCustomerDetail() {
           )}
         </div>
 
-        {/* Right: Order history */}
         <div className="lg:col-span-8">
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant flex justify-between items-center">

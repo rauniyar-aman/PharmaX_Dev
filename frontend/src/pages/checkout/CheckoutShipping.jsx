@@ -81,10 +81,7 @@ export default function CheckoutShipping() {
       <CheckoutSteps current={0} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left: Shipping */}
         <div className="lg:col-span-2 space-y-4">
-
-          {/* Address list */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[15px] font-semibold text-on-surface">Delivery Address</h2>
@@ -139,7 +136,6 @@ export default function CheckoutShipping() {
             )}
           </div>
 
-          {/* Map preview of selected address */}
           {selectedAddr?.lat && (
             <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
               <div className="flex items-center gap-2 mb-3">
@@ -158,7 +154,6 @@ export default function CheckoutShipping() {
           )}
         </div>
 
-        {/* Right: Order Summary */}
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 h-fit">
           <h2 className="text-[15px] font-semibold text-on-surface mb-4">Order Summary</h2>
 

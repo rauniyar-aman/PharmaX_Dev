@@ -62,7 +62,6 @@ export default function AdminInventoryDetails() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="w-full h-16 bg-surface sticky top-0 z-40 border-b border-outline-variant flex justify-between items-center px-8 shadow-sm">
         <div className="relative hidden md:block">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
@@ -76,7 +75,6 @@ export default function AdminInventoryDetails() {
       </header>
 
       <main className="flex-1 p-8 max-w-7xl mx-auto w-full space-y-6">
-        {/* Breadcrumb + Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <nav className="flex items-center gap-2 text-xs text-on-surface-variant mb-1">
@@ -104,9 +102,7 @@ export default function AdminInventoryDetails() {
           </div>
         </div>
 
-        {/* Top Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Medicine Profile */}
           <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant shadow-sm flex items-start gap-6">
             <div className="w-28 h-28 rounded-2xl bg-surface-container border border-outline-variant shrink-0 flex items-center justify-center overflow-hidden">
               {med.imageUrl
@@ -141,7 +137,6 @@ export default function AdminInventoryDetails() {
             </div>
           </div>
 
-          {/* Status Card */}
           <div className="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col gap-4">
             <div>
               <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Stock Status</p>
@@ -173,9 +168,7 @@ export default function AdminInventoryDetails() {
           </div>
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Stock Update Form */}
           <div className="lg:col-span-1 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-outline-variant flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">inventory_2</span>
@@ -243,7 +236,6 @@ export default function AdminInventoryDetails() {
             </form>
           </div>
 
-          {/* Medicine Details */}
           <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-outline-variant flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">info</span>
@@ -279,7 +271,6 @@ export default function AdminInventoryDetails() {
           </div>
         </div>
 
-        {/* Stock Level Indicators */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             { label: 'Critical Level', threshold: '< 20 units', value: med.stockQuantity < 20, color: 'text-error', bg: 'bg-error/5 border-error/20', icon: 'dangerous' },

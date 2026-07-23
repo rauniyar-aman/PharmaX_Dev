@@ -15,7 +15,6 @@ function isPdf(name) {
   return name?.toLowerCase().endsWith('.pdf')
 }
 
-// fileUrl is stored as a JSON array string on the server; old single-URL records still work
 function parseFileUrls(fileUrl) {
   if (!fileUrl) return []
   try {
@@ -29,14 +28,9 @@ function parseFileNames(fileName) {
   return fileName ? fileName.split(', ') : []
 }
 
-// Preview modal - supports multi-page navigation
 function PreviewModal({ prescription, onClose, localFiles }) {
-  // localFiles: File[] for staged (not yet uploaded) previews
-  // prescription: server record with fileUrl JSON array
   const [imgError, setImgError] = useState(false)
 
-  // Build object URLs from real File objects only — guard against corrupted
-  // sessionStorage round-trips where Files become plain {} objects
   const pages = localFiles
     ? localFiles
         .filter(f => f instanceof File || f instanceof Blob)
@@ -65,7 +59,6 @@ function PreviewModal({ prescription, onClose, localFiles }) {
     }
   }, [handleKey])
 
-  // Reset error state when page changes
   useEffect(() => { setImgError(false) }, [page])
 
   if (total === 0) {
@@ -95,7 +88,6 @@ function PreviewModal({ prescription, onClose, localFiles }) {
       <div className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}>
 
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <span className="material-symbols-outlined text-secondary flex-shrink-0"
@@ -122,7 +114,6 @@ function PreviewModal({ prescription, onClose, localFiles }) {
           </div>
         </div>
 
-        {/* Page navigation bar */}
         {total > 1 && (
           <div className="flex items-center justify-center gap-3 px-5 py-2.5 border-b border-outline-variant bg-surface-container-low flex-shrink-0">
             <button onClick={() => setPage(p => p - 1)} disabled={page === 0}
@@ -143,7 +134,6 @@ function PreviewModal({ prescription, onClose, localFiles }) {
           </div>
         )}
 
-        {/* Content */}
         <div className="flex-1 overflow-auto bg-surface-container-low min-h-0 flex items-center justify-center">
           {isPdf(current.name) ? (
             <iframe src={current.url} title={current.name}
@@ -188,18 +178,16 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
   const [tab, setTab] = useState('upload')
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
-  const [preview, setPreview] = useState(null)         // { prescription } or { localFiles }
-  const [pendingFiles, setPendingFiles] = useState([]) // staged File[] before attaching
+  const [preview, setPreview] = useState(null)
+  const [pendingFiles, setPendingFiles] = useState([])
   const fileRef = useRef()
 
   const med = item.medicine
   const isRx = med.type === 'Rx'
-  // For staged (draft) prescriptions the count comes from the in-memory store
   const pageCount = assignment
     ? (assignment.isDraft ? (checkoutStore.get(med.id)?.files.length ?? 0) : parseFileUrls(assignment.fileUrl).length)
     : 0
 
-  // When the user re-opens an already-staged slot, pre-fill the pending list
   useEffect(() => {
     if (expanded && assignment?.isDraft) {
       const staged = checkoutStore.get(med.id)
@@ -217,7 +205,6 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
 
   const removePending = (idx) => setPendingFiles(prev => prev.filter((_, i) => i !== idx))
 
-  // Files are NOT uploaded here — they are staged in memory and uploaded when the order is placed.
   const handleAttach = () => {
     if (pendingFiles.length === 0) { setError('Add at least one file.'); return }
     setError('')
@@ -243,7 +230,6 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
         : isRx ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700'
         : 'border-outline-variant'
     }`}>
-      {/* Header row */}
       <div className="flex items-center gap-3 p-4">
         <div className={`p-2 rounded-lg flex-shrink-0 ${isRx ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400' : 'bg-surface-container text-on-surface-variant'}`}>
           <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>{iconName}</span>
@@ -287,7 +273,6 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
         )}
       </div>
 
-      {/* Assigned summary (collapsed) */}
       {assignment && !expanded && (
         <div className="px-4 pb-4">
           <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg border border-outline-variant">
@@ -326,7 +311,6 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
         />
       )}
 
-      {/* Expanded panel */}
       {expanded && (
         <div className="border-t border-outline-variant bg-surface-container-lowest">
           <div className="flex border-b border-outline-variant">
@@ -341,7 +325,6 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
           <div className="p-4">
             {tab === 'upload' ? (
               <div className="space-y-3">
-                {/* Staged pages list */}
                 {pendingFiles.length > 0 && (
                   <div className="space-y-2">
                     {pendingFiles.map((f, i) => (
@@ -369,8 +352,6 @@ function PrescriptionSlot({ item, assignment, previousRx, onAssign, onRemove }) 
                   </div>
                 )}
 
-                {/* Drop zone */}
-                {/* Drop zone */}
                 <div
                     onDragOver={e => { e.preventDefault(); setDragging(true) }}
                     onDragLeave={() => setDragging(false)}
@@ -489,8 +470,6 @@ function StatusBadge({ status }) {
   return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cls}`}>{label}</span>
 }
 
-// Synchronously reads from sessionStorage and returns a setter that also writes back
-// synchronously - so assignments survive navigate() calls in React 18 concurrent mode.
 function usePersistedAssignments() {
   const [assignments, _setAssignments] = useState(() => {
     try {
@@ -538,15 +517,11 @@ export default function CheckoutPrescription() {
   const delivery = subtotal > 0 && subtotal >= 500 ? 0 : 80
 
   const handleContinue = () => {
-    // Build the prescription map, but never overwrite real IDs with staged: IDs.
-    // Real IDs get written to checkoutPrescriptions during payment initiation;
-    // if the user comes back after an eSewa cancel those real IDs must be kept.
     const existing = JSON.parse(sessionStorage.getItem('checkoutPrescriptions') || '{}')
     const map = { ...existing }
     Object.entries(assignments).forEach(([medId, rx]) => {
       const currentId = map[medId]
       const newId = rx.id
-      // Only overwrite if the assignment has a real ID, or there's no existing real ID yet
       if (!currentId || String(currentId).startsWith('staged:') || !String(newId).startsWith('staged:')) {
         map[medId] = newId
       }
@@ -562,7 +537,6 @@ export default function CheckoutPrescription() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
 
-          {/* Summary banner */}
           {cartLoading ? (
             <div className="h-16 bg-surface-container-low rounded-2xl animate-pulse" />
           ) : rxItems.length > 0 ? (
@@ -598,7 +572,6 @@ export default function CheckoutPrescription() {
             </div>
           )}
 
-          {/* Rx medicines - Required */}
           {!cartLoading && rxItems.length > 0 && (
             <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
               <div className="flex items-center gap-2 mb-4">
@@ -623,7 +596,6 @@ export default function CheckoutPrescription() {
             </div>
           )}
 
-          {/* OTC medicines - Optional */}
           {!cartLoading && otcItems.length > 0 && (
             <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
               <div className="flex items-center gap-2 mb-4">
@@ -655,7 +627,6 @@ export default function CheckoutPrescription() {
           )}
         </div>
 
-        {/* Right panel */}
         <div className="space-y-4">
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 h-fit">
             <h3 className="text-sm font-semibold text-on-surface mb-1">Prescription Status</h3>
@@ -708,7 +679,6 @@ export default function CheckoutPrescription() {
             </Link>
           </div>
 
-          {/* Order Summary */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <h2 className="text-[15px] font-semibold text-on-surface mb-3">Order Summary</h2>
             <div className="space-y-2.5 mb-3">

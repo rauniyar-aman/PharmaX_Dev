@@ -87,7 +87,6 @@ export default function AdminAddMedicine() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant">
         <div className="flex items-center gap-6">
           <span className="text-lg font-semibold text-primary">PharmaX Admin</span>
@@ -104,7 +103,6 @@ export default function AdminAddMedicine() {
       </header>
 
       <div className="px-8 py-6 flex-1">
-        {/* Page Title */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-semibold text-on-surface">{isEdit ? 'Edit Medicine' : 'Add New Medicine'}</h2>
@@ -120,9 +118,7 @@ export default function AdminAddMedicine() {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-6">
-          {/* Left Column */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
-            {/* Basic Info */}
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="info" title="Basic Information" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,7 +137,6 @@ export default function AdminAddMedicine() {
               </div>
             </section>
 
-            {/* Classification */}
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="grid_view" title="Classification" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -168,7 +163,6 @@ export default function AdminAddMedicine() {
               </div>
             </section>
 
-            {/* Pricing & Inventory */}
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="payments" title="Pricing & Inventory" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,7 +191,6 @@ export default function AdminAddMedicine() {
               </div>
             </section>
 
-            {/* Additional Info */}
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="clinical_notes" title="Additional Info" />
               <div className="space-y-4">
@@ -223,9 +216,7 @@ export default function AdminAddMedicine() {
             </section>
           </div>
 
-          {/* Right Column */}
           <div className="col-span-12 lg:col-span-4 space-y-6">
-            {/* Image */}
             <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
               <SectionHeader icon="image" title="Media" />
               <label className={LABEL_CLS}>Medicine Image URL</label>
@@ -244,7 +235,6 @@ export default function AdminAddMedicine() {
               )}
             </section>
 
-            {/* Inventory Summary */}
             <section className="bg-primary p-6 rounded-xl text-on-primary shadow-lg overflow-hidden relative">
               <div className="relative z-10">
                 <h4 className="text-lg font-semibold mb-4">Inventory Summary</h4>
@@ -273,7 +263,6 @@ export default function AdminAddMedicine() {
               <div className="absolute -left-8 top-0 w-24 h-24 bg-white/5 rounded-full blur-xl" />
             </section>
 
-            {/* Alerts */}
             {error && (
               <div className="p-4 bg-error-container text-on-error-container rounded-xl text-sm">
                 <span className="material-symbols-outlined text-base align-middle mr-1">error</span>
@@ -287,7 +276,6 @@ export default function AdminAddMedicine() {
               </div>
             )}
 
-            {/* Actions */}
             <div className="flex flex-col gap-3">
               <button
                 type="submit"

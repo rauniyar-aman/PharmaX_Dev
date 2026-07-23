@@ -43,7 +43,6 @@ function initials(name = '') {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
-// ─── Order Detail Side Panel ──────────────────────────────────────────────────
 function OrderPanel({ order, onClose, onStatusUpdate }) {
   const navigate = useNavigate()
   const [updating, setUpdating]   = useState(false)
@@ -96,7 +95,6 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
 
   return (
     <div className="fixed inset-y-0 right-0 w-[460px] bg-surface-container-lowest shadow-2xl z-[60] border-l border-outline-variant flex flex-col">
-      {/* Header */}
       <div className="p-5 border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest sticky top-0">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>receipt_long</span>
@@ -110,9 +108,7 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
         </div>
       </div>
 
-      {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
-        {/* Customer */}
         <section>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Customer Details</p>
           <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
@@ -140,7 +136,6 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
           </div>
         </section>
 
-        {/* Items */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Order Items</p>
@@ -177,7 +172,6 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
           </div>
         </section>
 
-        {/* Prescription */}
         {order.prescription && (
           <section>
             <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Prescription Status</p>
@@ -202,7 +196,6 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
           </section>
         )}
 
-        {/* Payment */}
         <section>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Payment</p>
           <div className="flex items-center gap-3 p-4 bg-surface-container-low rounded-xl border border-outline-variant">
@@ -233,9 +226,7 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
         </section>
       </div>
 
-      {/* Footer actions */}
       <div className="p-5 border-t border-outline-variant bg-surface-container-low space-y-3">
-        {/* Rx prescription verification warning */}
         {needsRxVerification && (
           <div className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-300 dark:bg-amber-900/20 dark:border-amber-700/40">
             <span className="material-symbols-outlined text-amber-600 flex-shrink-0 mt-0.5" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>verified_user</span>
@@ -252,7 +243,6 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
           </div>
         )}
 
-        {/* Status update dropdown */}
         <div>
           <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1.5">Update Status</label>
           <select
@@ -286,7 +276,6 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminOrders() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [orders, setOrders]     = useState([])
@@ -341,7 +330,6 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-6 relative">
-      {/* Backdrop */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-inverse-surface/30 backdrop-blur-sm z-50" onClick={() => setSelectedOrder(null)} />
       )}
@@ -349,7 +337,6 @@ export default function AdminOrders() {
         <OrderPanel order={selectedOrder} onClose={() => setSelectedOrder(null)} onStatusUpdate={handleStatusUpdate} />
       )}
 
-      {/* Header */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <p className="text-sm text-on-surface-variant">Review and process customer pharmaceutical orders.</p>
         <div className="flex gap-2">
@@ -360,7 +347,6 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Alerts */}
       {(pendingCount > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {pendingCount > 0 && (
@@ -375,7 +361,6 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[
           { label: 'Total Orders',   value: stats ? stats.totalOrders : '…',                                                               color: 'text-on-surface' },
@@ -392,7 +377,6 @@ export default function AdminOrders() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-wrap items-end gap-4">
         <div className="flex-1 min-w-[200px]">
           <label className="block text-[10px] font-bold text-on-surface-variant uppercase mb-1">Order ID / Customer</label>
@@ -428,7 +412,6 @@ export default function AdminOrders() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left border-collapse">
           <thead className="bg-surface-container-low border-b border-outline-variant">
@@ -502,7 +485,6 @@ export default function AdminOrders() {
           </tbody>
         </table>
 
-        {/* Pagination */}
         <div className="px-5 py-4 border-t border-outline-variant flex justify-between items-center bg-surface-container-lowest flex-wrap gap-3">
           <p className="text-sm text-on-surface-variant">
             Showing {orders.length} of {total} orders

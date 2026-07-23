@@ -1,7 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
-// Admin Panel
 import AdminLayout from './components/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminMedicines from './pages/admin/AdminMedicines'
@@ -22,7 +21,6 @@ import AdminReports from './pages/admin/AdminReports'
 import AdminDelivery from './pages/admin/AdminDelivery'
 import AdminSettings from './pages/admin/AdminSettings'
 
-// Public pages
 import Home from './pages/Home'
 import SignIn from './pages/auth/SignIn'
 import SignUp from './pages/auth/SignUp'
@@ -33,7 +31,6 @@ import OtpVerified from './pages/auth/OtpVerified'
 import ResetPasswordSuccess from './pages/auth/ResetPasswordSuccess'
 import RestoreAccount from './pages/auth/RestoreAccount'
 
-// Dashboard layout + pages
 import DashboardLayout from './components/layouts/DashboardLayout'
 import Dashboard from './pages/dashboard/Dashboard'
 import MedicinesListing from './pages/medicines/MedicinesListing'
@@ -41,19 +38,16 @@ import MedicineDetails from './pages/medicines/MedicineDetails'
 import Categories from './pages/categories/Categories'
 import Cart from './pages/cart/Cart'
 
-// Checkout
 import CheckoutShipping from './pages/checkout/CheckoutShipping'
 import CheckoutPrescription from './pages/checkout/CheckoutPrescription'
 import CheckoutPayment from './pages/checkout/CheckoutPayment'
 import OrderConfirmation from './pages/checkout/OrderConfirmation'
 import PaymentFailed from './pages/checkout/PaymentFailed'
 
-// Orders
 import Orders from './pages/orders/Orders'
 import OrderDetail from './pages/orders/OrderDetail'
 import TrackOrder from './pages/orders/TrackOrder'
 
-// Other dashboard pages
 import Wishlist from './pages/wishlist/Wishlist'
 import Prescriptions from './pages/prescriptions/Prescriptions'
 import MyReviews from './pages/reviews/MyReviews'
@@ -63,7 +57,6 @@ import Settings from './pages/settings/Settings'
 export default function App() {
   return (
     <Routes>
-      {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
@@ -74,7 +67,6 @@ export default function App() {
       <Route path="/reset-success" element={<ResetPasswordSuccess />} />
       <Route path="/restore-account" element={<RestoreAccount />} />
 
-      {/* Dashboard Routes */}
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="medicines" element={<MedicinesListing />} />
@@ -82,7 +74,6 @@ export default function App() {
         <Route path="categories" element={<Categories />} />
         <Route path="cart" element={<Cart />} />
 
-        {/* Checkout */}
         <Route path="checkout" element={<Navigate to="checkout/shipping" replace />} />
         <Route path="checkout/shipping" element={<CheckoutShipping />} />
         <Route path="checkout/prescription" element={<CheckoutPrescription />} />
@@ -90,12 +81,10 @@ export default function App() {
         <Route path="checkout/confirmation" element={<OrderConfirmation />} />
         <Route path="checkout/failed" element={<PaymentFailed />} />
 
-        {/* Orders */}
         <Route path="orders" element={<Orders />} />
         <Route path="orders/:orderId" element={<OrderDetail />} />
         <Route path="track-order/:orderId" element={<TrackOrder />} />
 
-        {/* Other Pages */}
         <Route path="wishlist" element={<Wishlist />} />
         <Route path="prescriptions" element={<Prescriptions />} />
         <Route path="reviews" element={<MyReviews />} />
@@ -103,7 +92,6 @@ export default function App() {
         <Route path="settings" element={<Settings />} />
       </Route>
 
-      {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
@@ -128,7 +116,6 @@ export default function App() {
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 
-      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

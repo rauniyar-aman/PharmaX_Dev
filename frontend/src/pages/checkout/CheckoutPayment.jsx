@@ -10,10 +10,6 @@ function clearCheckoutSession() {
   )
 }
 
-// Upload any prescriptions that were only staged locally (id starts with "staged:").
-// Returns a new map with real prescription IDs substituted in.
-// Also updates checkoutRxDraft in sessionStorage so the prescription step shows
-// the real uploaded prescription if the user navigates back (e.g. after eSewa cancel).
 async function uploadStagedPrescriptions(prescriptionMap) {
   const result = { ...prescriptionMap }
   const rxDraftUpdates = {}
@@ -32,8 +28,6 @@ async function uploadStagedPrescriptions(prescriptionMap) {
     }
   }
 
-  // Persist real prescription data back into checkoutRxDraft so the prescription
-  // step can show the real record (with fileUrl) if the user navigates back.
   if (Object.keys(rxDraftUpdates).length > 0) {
     try {
       const rxDraft = JSON.parse(sessionStorage.getItem('checkoutRxDraft') || '{}')
@@ -92,7 +86,6 @@ export default function CheckoutPayment() {
     setUpdating(u => ({ ...u, [medicineId]: false }))
   }
 
-  // ─── eSewa ─────────────────────────────────────────────────────────────────
   const handleEsewa = async () => {
     setError('')
     setPlacing(true)
@@ -102,16 +95,11 @@ export default function CheckoutPayment() {
 
       const finalMap = await uploadStagedPrescriptions(prescriptionMap)
 
-      // Persist real prescription IDs back into sessionStorage so that if eSewa
-      // is cancelled and the user retries, we reuse existing prescriptions instead
-      // of re-uploading. Do NOT clear checkoutStore here — keep files as a safety
-      // net for preview if the user navigates back to the prescription step.
       sessionStorage.setItem('checkoutPrescriptions', JSON.stringify(finalMap))
 
       const res = await api.post('/payment/esewa/initiate', { addressId, prescriptionMap: finalMap })
       const { formUrl, params } = res.data.data
 
-      // Build and auto-submit a hidden form → browser navigates to eSewa
       const form = document.createElement('form')
       form.method = 'POST'
       form.action = formUrl
@@ -123,9 +111,6 @@ export default function CheckoutPayment() {
         form.appendChild(input)
       })
       document.body.appendChild(form)
-      // Do NOT clear checkout session here — it must survive the eSewa redirect
-      // so the user can retry if payment is cancelled.
-      // clearCheckoutSession() is called by OrderConfirmation on success.
       form.submit()
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to initiate eSewa payment.')
@@ -133,7 +118,6 @@ export default function CheckoutPayment() {
     }
   }
 
-  // ─── Cash on Delivery ──────────────────────────────────────────────────────
   const handleCod = async () => {
     setError('')
     setPlacing(true)
@@ -153,7 +137,6 @@ export default function CheckoutPayment() {
     }
   }
 
-  // ─── Khalti ────────────────────────────────────────────────────────────────
   const handleKhalti = async () => {
     setError('')
     setPlacing(true)
@@ -190,7 +173,6 @@ export default function CheckoutPayment() {
       <CheckoutSteps current={2} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left - payment methods */}
         <div className="lg:col-span-2 space-y-4">
           {esewaCancelled && (
             <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-700/30">
@@ -215,7 +197,6 @@ export default function CheckoutPayment() {
             <h2 className="text-[15px] font-semibold text-on-surface mb-4">Choose Payment Method</h2>
 
             <div className="space-y-3">
-              {/* eSewa */}
               <label className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
                 method === 'esewa' ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : 'border-outline-variant hover:border-green-400/60'
               }`}>
@@ -252,7 +233,6 @@ export default function CheckoutPayment() {
                 </div>
               </label>
 
-              {/* Khalti */}
               <label className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
                 method === 'khalti' ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20' : 'border-outline-variant hover:border-purple-400/60'
               }`}>
@@ -289,7 +269,6 @@ export default function CheckoutPayment() {
                 </div>
               </label>
 
-              {/* Cash on Delivery */}
               <label className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
                 method === 'cod' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' : 'border-outline-variant hover:border-amber-400/60'
               }`}>
@@ -314,7 +293,6 @@ export default function CheckoutPayment() {
               </label>
             </div>
 
-            {/* Trust badges */}
             <div className="mt-5 pt-4 border-t border-outline-variant grid grid-cols-2 sm:grid-cols-4 gap-3">
               {trustBadges.map(b => (
                 <div key={b.label} className="flex flex-col items-center gap-1.5 p-3 bg-surface-container-low rounded-xl">
@@ -326,7 +304,6 @@ export default function CheckoutPayment() {
           </div>
         </div>
 
-        {/* Right - order summary + pay button */}
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 h-fit space-y-4">
           <h2 className="text-[15px] font-semibold text-on-surface">Order Summary</h2>
 
@@ -369,7 +346,6 @@ export default function CheckoutPayment() {
             </div>
           )}
 
-          {/* Promo */}
           <div>
             <p className="text-xs font-medium text-on-surface mb-1.5">Promo Code</p>
             <div className="flex gap-2">

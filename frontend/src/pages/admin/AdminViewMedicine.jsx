@@ -80,7 +80,6 @@ export default function AdminViewMedicine() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="w-full h-16 bg-surface flex justify-between items-center px-8 sticky top-0 z-40 border-b border-outline-variant">
         <div className="relative">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
@@ -95,7 +94,6 @@ export default function AdminViewMedicine() {
       </header>
 
       <main className="p-8 space-y-6 max-w-7xl mx-auto w-full">
-        {/* Breadcrumb + Actions */}
         <div className="flex items-center justify-between">
           <div>
             <nav className="flex items-center gap-2 text-on-surface-variant text-xs mb-1">
@@ -123,11 +121,8 @@ export default function AdminViewMedicine() {
           </div>
         </div>
 
-        {/* Content Grid */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Left Column */}
           <div className="col-span-12 lg:col-span-4 space-y-6">
-            {/* Image */}
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 shadow-sm">
               <div className="relative aspect-square rounded-lg bg-surface-container overflow-hidden">
                 {medicine.imageUrl
@@ -145,7 +140,6 @@ export default function AdminViewMedicine() {
               </div>
             </div>
 
-            {/* Status Summary */}
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 shadow-sm space-y-4">
               <h3 className="text-lg font-semibold text-on-surface">Quick Status</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -172,9 +166,7 @@ export default function AdminViewMedicine() {
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
-            {/* Overview Card */}
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
                 <div className="space-y-2">
@@ -231,7 +223,6 @@ export default function AdminViewMedicine() {
               )}
             </div>
 
-            {/* Medical Data Tabs */}
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
               <div className="flex border-b border-outline-variant">
                 {TABS.map((tab, i) => (
@@ -251,7 +242,6 @@ export default function AdminViewMedicine() {
               <div className="p-8">{tabContent[activeTab]}</div>
             </div>
 
-            {/* Inventory Log */}
             <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
               <div className="p-6 border-b border-outline-variant flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2">

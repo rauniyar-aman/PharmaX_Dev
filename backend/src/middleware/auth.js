@@ -16,7 +16,6 @@ const protect = async (req, res, next) => {
     return unauthorized(res, 'Invalid or expired token')
   }
 
-  // Re-check isActive from DB so blocked users are kicked out immediately
   const user = await prisma.user.findUnique({
     where: { id: decoded.id },
     select: { id: true, isActive: true, isDeleted: true, role: true },

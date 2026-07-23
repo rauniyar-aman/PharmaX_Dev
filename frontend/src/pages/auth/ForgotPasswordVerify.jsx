@@ -90,7 +90,6 @@ export default function ForgotPasswordVerify() {
             </div>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-              {/* OTP Input */}
               <div>
                 <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-3">Verification Code</label>
                 <div className="grid grid-cols-6 gap-3">
@@ -111,7 +110,6 @@ export default function ForgotPasswordVerify() {
                 </div>
               </div>
 
-              {/* New Password Fields */}
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">New Password</label>

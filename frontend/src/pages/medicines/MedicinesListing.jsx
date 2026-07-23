@@ -120,7 +120,6 @@ export default function MedicinesListing() {
 
   return (
     <div className="space-y-5">
-      {/* Rx / OTC Info Panels */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-2xl p-4">
           <span className="material-symbols-outlined ms-filled text-primary mt-0.5" style={{ fontSize: '22px' }}>medical_services</span>
@@ -138,7 +137,6 @@ export default function MedicinesListing() {
         </div>
       </div>
 
-      {/* Search + Filters */}
       <div className="bg-surface-container-lowest rounded-2xl p-4 custom-shadow space-y-3">
         <div className="relative">
           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '20px' }}>search</span>
@@ -190,7 +188,6 @@ export default function MedicinesListing() {
         </div>
       </div>
 
-      {/* Error State */}
       {error && (
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-12">
           <span className="material-symbols-outlined text-error" style={{ fontSize: '48px' }}>error_outline</span>
@@ -201,14 +198,12 @@ export default function MedicinesListing() {
         </div>
       )}
 
-      {/* Loading Skeleton */}
       {loading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => <MedicineSkeleton key={i} />)}
         </div>
       )}
 
-      {/* Empty State */}
       {!loading && !error && medicines.length === 0 && (
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-16">
           <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '48px' }}>search_off</span>
@@ -217,7 +212,6 @@ export default function MedicinesListing() {
         </div>
       )}
 
-      {/* Medicine Grid */}
       {!loading && !error && medicines.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {medicines.map(med => {
@@ -300,7 +294,6 @@ export default function MedicinesListing() {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-1 pt-2">
           <button

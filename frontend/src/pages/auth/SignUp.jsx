@@ -132,7 +132,6 @@ export default function SignUp() {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-[38%] flex-col bg-surface-container-low border-r border-surface-container p-10">
         <Logo size="lg" />
 
@@ -160,7 +159,6 @@ export default function SignUp() {
         <p className="text-xs text-on-surface-variant">Trusted by healthcare professionals worldwide</p>
       </div>
 
-      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-10 overflow-y-auto">
         <div className="w-full max-w-xl">
           <Link
@@ -193,9 +191,9 @@ export default function SignUp() {
                   placeholder="Dr. John Doe"
                   icon={UserIcon}
                 />
-                <div>
+                <div className="min-w-0">
                   <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Phone Number</label>
-                  <div className="flex items-center rounded-2xl border border-surface-container bg-surface-container-lowest overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition">
+                  <div className="flex items-center rounded-2xl border border-surface-container bg-surface-container-lowest overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary/15 transition">
                     <div className="flex items-center gap-1.5 px-3 py-3 border-r border-surface-container bg-surface-container-low text-on-surface-variant shrink-0">
                       <span className="text-on-surface-variant">{PhoneIcon}</span>
                       <span className="text-sm font-semibold text-on-surface">+977</span>

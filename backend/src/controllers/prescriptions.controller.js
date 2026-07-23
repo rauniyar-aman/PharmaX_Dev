@@ -2,7 +2,6 @@ const prisma = require('../config/db')
 const { ok, created, notFound } = require('../utils/response')
 const { createNotification, notifyAdmins } = require('../utils/notify')
 
-// GET /api/prescriptions
 const getPrescriptions = async (req, res) => {
   const prescriptions = await prisma.prescription.findMany({
     where: {
@@ -36,7 +35,6 @@ const getPrescriptions = async (req, res) => {
   ok(res, { prescriptions })
 }
 
-// POST /api/prescriptions  (accepts files[] — one or more pages)
 const uploadPrescription = async (req, res) => {
   const { doctor, hospital, expiryDate, checkoutDraft } = req.body
   const files = req.files || []
@@ -63,7 +61,6 @@ const uploadPrescription = async (req, res) => {
   created(res, { prescription }, 'Prescription uploaded successfully')
 }
 
-// DELETE /api/prescriptions/:id
 const deletePrescription = async (req, res) => {
   const prescription = await prisma.prescription.findFirst({
     where: { id: req.params.id, userId: req.user.id },

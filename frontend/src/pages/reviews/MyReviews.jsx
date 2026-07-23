@@ -103,7 +103,6 @@ export default function MyReviews() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-on-surface">My Reviews</h1>
         <p className="text-sm text-on-surface-variant mt-0.5">Reviews you've written for medicines you purchased</p>
@@ -111,7 +110,6 @@ export default function MyReviews() {
 
       {reviews.length > 0 && (
         <>
-          {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-6 flex flex-col items-center justify-center text-center">
               <p className="text-5xl font-black text-on-surface">{avgRating}</p>
@@ -138,7 +136,6 @@ export default function MyReviews() {
             </div>
           </div>
 
-          {/* Filters */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-4 flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[200px]">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
@@ -155,7 +152,6 @@ export default function MyReviews() {
         </>
       )}
 
-      {/* Review Cards */}
       {filtered.length === 0 ? (
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-16">
           <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '48px' }}>rate_review</span>
@@ -181,7 +177,6 @@ export default function MyReviews() {
             return (
               <div key={review.id} className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
                 <div className="flex items-start gap-4">
-                  {/* Medicine image */}
                   <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container flex items-center justify-center border border-outline-variant">
                     {imgSrc
                       ? <img src={imgSrc} alt={med.name} className="w-full h-full object-cover" />

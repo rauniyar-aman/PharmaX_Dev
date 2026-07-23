@@ -79,7 +79,6 @@ export default function Dashboard() {
           wishlist: (wishRes.data.data.items || []).length,
         })
 
-        // Refill alert: most recently delivered order placed > 14 days ago
         const delivered14 = orders
           .filter(o => o.status === 'DELIVERED' && (Date.now() - new Date(o.placedAt).getTime()) > 14 * 86400000)
           .sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt))[0]
@@ -134,18 +133,15 @@ export default function Dashboard() {
     },
   ]
 
-  // Use notifications as recent activity (up to 4 most recent)
   const recentActivity = notifs.slice(0, 4)
 
   return (
     <div className="space-y-6">
-      {/* Greeting */}
       <div>
         <h2 className="text-2xl font-bold text-on-surface">{getGreeting()}, {firstName}!</h2>
         <p className="text-sm text-on-surface-variant mt-1">Here's what's happening with your health orders today.</p>
       </div>
 
-      {/* Stat Widgets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((card) => (
           <Link key={card.label} to={card.to} className="bg-surface-container-lowest rounded-2xl p-5 custom-shadow flex items-center gap-4 hover:bg-surface-container transition-colors">
@@ -161,11 +157,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left Column */}
         <div className="space-y-4">
-          {/* Upload Prescription Card */}
           <div className="bg-primary rounded-2xl p-5 text-on-primary">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -185,7 +178,6 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Quick Shortcuts */}
           <div className="bg-surface-container-lowest rounded-2xl p-5 custom-shadow">
             <h3 className="text-sm font-semibold text-on-surface mb-3">Quick Shortcuts</h3>
             <div className="grid grid-cols-2 gap-2.5">
@@ -203,7 +195,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Recent Activity */}
         <div className="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-5 custom-shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-semibold text-on-surface">Recent Activity</h3>
@@ -244,9 +235,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Bottom Info Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Health Tip */}
         <div className="bg-surface-container-highest rounded-2xl p-5 flex gap-4 items-start">
           <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
             <span className="material-symbols-outlined ms-filled text-primary" style={{ fontSize: '24px' }}>tips_and_updates</span>
@@ -258,7 +247,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Refill Alert (real) or Explore Medicines (fallback) */}
         {refill ? (
           <div className="bg-surface-container-highest rounded-2xl p-5 flex gap-4 items-start">
             <div className="w-12 h-12 rounded-full bg-error-container flex items-center justify-center flex-shrink-0">

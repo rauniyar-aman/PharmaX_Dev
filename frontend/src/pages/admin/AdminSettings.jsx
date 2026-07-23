@@ -154,7 +154,6 @@ export default function AdminSettings() {
     e.target.value = ''
   }
 
-  // Step 1: verify current password + send OTP
   const requestOtp = async () => {
     if (!pwForm.current || !pwForm.newPw) return showToast('Fill in all password fields', 'error')
     if (pwForm.newPw.length < 6) return showToast('New password must be at least 6 characters', 'error')
@@ -172,14 +171,12 @@ export default function AdminSettings() {
     setSavingPw(false)
   }
 
-  // Countdown timer for OTP
   useEffect(() => {
     if (otpCountdown <= 0) return
     const t = setTimeout(() => setOtpCountdown(c => c - 1), 1000)
     return () => clearTimeout(t)
   }, [otpCountdown])
 
-  // Step 2: verify OTP + change password
   const confirmPasswordChange = async () => {
     if (otp.length !== 6) return showToast('Enter the 6-digit OTP', 'error')
     setSavingPw(true)
@@ -241,7 +238,6 @@ export default function AdminSettings() {
     <div className="space-y-6 max-w-4xl">
       <p className="text-sm text-on-surface-variant">System configuration and account preferences.</p>
 
-      {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 text-sm font-semibold animate-fade-in ${
           toast.type === 'error' ? 'bg-error text-on-error' : 'bg-primary text-on-primary'
@@ -253,10 +249,8 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {/* ── Admin Profile ── */}
       <Section title="Admin Profile" subtitle="Update your name, phone, and profile picture" icon="manage_accounts">
         <div className="flex flex-col sm:flex-row gap-6">
-          {/* Avatar */}
           <div className="flex flex-col items-center gap-3 flex-shrink-0">
             <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-outline-variant bg-surface-container flex items-center justify-center">
               {avatarSrc
@@ -272,7 +266,6 @@ export default function AdminSettings() {
             <p className="text-[10px] text-on-surface-variant text-center">JPG, PNG · Max 2MB</p>
           </div>
 
-          {/* Fields */}
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Full Name">
               <input type="text" value={profile.fullName} onChange={e => setProfile(p => ({ ...p, fullName: e.target.value }))} className={inputCls} placeholder="Your full name" />
@@ -297,7 +290,6 @@ export default function AdminSettings() {
         </div>
       </Section>
 
-      {/* ── Account Security ── */}
       <Section title="Account Security" subtitle="Change your admin password with OTP verification" icon="lock">
         {pwStep === 1 ? (
           <div className="space-y-4">
@@ -362,7 +354,6 @@ export default function AdminSettings() {
           </div>
         ) : (
           <div className="space-y-5">
-            {/* OTP sent banner */}
             <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-xl">
               <span className="material-symbols-outlined text-primary mt-0.5" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>mark_email_read</span>
               <div>
@@ -373,7 +364,6 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            {/* OTP input */}
             <Field label="Enter OTP Code">
               <div className="relative">
                 <input
@@ -416,7 +406,6 @@ export default function AdminSettings() {
         )}
       </Section>
 
-      {/* ── Notification Preferences ── */}
       <Section title="Notification Preferences" subtitle="Control which notifications you receive" icon="notifications">
         <div className="space-y-4">
           {[
@@ -447,7 +436,6 @@ export default function AdminSettings() {
         </div>
       </Section>
 
-      {/* ── Appearance ── */}
       <Section title="Appearance" subtitle="Customize the admin panel look and feel" icon="palette">
         <div className="space-y-4">
           <p className="text-sm font-medium text-on-surface">Theme Preference</p>
@@ -471,7 +459,6 @@ export default function AdminSettings() {
         </div>
       </Section>
 
-      {/* ── Pharmacy Settings ── */}
       <Section title="Pharmacy Settings" subtitle="Business details shown on invoices and customer pages" icon="business">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <Field label="Pharmacy Name">
@@ -510,7 +497,6 @@ export default function AdminSettings() {
         </div>
       </Section>
 
-      {/* ── Inventory Defaults ── */}
       <Section title="Inventory Rules" subtitle="Default thresholds and rules for stock management" icon="inventory_2">
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -556,7 +542,6 @@ export default function AdminSettings() {
         </div>
       </Section>
 
-      {/* ── About ── */}
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">

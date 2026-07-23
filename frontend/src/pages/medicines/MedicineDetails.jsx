@@ -102,7 +102,6 @@ export default function MedicineDetails() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-on-surface-variant">
         <Link to="/dashboard" className="hover:text-primary transition-colors">Home</Link>
         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_right</span>
@@ -111,9 +110,7 @@ export default function MedicineDetails() {
         <span className="text-on-surface font-medium">{med.name}</span>
       </nav>
 
-      {/* Main Product Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Image */}
         <div className="bg-surface-container-lowest rounded-2xl overflow-hidden custom-shadow flex items-center justify-center min-h-[280px]">
           {med.imageUrl ? (
             <img src={med.imageUrl} alt={med.name} className="w-full h-80 object-contain p-4" />
@@ -125,7 +122,6 @@ export default function MedicineDetails() {
           )}
         </div>
 
-        {/* Product Info */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">{med.category?.name}</span>
@@ -140,7 +136,6 @@ export default function MedicineDetails() {
             {med.packageSize ? ` · ${med.packageSize}` : ''}
           </p>
 
-          {/* Rating */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
@@ -155,7 +150,6 @@ export default function MedicineDetails() {
             <span className="text-sm text-on-surface-variant">({med.totalReviews} reviews)</span>
           </div>
 
-          {/* Price */}
           <div className="flex items-baseline gap-3">
             <span className="text-3xl font-bold text-on-surface">NPR {Number(med.price).toLocaleString()}</span>
             {discount > 0 && (
@@ -166,7 +160,6 @@ export default function MedicineDetails() {
             )}
           </div>
 
-          {/* Stock */}
           <div className="flex items-center gap-2">
             <span
               className={`material-symbols-outlined ms-filled ${med.inStock ? 'text-primary' : 'text-error'}`}
@@ -177,7 +170,6 @@ export default function MedicineDetails() {
             </span>
           </div>
 
-          {/* Rx Warning */}
           {med.type === 'Rx' && (
             <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
               <span className="material-symbols-outlined ms-filled text-amber-600 flex-shrink-0" style={{ fontSize: '20px' }}>warning</span>
@@ -187,7 +179,6 @@ export default function MedicineDetails() {
             </div>
           )}
 
-          {/* Qty Selector */}
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-on-surface">Quantity:</span>
             <div className="flex items-center border border-outline-variant rounded-xl overflow-hidden">
@@ -201,14 +192,12 @@ export default function MedicineDetails() {
             </div>
           </div>
 
-          {/* Cart message */}
           {cartMsg && (
             <p className={`text-xs font-semibold px-3 py-2 rounded-lg ${cartMsg.includes('Added') ? 'bg-primary/10 text-primary' : 'bg-error/10 text-error'}`}>
               {cartMsg}
             </p>
           )}
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
@@ -262,7 +251,6 @@ export default function MedicineDetails() {
         </div>
       </div>
 
-      {/* Description Tabs */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow overflow-hidden">
         <div className="flex border-b border-outline-variant">
           {tabs.map(tab => (
@@ -284,7 +272,6 @@ export default function MedicineDetails() {
         </div>
       </div>
 
-      {/* Customer Reviews */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-[15px] font-semibold text-on-surface">Customer Reviews</h2>

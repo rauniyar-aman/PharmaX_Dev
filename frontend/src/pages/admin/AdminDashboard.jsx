@@ -95,7 +95,6 @@ export default function AdminDashboard() {
     return () => clearTimeout(debounceRef.current)
   }, [searchQuery, runSearch])
 
-  // Close search on outside click
   useEffect(() => {
     const handler = e => { if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false) }
     document.addEventListener('mousedown', handler)
@@ -143,7 +142,6 @@ export default function AdminDashboard() {
     },
   ] : Array(6).fill(null)
 
-  // Order status distribution for donut legend
   const statusDist = stats?.ordersByStatus || {}
   const distItems = [
     { dot: 'bg-primary',   label: 'Delivered',   count: statusDist.DELIVERED || 0 },
@@ -153,7 +151,6 @@ export default function AdminDashboard() {
 
   return (
     <>
-      {/* Right Quick-Actions Sidebar — starts below the AdminLayout topbar (h-16) */}
       <aside className="fixed right-0 top-16 h-[calc(100vh-64px)] w-72 bg-surface-container border-l border-outline-variant/30 py-6 px-4 z-30 overflow-y-auto">
         <div className="mb-6">
           <h5 className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Quick Actions</h5>
@@ -184,7 +181,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Activity Stream — real notifications */}
         <div>
           <h5 className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Activity Stream</h5>
           {activityStream.length === 0 ? (
@@ -214,9 +210,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="mr-72">
-        {/* Dashboard search bar — sits below AdminLayout topbar */}
         <div className="w-full px-6 py-3 bg-surface-container-lowest border-b border-outline-variant" ref={searchRef}>
           <div className="relative max-w-lg">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
@@ -232,7 +226,6 @@ export default function AdminDashboard() {
               onFocus={() => searchQuery.trim() && setSearchOpen(true)}
             />
 
-            {/* Search dropdown */}
             {searchOpen && searchResults && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden max-h-[420px] overflow-y-auto">
                 {searchResults.medicines.length === 0 && searchResults.orders.length === 0 && searchResults.customers.length === 0 ? (
@@ -295,10 +288,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Dashboard Content */}
         <div className="p-6 space-y-6">
 
-          {/* KPI Row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {kpiCards.map((card, i) => (
               <div key={i} className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-col justify-between min-h-[100px]">
@@ -326,9 +317,7 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Analytics Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Orders */}
             <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
               <div className="p-5 border-b border-outline-variant flex justify-between items-center">
                 <h4 className="text-base font-semibold text-on-surface">Recent Orders</h4>
@@ -380,7 +369,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Order Distribution */}
             <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <h4 className="text-base font-semibold text-on-surface mb-6">Order Breakdown</h4>
               <div className="flex justify-center mb-6">
@@ -406,9 +394,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Middle Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Pending Prescriptions */}
             <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <div className="flex justify-between items-center mb-5">
                 <h4 className="text-base font-semibold text-on-surface">Pending Prescriptions</h4>
@@ -459,7 +445,6 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Inventory Alert */}
             <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant">
               <div className="flex justify-between items-center mb-5">
                 <h4 className="text-base font-semibold text-on-surface">Inventory Alert</h4>
@@ -498,7 +483,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Bottom: Revenue snapshot */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: 'Monthly Revenue',   value: stats ? fmt(stats.monthlyRevenue) : '…',       icon: 'trending_up',  color: 'text-primary',   bg: 'bg-primary/10' },

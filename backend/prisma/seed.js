@@ -1,133 +1,558 @@
-require('dotenv').config()
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') })
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcrypt')
 
 const prisma = new PrismaClient()
 
+async function upsertMedicine(data) {
+  const existing = await prisma.medicine.findFirst({
+    where: { name: data.name, brand: data.brand },
+  })
+  if (existing) {
+    return prisma.medicine.update({ where: { id: existing.id }, data })
+  }
+  return prisma.medicine.create({ data })
+}
+
 async function main() {
-  console.log('Seeding database...')
+  console.log('Seeding database...\n')
 
-  // ── Categories ──────────────────────────────────────────────────────────────
-  const categories = await Promise.all([
-    prisma.category.upsert({ where: { name: 'Antibiotics' },       update: {}, create: { name: 'Antibiotics',         icon: '🦠' } }),
-    prisma.category.upsert({ where: { name: 'Pain Relief' },       update: {}, create: { name: 'Pain Relief',         icon: '💊' } }),
-    prisma.category.upsert({ where: { name: 'Vitamins' },          update: {}, create: { name: 'Vitamins',            icon: '🌿' } }),
-    prisma.category.upsert({ where: { name: 'Diabetes Care' },     update: {}, create: { name: 'Diabetes Care',       icon: '💉' } }),
-    prisma.category.upsert({ where: { name: 'Cardiac Health' },    update: {}, create: { name: 'Cardiac Health',      icon: '❤️' } }),
-    prisma.category.upsert({ where: { name: 'Skin Care' },         update: {}, create: { name: 'Skin Care',           icon: '✨' } }),
-    prisma.category.upsert({ where: { name: 'Digestive Health' },  update: {}, create: { name: 'Digestive Health',    icon: '🫁' } }),
-    prisma.category.upsert({ where: { name: 'Cold & Flu' },        update: {}, create: { name: 'Cold & Flu',          icon: '🤧' } }),
-  ])
+  const [antibiotics, painRelief, vitamins, diabetes, cardiac, skin, digestive, coldFlu] =
+    await Promise.all([
+      prisma.category.upsert({ where: { name: 'Antibiotics' },      update: {}, create: { name: 'Antibiotics',        icon: '🦠', description: 'Medicines that fight bacterial infections' } }),
+      prisma.category.upsert({ where: { name: 'Pain Relief' },      update: {}, create: { name: 'Pain Relief',        icon: '💊', description: 'Analgesics and anti-inflammatory medicines' } }),
+      prisma.category.upsert({ where: { name: 'Vitamins' },         update: {}, create: { name: 'Vitamins',           icon: '🌿', description: 'Vitamins, minerals and dietary supplements' } }),
+      prisma.category.upsert({ where: { name: 'Diabetes Care' },    update: {}, create: { name: 'Diabetes Care',      icon: '💉', description: 'Blood sugar management medicines' } }),
+      prisma.category.upsert({ where: { name: 'Cardiac Health' },   update: {}, create: { name: 'Cardiac Health',     icon: '❤️', description: 'Heart and blood pressure medicines' } }),
+      prisma.category.upsert({ where: { name: 'Skin Care' },        update: {}, create: { name: 'Skin Care',          icon: '✨', description: 'Topical creams, ointments and derma care' } }),
+      prisma.category.upsert({ where: { name: 'Digestive Health' }, update: {}, create: { name: 'Digestive Health',   icon: '🫁', description: 'Antacids, laxatives and GI medicines' } }),
+      prisma.category.upsert({ where: { name: 'Cold & Flu' },       update: {}, create: { name: 'Cold & Flu',         icon: '🤧', description: 'Antihistamines, decongestants and antivirals' } }),
+    ])
+  console.log('✓ 8 categories ready\n')
 
-  const [antibiotics, painRelief, vitamins, diabetes, cardiac, skin, digestive, coldFlu] = categories
-  console.log(`✓ ${categories.length} categories seeded`)
 
-  // ── Medicines ───────────────────────────────────────────────────────────────
-  const medicines = await Promise.all([
-    prisma.medicine.create({ data: {
-      name: 'Amoxicillin 500mg', brand: 'GlaxoSmithKline', type: 'Rx',
-      price: 180, originalPrice: 220, categoryId: antibiotics.id,
-      description: 'Broad-spectrum penicillin antibiotic for bacterial infections.',
-      dosage: 'Adults: 250–500mg every 8 hours. Complete the full prescribed course.',
-      usage: 'Take orally with or without food.',
-      sideEffects: 'Nausea, diarrhea, skin rash. Seek help for severe allergic reactions.',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd.',
-      packageSize: '10 Capsules/Strip', rating: 4.5, totalReviews: 124, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
+  const medicineData = [
+
+    {
+      name: 'Amoxicillin 500mg', brand: 'Cipla', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 180, originalPrice: 220, stockQuantity: 200, inStock: true,
+      packageSize: '10 Capsules/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.5, totalReviews: 124,
+      description: 'Broad-spectrum penicillin antibiotic effective against a wide range of bacterial infections including respiratory tract, urinary tract, and skin infections.',
+      dosage: 'Adults: 250–500 mg every 8 hours. Children: 25 mg/kg/day in divided doses. Always complete the full prescribed course.',
+      usage: 'Take orally with or without food. Swallow capsule whole with a full glass of water.',
+      sideEffects: 'Common: nausea, diarrhea, stomach upset, skin rash. Seek immediate help for severe allergic reactions (difficulty breathing, swelling).',
+    },
+    {
+      name: 'Azithromycin 500mg', brand: 'Pfizer', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 250, originalPrice: 300, stockQuantity: 150, inStock: true,
+      packageSize: '3 Tablets/Strip', manufacturer: 'Pfizer Inc.',
+      rating: 4.6, totalReviews: 218,
+      description: 'Macrolide antibiotic used to treat bacterial infections including pneumonia, bronchitis, sinusitis, ear infections, and certain sexually transmitted diseases.',
+      dosage: 'Adults: 500 mg once daily for 3 days or as prescribed. Do not take antacids within 2 hours.',
+      usage: 'May be taken with or without food. Take at the same time each day.',
+      sideEffects: 'Nausea, diarrhea, abdominal pain, vomiting. Rare: liver problems, abnormal heart rhythm.',
+    },
+    {
+      name: 'Ciprofloxacin 500mg', brand: 'Bayer', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 195, originalPrice: 240, stockQuantity: 180, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Bayer AG',
+      rating: 4.4, totalReviews: 167,
+      description: 'Fluoroquinolone antibiotic for urinary tract infections, typhoid fever, infectious diarrhea, and respiratory tract infections.',
+      dosage: 'Adults: 500 mg twice daily for 7–14 days depending on indication.',
+      usage: 'Take with or without food. Avoid dairy products and antacids within 2 hours. Stay well hydrated.',
+      sideEffects: 'Nausea, diarrhea, headache, dizziness. Avoid in children and pregnant women. Risk of tendon damage.',
+    },
+    {
+      name: 'Cefixime 200mg', brand: 'Sun Pharma', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 185, originalPrice: 230, stockQuantity: 160, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.3, totalReviews: 98,
+      description: 'Third-generation cephalosporin antibiotic used for ear infections, throat infections, urinary tract infections, and gonorrhea.',
+      dosage: 'Adults: 200–400 mg once daily or in two divided doses.',
+      usage: 'May be taken with or without food. Take at evenly spaced intervals.',
+      sideEffects: 'Diarrhea, nausea, stomach pain, headache. Notify doctor of any allergies to penicillin.',
+    },
+    {
+      name: 'Metronidazole 400mg', brand: 'Cipla', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 65, originalPrice: 85, stockQuantity: 250, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.2, totalReviews: 143,
+      description: 'Antibiotic and antiprotozoal used for bacterial vaginosis, pelvic inflammatory disease, giardia, amoebiasis, and dental infections.',
+      dosage: 'Adults: 400–500 mg twice or three times daily for 5–10 days.',
+      usage: 'Take with food to reduce stomach upset. Avoid alcohol during and 48 hours after treatment.',
+      sideEffects: 'Nausea, metallic taste, headache, dizziness. Do not drink alcohol — severe reaction possible.',
+    },
+    {
+      name: 'Doxycycline 100mg', brand: 'Pfizer', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 145, originalPrice: 180, stockQuantity: 130, inStock: true,
+      packageSize: '10 Capsules/Strip', manufacturer: 'Pfizer Inc.',
+      rating: 4.4, totalReviews: 112,
+      description: 'Tetracycline antibiotic for acne, malaria prevention, Lyme disease, chlamydia, and respiratory infections.',
+      dosage: 'Adults: 100 mg twice daily or 200 mg once daily.',
+      usage: 'Take with plenty of water. Do not lie down for 30 minutes after. Avoid sun exposure.',
+      sideEffects: 'Photosensitivity, nausea, esophageal irritation. Not for use in children under 8 or during pregnancy.',
+    },
+    {
+      name: 'Amoxicillin + Clavulanate 625mg', brand: 'GlaxoSmithKline', type: 'Rx',
+      categoryId: antibiotics.id,
+      price: 320, originalPrice: 390, stockQuantity: 100, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'GlaxoSmithKline Pharmaceuticals',
+      rating: 4.5, totalReviews: 189,
+      description: 'Combination antibiotic (Augmentin) effective against a broader range of bacteria including beta-lactamase producing strains.',
+      dosage: 'Adults: 1 tablet (625 mg) every 8–12 hours for 5–14 days.',
+      usage: 'Take at the start of a meal to reduce GI side effects.',
+      sideEffects: 'Diarrhea, nausea, skin rash. Higher risk of diarrhea than amoxicillin alone.',
+    },
+
+    {
       name: 'Paracetamol 500mg', brand: 'Cipla', type: 'OTC',
-      price: 45, originalPrice: 55, categoryId: painRelief.id,
-      description: 'Pain reliever and fever reducer for adults and children.',
-      dosage: 'Adults: 500–1000mg every 4–6 hours. Max 4g/day.',
-      usage: 'Take with water. Do not exceed recommended dose.',
-      sideEffects: 'Rarely causes side effects at therapeutic doses.',
-      manufacturer: 'Cipla Ltd.', packageSize: '10 Tablets/Strip',
-      rating: 4.8, totalReviews: 389, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Vitamin D3 1000 IU', brand: 'Abbott', type: 'OTC',
-      price: 320, originalPrice: 380, categoryId: vitamins.id,
-      description: 'Supports bone health, immune function, and calcium absorption.',
-      dosage: '1 tablet daily or as directed by physician.',
-      usage: 'Take with food for better absorption.',
-      sideEffects: 'Generally well tolerated. Hypercalcemia with excessive use.',
-      manufacturer: 'Abbott Laboratories', packageSize: '30 Tablets/Bottle',
-      rating: 4.6, totalReviews: 256, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Metformin 500mg', brand: 'Sun Pharma', type: 'Rx',
-      price: 95, originalPrice: 120, categoryId: diabetes.id,
-      description: 'First-line medication for type 2 diabetes management.',
-      dosage: '500mg twice daily with meals, adjusted by physician.',
-      usage: 'Take with meals to reduce gastrointestinal side effects.',
-      sideEffects: 'Nausea, diarrhea, stomach upset — usually transient.',
-      manufacturer: 'Sun Pharmaceutical Industries', packageSize: '10 Tablets/Strip',
-      rating: 4.4, totalReviews: 178, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Cetirizine 10mg', brand: 'Cipla', type: 'OTC',
-      price: 35, originalPrice: 45, categoryId: coldFlu.id,
-      description: 'Antihistamine for allergy relief — non-drowsy formula.',
-      dosage: '10mg once daily.',
-      usage: 'May be taken with or without food.',
-      sideEffects: 'Mild drowsiness, dry mouth in some patients.',
-      manufacturer: 'Cipla Ltd.', packageSize: '10 Tablets/Strip',
-      rating: 4.7, totalReviews: 312, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Omeprazole 20mg', brand: 'AstraZeneca', type: 'Rx',
-      price: 140, originalPrice: 175, categoryId: digestive.id,
-      description: 'Proton pump inhibitor for acid reflux and peptic ulcers.',
-      dosage: '20mg once daily before breakfast.',
-      usage: 'Swallow whole, do not crush or chew.',
-      sideEffects: 'Headache, nausea, diarrhea, abdominal pain.',
-      manufacturer: 'AstraZeneca Pharmaceuticals', packageSize: '14 Capsules/Pack',
-      rating: 4.5, totalReviews: 203, inStock: false,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Lisinopril 10mg', brand: 'Merck', type: 'Rx',
-      price: 210, originalPrice: 260, categoryId: cardiac.id,
-      description: 'ACE inhibitor for hypertension and heart failure management.',
-      dosage: '10mg once daily, titrated by physician.',
-      usage: 'Take at the same time each day.',
-      sideEffects: 'Dry cough, dizziness, elevated potassium.',
-      manufacturer: 'Merck & Co., Inc.', packageSize: '30 Tablets/Bottle',
-      rating: 4.3, totalReviews: 145, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Clotrimazole Cream 1%', brand: 'Bayer', type: 'OTC',
-      price: 85, originalPrice: 100, categoryId: skin.id,
-      description: 'Antifungal cream for skin infections like athlete\'s foot and ringworm.',
-      dosage: 'Apply thin layer twice daily for 2–4 weeks.',
-      usage: 'Clean and dry affected area before application.',
-      sideEffects: 'Mild burning or itching at application site.',
-      manufacturer: 'Bayer AG', packageSize: '20g Tube',
-      rating: 4.6, totalReviews: 89, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Omega-3 Fish Oil 1000mg', brand: 'Nature Made', type: 'OTC',
-      price: 420, originalPrice: 500, categoryId: vitamins.id,
-      description: 'Supports heart health, brain function, and reduces inflammation.',
-      dosage: '1–2 softgels daily with meals.',
-      usage: 'Take with meals to reduce fishy aftertaste.',
-      sideEffects: 'Fishy breath, mild GI discomfort.',
-      manufacturer: 'Nature Made (Pharmavite)', packageSize: '60 Softgels/Bottle',
-      rating: 4.8, totalReviews: 534, inStock: true,
-    }}),
-    prisma.medicine.create({ data: {
-      name: 'Aspirin 75mg', brand: 'Bayer', type: 'OTC',
-      price: 60, originalPrice: 80, categoryId: cardiac.id,
-      description: 'Low-dose aspirin for cardiovascular event prevention.',
-      dosage: '75mg once daily or as prescribed.',
-      usage: 'Take with food to minimize stomach irritation.',
-      sideEffects: 'GI bleeding risk, avoid in children under 16.',
-      manufacturer: 'Bayer AG', packageSize: '28 Tablets/Pack',
-      rating: 4.5, totalReviews: 298, inStock: true,
-    }}),
-  ])
-  console.log(`✓ ${medicines.length} medicines seeded`)
+      categoryId: painRelief.id,
+      price: 45, originalPrice: 55, stockQuantity: 500, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.8, totalReviews: 389,
+      description: 'Most commonly used pain reliever and fever reducer. Safe for adults and children. Effective for headaches, toothaches, muscle aches, backaches, and reducing fever.',
+      dosage: 'Adults & children >12 yrs: 500–1000 mg every 4–6 hours. Max 4000 mg/day. Children 6–12 yrs: 250–500 mg.',
+      usage: 'Take with a full glass of water. Do not take more than recommended. Avoid alcohol.',
+      sideEffects: 'Rarely causes side effects at recommended doses. Overdose can cause serious liver damage.',
+    },
+    {
+      name: 'Ibuprofen 400mg', brand: 'Abbott', type: 'OTC',
+      categoryId: painRelief.id,
+      price: 75, originalPrice: 95, stockQuantity: 350, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Abbott Laboratories',
+      rating: 4.7, totalReviews: 276,
+      description: 'NSAID used for pain, fever, and inflammation. Effective for headaches, dental pain, menstrual cramps, muscle aches, and arthritis.',
+      dosage: 'Adults: 400 mg every 4–6 hours as needed. Max 1200 mg/day OTC (up to 3200 mg under doctor supervision).',
+      usage: 'Take with food or milk to reduce stomach upset. Avoid on empty stomach.',
+      sideEffects: 'Stomach pain, heartburn, nausea. Increased risk of GI bleeding. Avoid in kidney disease and pregnancy (3rd trimester).',
+    },
+    {
+      name: 'Diclofenac Sodium 50mg', brand: 'Novartis', type: 'Rx',
+      categoryId: painRelief.id,
+      price: 95, originalPrice: 120, stockQuantity: 200, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Novartis AG',
+      rating: 4.5, totalReviews: 198,
+      description: 'Potent NSAID for musculoskeletal pain, arthritis, dental pain, postoperative pain, and dysmenorrhea.',
+      dosage: 'Adults: 50 mg two to three times daily with food. Maximum 150 mg/day.',
+      usage: 'Take with food to minimize GI irritation. Swallow tablet whole, do not crush.',
+      sideEffects: 'GI upset, peptic ulcer, elevated liver enzymes. Cardiovascular risk with long-term use.',
+    },
+    {
+      name: 'Naproxen 500mg', brand: 'Roche', type: 'Rx',
+      categoryId: painRelief.id,
+      price: 185, originalPrice: 225, stockQuantity: 120, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Roche Pharmaceuticals',
+      rating: 4.3, totalReviews: 87,
+      description: 'Long-acting NSAID for arthritis, gout, bursitis, tendinitis, menstrual cramps, and general pain relief.',
+      dosage: 'Adults: 250–500 mg twice daily. Max 1000 mg/day for prescription strength.',
+      usage: 'Take with food, milk, or antacids. Longer duration of action — twice daily dosing.',
+      sideEffects: 'GI upset, dizziness, drowsiness, headache. Monitor blood pressure with long-term use.',
+    },
+    {
+      name: 'Tramadol 50mg', brand: 'Sun Pharma', type: 'Rx',
+      categoryId: painRelief.id,
+      price: 280, originalPrice: 340, stockQuantity: 80, inStock: true,
+      packageSize: '10 Capsules/Strip', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.1, totalReviews: 64,
+      description: 'Opioid analgesic for moderate to moderately severe pain. Used when other pain medicines are not adequate.',
+      dosage: 'Adults: 50–100 mg every 4–6 hours as needed. Max 400 mg/day.',
+      usage: 'May be taken with or without food. Do not crush or chew extended-release form.',
+      sideEffects: 'Dizziness, nausea, constipation, headache. Risk of dependence. Do not take with alcohol or CNS depressants.',
+    },
 
-  // ── Admin User ───────────────────────────────────────────────────────────────
+    {
+      name: 'Vitamin D3 1000 IU', brand: 'Abbott', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 320, originalPrice: 380, stockQuantity: 220, inStock: true,
+      packageSize: '30 Tablets/Bottle', manufacturer: 'Abbott Laboratories',
+      rating: 4.6, totalReviews: 256,
+      description: 'Essential vitamin for bone health, immune function, muscle strength, and calcium absorption. Commonly deficient in people with limited sun exposure.',
+      dosage: '1 tablet (1000 IU) daily or as directed by physician. Higher doses may be prescribed for deficiency.',
+      usage: 'Take with a fat-containing meal for optimal absorption. Morning or afternoon preferred.',
+      sideEffects: 'Generally well tolerated at recommended doses. Excessive intake may cause hypercalcemia (weakness, nausea, frequent urination).',
+    },
+    {
+      name: 'Vitamin B12 1000mcg', brand: 'Cipla', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 185, originalPrice: 230, stockQuantity: 180, inStock: true,
+      packageSize: '30 Tablets/Bottle', manufacturer: 'Cipla Ltd.',
+      rating: 4.7, totalReviews: 201,
+      description: 'Essential for nerve function, DNA synthesis, and red blood cell formation. Important for vegetarians and vegans who may be deficient.',
+      dosage: '1000 mcg once daily or as prescribed. Sublingual form may have better absorption.',
+      usage: 'Can be taken with or without food. Dissolve sublingual tablet under tongue for faster absorption.',
+      sideEffects: 'Very rarely causes side effects. May include mild headache, nausea, or diarrhea at high doses.',
+    },
+    {
+      name: 'Vitamin C 500mg', brand: 'Nature Made', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 240, originalPrice: 290, stockQuantity: 200, inStock: true,
+      packageSize: '60 Tablets/Bottle', manufacturer: 'Nature Made (Pharmavite)',
+      rating: 4.8, totalReviews: 412,
+      description: 'Antioxidant vitamin supporting immune health, collagen synthesis, wound healing, and iron absorption. Effective for cold prevention and recovery.',
+      dosage: 'Adults: 500 mg once or twice daily. Upper tolerable limit: 2000 mg/day.',
+      usage: 'Take with food to reduce stomach upset. Chewable form available for those with difficulty swallowing.',
+      sideEffects: 'High doses may cause diarrhea, stomach cramps, or kidney stones in susceptible individuals.',
+    },
+    {
+      name: 'Omega-3 Fish Oil 1000mg', brand: 'Nature Made', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 420, originalPrice: 500, stockQuantity: 160, inStock: true,
+      packageSize: '60 Softgels/Bottle', manufacturer: 'Nature Made (Pharmavite)',
+      rating: 4.8, totalReviews: 534,
+      description: 'Rich in EPA and DHA omega-3 fatty acids supporting heart health, brain function, joint health, and reducing inflammation. Clinically studied for triglyceride reduction.',
+      dosage: '1–2 softgels (1000–2000 mg) daily with meals.',
+      usage: 'Take with meals to improve absorption and reduce fishy aftertaste. Store in cool, dry place.',
+      sideEffects: 'Fishy breath, mild GI discomfort, fishy aftertaste. May increase bleeding risk at high doses.',
+    },
+    {
+      name: 'Folic Acid 5mg', brand: 'Sun Pharma', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 45, originalPrice: 60, stockQuantity: 300, inStock: true,
+      packageSize: '30 Tablets/Strip', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.7, totalReviews: 178,
+      description: 'B vitamin essential for cell division and DNA synthesis. Critical during pregnancy to prevent neural tube defects. Also used for folate deficiency anemia.',
+      dosage: 'Prevention: 400 mcg/day. Pregnancy: 400–800 mcg/day. Deficiency treatment: 5 mg/day.',
+      usage: 'Take once daily, at the same time each day. Can be taken with or without food.',
+      sideEffects: 'Rarely causes side effects. Large doses may mask vitamin B12 deficiency.',
+    },
+    {
+      name: 'Calcium Carbonate + Vitamin D3', brand: 'Cipla', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 280, originalPrice: 340, stockQuantity: 190, inStock: true,
+      packageSize: '30 Chewable Tablets/Bottle', manufacturer: 'Cipla Ltd.',
+      rating: 4.6, totalReviews: 167,
+      description: 'Combination supplement for bone health, preventing osteoporosis, and supporting muscle and nerve function. Vitamin D3 enhances calcium absorption.',
+      dosage: '1–2 tablets daily with meals, depending on dietary intake.',
+      usage: 'Chew thoroughly or swallow. Take with meals for best absorption. Space doses throughout the day.',
+      sideEffects: 'Constipation, bloating, gas. Take with plenty of water. Avoid excessive intake.',
+    },
+    {
+      name: 'Multivitamin & Minerals', brand: 'Abbott (Berocca)', type: 'OTC',
+      categoryId: vitamins.id,
+      price: 580, originalPrice: 680, stockQuantity: 140, inStock: true,
+      packageSize: '30 Effervescent Tablets/Tube', manufacturer: 'Abbott Laboratories',
+      rating: 4.5, totalReviews: 223,
+      description: 'Complete multivitamin with B-vitamins, Vitamin C, Calcium, Magnesium, and Zinc. Supports energy metabolism, immune health, and mental performance.',
+      dosage: 'One effervescent tablet dissolved in water daily, preferably in the morning.',
+      usage: 'Dissolve in a glass of water (200 mL). Best taken in the morning with breakfast.',
+      sideEffects: 'Urine may turn bright yellow (harmless — B2/riboflavin). Mild nausea if taken without food.',
+    },
+
+    {
+      name: 'Metformin 500mg', brand: 'Sun Pharma', type: 'Rx',
+      categoryId: diabetes.id,
+      price: 95, originalPrice: 120, stockQuantity: 300, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.4, totalReviews: 178,
+      description: 'First-line oral medication for type 2 diabetes. Reduces hepatic glucose production and improves insulin sensitivity without causing hypoglycemia.',
+      dosage: '500 mg twice daily with meals, increasing gradually to 1000 mg twice daily as tolerated.',
+      usage: 'Take with meals to reduce gastrointestinal side effects. Never crush extended-release tablets.',
+      sideEffects: 'Nausea, diarrhea, stomach upset — usually improve over time. Rare: lactic acidosis. Avoid alcohol.',
+    },
+    {
+      name: 'Glibenclamide 5mg', brand: 'Cipla', type: 'Rx',
+      categoryId: diabetes.id,
+      price: 120, originalPrice: 150, stockQuantity: 200, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.2, totalReviews: 134,
+      description: 'Sulfonylurea that stimulates insulin secretion from pancreatic beta cells. Used for type 2 diabetes when diet, exercise, and metformin are insufficient.',
+      dosage: 'Initial: 2.5 mg daily with breakfast. Maintenance: 5–15 mg/day in divided doses.',
+      usage: 'Take with breakfast or the first meal of the day. Monitor blood glucose regularly.',
+      sideEffects: 'Hypoglycemia (low blood sugar), weight gain, nausea. Carry glucose tablets for emergencies.',
+    },
+    {
+      name: 'Sitagliptin 50mg', brand: 'Merck', type: 'Rx',
+      categoryId: diabetes.id,
+      price: 850, originalPrice: 1000, stockQuantity: 80, inStock: true,
+      packageSize: '14 Tablets/Pack', manufacturer: 'Merck & Co., Inc.',
+      rating: 4.4, totalReviews: 92,
+      description: 'DPP-4 inhibitor (Januvia) that works by increasing insulin release and decreasing glucagon levels in a glucose-dependent manner. Low hypoglycemia risk.',
+      dosage: '50–100 mg once daily. Dose adjustment required in kidney disease.',
+      usage: 'May be taken with or without food. Take at the same time each day.',
+      sideEffects: 'Nasopharyngitis, upper respiratory infection, headache. Rare: pancreatitis.',
+    },
+    {
+      name: 'Glipizide 5mg', brand: 'Pfizer', type: 'Rx',
+      categoryId: diabetes.id,
+      price: 145, originalPrice: 180, stockQuantity: 150, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Pfizer Inc.',
+      rating: 4.3, totalReviews: 76,
+      description: 'Short-acting sulfonylurea for type 2 diabetes with lower risk of prolonged hypoglycemia compared to glibenclamide.',
+      dosage: 'Initial: 5 mg once daily before breakfast. Max: 20 mg/day (40 mg for extended-release).',
+      usage: 'Take 30 minutes before meals. Monitor blood glucose regularly.',
+      sideEffects: 'Hypoglycemia, weight gain, dizziness. Take glucose if blood sugar drops below normal.',
+    },
+    {
+      name: 'Empagliflozin 10mg', brand: 'Boehringer Ingelheim', type: 'Rx',
+      categoryId: diabetes.id,
+      price: 1200, originalPrice: 1400, stockQuantity: 60, inStock: true,
+      packageSize: '14 Tablets/Pack', manufacturer: 'Boehringer Ingelheim',
+      rating: 4.5, totalReviews: 54,
+      description: 'SGLT-2 inhibitor (Jardiance) that reduces blood sugar by causing the kidneys to remove excess glucose via urine. Also provides cardiovascular and renal protection.',
+      dosage: '10 mg once daily in the morning, with or without food. Dose may be increased to 25 mg.',
+      usage: 'Take in the morning. Ensure adequate hydration. May increase urinary frequency.',
+      sideEffects: 'Genital yeast infections, urinary tract infections, increased urination, dehydration.',
+    },
+
+    {
+      name: 'Lisinopril 10mg', brand: 'Merck', type: 'Rx',
+      categoryId: cardiac.id,
+      price: 210, originalPrice: 260, stockQuantity: 120, inStock: true,
+      packageSize: '30 Tablets/Bottle', manufacturer: 'Merck & Co., Inc.',
+      rating: 4.3, totalReviews: 145,
+      description: 'ACE inhibitor for hypertension (high blood pressure) and heart failure. Also reduces risk of death after heart attack and protects kidneys in diabetic patients.',
+      dosage: 'Hypertension: 10 mg once daily, titrated to 20–40 mg. Heart failure: 5–35 mg/day.',
+      usage: 'Take at the same time each day. Can be taken with or without food.',
+      sideEffects: 'Dry persistent cough (most common), dizziness, elevated potassium, rare angioedema — seek emergency help.',
+    },
+    {
+      name: 'Atenolol 50mg', brand: 'Sun Pharma', type: 'Rx',
+      categoryId: cardiac.id,
+      price: 130, originalPrice: 160, stockQuantity: 180, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.4, totalReviews: 198,
+      description: 'Beta-blocker for high blood pressure, angina, and heart arrhythmias. Reduces heart rate and the workload on the heart.',
+      dosage: 'Hypertension: 50–100 mg once daily. Angina: 100 mg daily or in 2 divided doses.',
+      usage: 'Take with or without food at the same time each day. Do not stop abruptly — taper slowly.',
+      sideEffects: 'Cold hands and feet, fatigue, dizziness, slow heart rate. May mask symptoms of low blood sugar.',
+    },
+    {
+      name: 'Amlodipine 5mg', brand: 'Pfizer', type: 'Rx',
+      categoryId: cardiac.id,
+      price: 110, originalPrice: 140, stockQuantity: 220, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Pfizer Inc.',
+      rating: 4.5, totalReviews: 231,
+      description: 'Calcium channel blocker (Norvasc) for hypertension and angina. Relaxes blood vessels so the heart does not have to work as hard.',
+      dosage: 'Initial: 5 mg once daily. May be increased to 10 mg once daily after 7–14 days.',
+      usage: 'Take at the same time each day, with or without food.',
+      sideEffects: 'Ankle swelling (most common), flushing, palpitations, headache. Usually well tolerated.',
+    },
+    {
+      name: 'Atorvastatin 10mg', brand: 'Pfizer', type: 'Rx',
+      categoryId: cardiac.id,
+      price: 350, originalPrice: 420, stockQuantity: 160, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Pfizer Inc.',
+      rating: 4.6, totalReviews: 312,
+      description: 'Statin medication (Lipitor) that reduces LDL cholesterol and triglycerides while raising HDL. Reduces risk of heart attack, stroke, and cardiovascular disease.',
+      dosage: 'Initial: 10–20 mg once daily. Max: 80 mg/day. Evening dosing is preferred.',
+      usage: 'Take at the same time each day, with or without food. Avoid grapefruit juice.',
+      sideEffects: 'Muscle pain or weakness (myopathy), elevated liver enzymes, headache. Report unexplained muscle pain immediately.',
+    },
+    {
+      name: 'Aspirin 75mg', brand: 'Bayer', type: 'OTC',
+      categoryId: cardiac.id,
+      price: 60, originalPrice: 80, stockQuantity: 350, inStock: true,
+      packageSize: '28 Tablets/Pack', manufacturer: 'Bayer AG',
+      rating: 4.5, totalReviews: 298,
+      description: 'Low-dose aspirin for prevention of heart attack and stroke in high-risk patients. Antiplatelet action prevents blood clots from forming in arteries.',
+      dosage: '75–100 mg once daily as prescribed by physician for cardiovascular prevention.',
+      usage: 'Take with food or after meals to minimize stomach irritation. Swallow whole, do not crush.',
+      sideEffects: 'Stomach irritation, GI bleeding risk, easy bruising. Do not give to children under 16. Avoid in peptic ulcer disease.',
+    },
+
+    {
+      name: 'Clotrimazole Cream 1%', brand: 'Bayer', type: 'OTC',
+      categoryId: skin.id,
+      price: 85, originalPrice: 100, stockQuantity: 200, inStock: true,
+      packageSize: '20g Tube', manufacturer: 'Bayer AG',
+      rating: 4.6, totalReviews: 89,
+      description: 'Antifungal cream effective against athlete\'s foot (tinea pedis), jock itch (tinea cruris), ringworm (tinea corporis), and candidal skin infections.',
+      dosage: 'Apply a thin layer to affected area twice daily for 2–4 weeks. Continue for 2 weeks after symptoms clear.',
+      usage: 'Clean and dry the affected area before application. Wash hands before and after use.',
+      sideEffects: 'Mild burning, stinging, or itching at application site. Discontinue if severe irritation occurs.',
+    },
+    {
+      name: 'Hydrocortisone Cream 1%', brand: 'Cipla', type: 'OTC',
+      categoryId: skin.id,
+      price: 95, originalPrice: 120, stockQuantity: 180, inStock: true,
+      packageSize: '15g Tube', manufacturer: 'Cipla Ltd.',
+      rating: 4.4, totalReviews: 134,
+      description: 'Mild topical corticosteroid for temporary relief of itching, redness, and inflammation from eczema, insect bites, contact dermatitis, and mild psoriasis.',
+      dosage: 'Apply a thin layer to affected area 2–4 times daily. Do not use for more than 7 days without doctor advice.',
+      usage: 'For external use only. Avoid eyes and mucous membranes. Not for use on face, groin, or axilla long-term.',
+      sideEffects: 'Skin thinning with prolonged use, local burning, folliculitis. Do not use on infected skin.',
+    },
+    {
+      name: 'Betamethasone Valerate Cream 0.1%', brand: 'Sun Pharma', type: 'Rx',
+      categoryId: skin.id,
+      price: 145, originalPrice: 180, stockQuantity: 150, inStock: true,
+      packageSize: '15g Tube', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.5, totalReviews: 112,
+      description: 'Potent corticosteroid cream for eczema, psoriasis, dermatitis, and inflammatory skin conditions that do not respond to milder treatments.',
+      dosage: 'Apply a thin layer once or twice daily to the affected area only.',
+      usage: 'Use smallest amount for shortest duration. Do not cover with occlusive dressings unless directed.',
+      sideEffects: 'Skin atrophy, stretch marks, perioral dermatitis, systemic absorption with extensive use. Use with caution on face.',
+    },
+    {
+      name: 'Mupirocin Ointment 2%', brand: 'GlaxoSmithKline', type: 'Rx',
+      categoryId: skin.id,
+      price: 195, originalPrice: 240, stockQuantity: 120, inStock: true,
+      packageSize: '5g Tube', manufacturer: 'GlaxoSmithKline Pharmaceuticals',
+      rating: 4.6, totalReviews: 78,
+      description: 'Topical antibiotic (Bactroban) for impetigo and skin infections caused by Staphylococcus aureus (including MRSA) and Streptococcus pyogenes.',
+      dosage: 'Apply to affected area 3 times daily for 5–10 days. Cover with gauze if desired.',
+      usage: 'Clean area before application. For external use only. Do not use in eyes or nose unless directed.',
+      sideEffects: 'Local burning, stinging, itching. Rare: contact dermatitis. Not for systemic infections.',
+    },
+    {
+      name: 'Benzoyl Peroxide Gel 5%', brand: 'Galderma', type: 'OTC',
+      categoryId: skin.id,
+      price: 250, originalPrice: 300, stockQuantity: 100, inStock: true,
+      packageSize: '30g Tube', manufacturer: 'Galderma Laboratories',
+      rating: 4.3, totalReviews: 156,
+      description: 'Topical acne treatment that kills acne-causing bacteria, unclogs pores, and reduces inflammation. Effective for mild to moderate acne.',
+      dosage: 'Apply once or twice daily after washing face. Start every other day to assess tolerance.',
+      usage: 'Apply to clean, dry skin. Use sunscreen as it may increase sun sensitivity. Avoid contact with eyes and mouth.',
+      sideEffects: 'Skin dryness, peeling, redness, and bleaching of hair/fabric. Reduce frequency if excessive dryness occurs.',
+    },
+
+    {
+      name: 'Omeprazole 20mg', brand: 'AstraZeneca', type: 'Rx',
+      categoryId: digestive.id,
+      price: 140, originalPrice: 175, stockQuantity: 0, inStock: false,
+      packageSize: '14 Capsules/Pack', manufacturer: 'AstraZeneca Pharmaceuticals',
+      rating: 4.5, totalReviews: 203,
+      description: 'Proton pump inhibitor for gastroesophageal reflux disease (GERD), peptic ulcers, and Zollinger-Ellison syndrome. Reduces stomach acid production.',
+      dosage: '20 mg once daily before breakfast for 4–8 weeks. Healing of ulcers: 20–40 mg daily.',
+      usage: 'Swallow capsule whole, do not crush or chew. Best taken 30–60 minutes before eating.',
+      sideEffects: 'Headache, nausea, diarrhea, abdominal pain. Long-term use may reduce magnesium and B12 levels.',
+    },
+    {
+      name: 'Pantoprazole 40mg', brand: 'Sun Pharma', type: 'Rx',
+      categoryId: digestive.id,
+      price: 165, originalPrice: 200, stockQuantity: 200, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Sun Pharmaceutical Industries',
+      rating: 4.4, totalReviews: 176,
+      description: 'Proton pump inhibitor for erosive esophagitis, GERD, and H. pylori eradication regimens. Often preferred over omeprazole for fewer drug interactions.',
+      dosage: '40 mg once daily before morning meal for 4–8 weeks.',
+      usage: 'Swallow whole 30–60 minutes before a meal. Do not crush or split tablet.',
+      sideEffects: 'Headache, diarrhea, flatulence, abdominal pain. Similar to other PPIs for long-term effects.',
+    },
+    {
+      name: 'Domperidone 10mg', brand: 'Janssen', type: 'OTC',
+      categoryId: digestive.id,
+      price: 55, originalPrice: 70, stockQuantity: 280, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Janssen Pharmaceuticals',
+      rating: 4.3, totalReviews: 167,
+      description: 'Antiemetic and prokinetic for nausea, vomiting, and bloating. Speeds up stomach emptying and relieves feelings of fullness after meals.',
+      dosage: 'Adults: 10 mg up to 3 times daily before meals. Max 30 mg/day. Use lowest effective dose.',
+      usage: 'Take 15–30 minutes before meals. Avoid taking for more than 1 week without doctor guidance.',
+      sideEffects: 'Dry mouth, headache, diarrhea. Rare: QT prolongation. Avoid in patients with cardiac disease.',
+    },
+    {
+      name: 'Loperamide 2mg', brand: 'Johnson & Johnson', type: 'OTC',
+      categoryId: digestive.id,
+      price: 90, originalPrice: 110, stockQuantity: 220, inStock: true,
+      packageSize: '10 Capsules/Pack', manufacturer: 'Johnson & Johnson',
+      rating: 4.5, totalReviews: 234,
+      description: 'Anti-diarrheal medication (Imodium) that slows intestinal motility. Effective for acute non-specific diarrhea and chronic diarrhea associated with IBS.',
+      dosage: 'Adults: 4 mg initially, then 2 mg after each loose stool. Max 16 mg/day for acute, 8 mg/day OTC.',
+      usage: 'Take as soon as diarrhea starts. Stay well hydrated with oral rehydration solutions.',
+      sideEffects: 'Constipation, dizziness, dry mouth. Do not use for diarrhea caused by bacteria or parasites with fever.',
+    },
+    {
+      name: 'Metoclopramide 10mg', brand: 'Cipla', type: 'Rx',
+      categoryId: digestive.id,
+      price: 45, originalPrice: 60, stockQuantity: 200, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.2, totalReviews: 123,
+      description: 'Prokinetic and antiemetic for nausea and vomiting associated with chemotherapy, radiation, surgery, and gastroparesis.',
+      dosage: 'Adults: 10 mg up to 4 times daily, 30 minutes before meals and at bedtime.',
+      usage: 'Take before meals. Short-term use only (up to 12 weeks) due to risk of movement disorders.',
+      sideEffects: 'Drowsiness, restlessness, extrapyramidal symptoms (with long-term use). Avoid in Parkinson\'s disease.',
+    },
+    {
+      name: 'Lactulose Solution 3.35g/5mL', brand: 'Abbott', type: 'OTC',
+      categoryId: digestive.id,
+      price: 280, originalPrice: 340, stockQuantity: 120, inStock: true,
+      packageSize: '200mL Bottle', manufacturer: 'Abbott Laboratories',
+      rating: 4.3, totalReviews: 89,
+      description: 'Osmotic laxative for chronic constipation and hepatic encephalopathy. Softens stools by drawing water into the colon. Safe for long-term use.',
+      dosage: 'Constipation: 15–30 mL once or twice daily, adjusted to produce 2–3 soft stools/day.',
+      usage: 'Mix with water, juice, or milk. Take at the same time each day. Results may take 1–2 days.',
+      sideEffects: 'Flatulence, bloating, cramps (especially initially). Diarrhea with excessive doses.',
+    },
+
+    {
+      name: 'Cetirizine 10mg', brand: 'Cipla', type: 'OTC',
+      categoryId: coldFlu.id,
+      price: 35, originalPrice: 45, stockQuantity: 400, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.7, totalReviews: 312,
+      description: 'Second-generation antihistamine for allergic rhinitis (hay fever), urticaria, and seasonal allergies. Non-drowsy formula with once-daily dosing.',
+      dosage: 'Adults & children >6 yrs: 10 mg once daily. Children 2–6 yrs: 5 mg once daily.',
+      usage: 'Can be taken with or without food. Take at the same time each day, preferably evening.',
+      sideEffects: 'Mild drowsiness, dry mouth, headache in some patients. Generally well tolerated.',
+    },
+    {
+      name: 'Loratadine 10mg', brand: 'Schering-Plough', type: 'OTC',
+      categoryId: coldFlu.id,
+      price: 55, originalPrice: 70, stockQuantity: 300, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Schering-Plough Corporation',
+      rating: 4.6, totalReviews: 245,
+      description: 'Non-sedating antihistamine (Claritin) for seasonal and perennial allergic rhinitis, urticaria. Minimal sedation compared to first-generation antihistamines.',
+      dosage: 'Adults & children >6 yrs: 10 mg once daily. Children 2–5 yrs: 5 mg once daily.',
+      usage: 'Can be taken with or without food. Rapidly absorbed — onset within 1–3 hours.',
+      sideEffects: 'Headache, nervousness, fatigue, dry mouth. Rarely causes drowsiness — safe for daytime use.',
+    },
+    {
+      name: 'Ambroxol 30mg', brand: 'Boehringer Ingelheim', type: 'OTC',
+      categoryId: coldFlu.id,
+      price: 75, originalPrice: 95, stockQuantity: 250, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Boehringer Ingelheim',
+      rating: 4.5, totalReviews: 187,
+      description: 'Mucolytic (expectorant) that thins and loosens mucus in the airways, making it easier to cough up. Used for productive cough due to bronchitis, COPD, asthma.',
+      dosage: 'Adults: 30 mg three times daily. Extended-release: 75 mg once daily.',
+      usage: 'Take with meals. Drink plenty of fluids to help loosen mucus. Do not suppress cough.',
+      sideEffects: 'Nausea, vomiting, diarrhea, dry mouth. Rarely: severe skin reactions.',
+    },
+    {
+      name: 'Cold & Flu Relief (Paracetamol + Phenylephrine)', brand: 'Cipla', type: 'OTC',
+      categoryId: coldFlu.id,
+      price: 85, originalPrice: 105, stockQuantity: 280, inStock: true,
+      packageSize: '10 Tablets/Strip', manufacturer: 'Cipla Ltd.',
+      rating: 4.4, totalReviews: 267,
+      description: 'Combination tablet for cold and flu symptoms including fever, headache, nasal congestion, runny nose, and body aches. Paracetamol reduces fever; phenylephrine relieves congestion.',
+      dosage: 'Adults: 1–2 tablets every 4–6 hours. Max 4 doses in 24 hours. Do not exceed recommended dose.',
+      usage: 'Take with water. Avoid other paracetamol-containing products. Do not take with MAOIs.',
+      sideEffects: 'Drowsiness, dizziness, dry mouth, increased blood pressure. Avoid in hypertension.',
+    },
+    {
+      name: 'Oseltamivir 75mg', brand: 'Roche', type: 'Rx',
+      categoryId: coldFlu.id,
+      price: 1850, originalPrice: 2200, stockQuantity: 40, inStock: true,
+      packageSize: '10 Capsules/Pack', manufacturer: 'Roche Pharmaceuticals',
+      rating: 4.3, totalReviews: 43,
+      description: 'Antiviral (Tamiflu) for treatment and prevention of influenza A and B. Most effective when started within 48 hours of symptom onset. Reduces illness duration by 1–2 days.',
+      dosage: 'Treatment: 75 mg twice daily for 5 days. Prevention: 75 mg once daily for at least 10 days.',
+      usage: 'Take with food to reduce nausea and vomiting. Complete the full course even if feeling better.',
+      sideEffects: 'Nausea, vomiting (most common), headache, dizziness. Rare neuropsychiatric events reported in children.',
+    },
+  ]
+
+  let created = 0
+  let updated = 0
+  for (const data of medicineData) {
+    const existing = await prisma.medicine.findFirst({
+      where: { name: data.name, brand: data.brand },
+    })
+    if (existing) {
+      await prisma.medicine.update({ where: { id: existing.id }, data })
+      updated++
+    } else {
+      await prisma.medicine.create({ data })
+      created++
+    }
+  }
+  console.log(`✓ Medicines: ${created} created, ${updated} updated (${medicineData.length} total)\n`)
+
   const adminHash = await bcrypt.hash('Admin@1234', 10)
   await prisma.user.upsert({
     where: { email: 'admin@pharmax.com' },
@@ -141,9 +566,8 @@ async function main() {
     },
   })
 
-  // ── Demo Customer ────────────────────────────────────────────────────────────
   const customerHash = await bcrypt.hash('Customer@1234', 10)
-  const customer = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'aman@example.com' },
     update: {},
     create: {
@@ -170,9 +594,11 @@ async function main() {
       },
     },
   })
-  console.log(`✓ 2 users seeded (admin + demo customer)`)
-
-  console.log('\nDatabase seeded successfully.')
+  console.log('✓ 2 users ready (admin + demo customer)\n')
+  console.log('Database seeded successfully.')
+  console.log('\nDemo credentials:')
+  console.log('  Admin    → admin@pharmax.com   / Admin@1234')
+  console.log('  Customer → aman@example.com    / Customer@1234')
 }
 
 main()

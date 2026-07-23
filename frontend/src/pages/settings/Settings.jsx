@@ -175,7 +175,6 @@ export default function Settings() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-5">
 
-          {/* Appearance */}
           <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
             <div className="flex items-center gap-3 mb-5">
               <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">palette</span>
@@ -193,7 +192,6 @@ export default function Settings() {
             <p className="mt-3 text-xs text-on-surface-variant">Theme preference is saved locally on this device.</p>
           </section>
 
-          {/* Account Security */}
           <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
             <div className="flex items-center gap-3 mb-5">
               <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">shield</span>
@@ -218,7 +216,6 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* Notifications */}
           <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
             <div className="flex items-center gap-3 mb-5">
               <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">notifications</span>
@@ -254,7 +251,6 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* Danger Zone */}
           <section className="bg-surface-container-lowest p-6 rounded-xl border-2 border-error/20 shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
               <span className="material-symbols-outlined text-error" style={{ fontSize: '96px', fontVariationSettings: "'FILL' 1" }}>warning</span>
@@ -280,7 +276,6 @@ export default function Settings() {
           </section>
         </div>
 
-        {/* Right sidebar */}
         <div className="lg:col-span-4">
           <div className="sticky top-24 space-y-4">
             <div className="bg-surface-container-high p-5 rounded-xl border border-outline-variant">
@@ -315,7 +310,6 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Modals */}
       {showPasswordModal && <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />}
 
       {showDeactivateModal && (
@@ -350,7 +344,6 @@ export default function Settings() {
         </ConfirmModal>
       )}
 
-      {/* Toast */}
       <div className={`fixed bottom-8 right-8 bg-inverse-surface text-inverse-on-surface px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50 transition-all duration-500 ${saveToast ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'}`}>
         <span className="material-symbols-outlined text-primary-fixed-dim" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
         <p className="text-sm font-bold">{saveToast}</p>

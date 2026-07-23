@@ -69,12 +69,9 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-background">
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
 
-      {/* Main area */}
       <div className="min-h-screen flex flex-col transition-all duration-300" style={{ marginLeft: sidebarW }}>
 
-        {/* ── Topbar ── */}
         <header className="sticky top-0 z-40 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6 h-16 flex-shrink-0 shadow-sm">
-          {/* Left: page title */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
@@ -87,9 +84,7 @@ export default function AdminLayout() {
             </div>
           </div>
 
-          {/* Right: notifications + admin profile */}
           <div className="flex items-center gap-2">
-            {/* Notifications bell */}
             <div className="relative">
               <button
                 onClick={() => setNotifOpen(o => !o)}
@@ -114,10 +109,8 @@ export default function AdminLayout() {
               )}
             </div>
 
-            {/* Divider */}
             <div className="w-px h-6 bg-outline-variant mx-1" />
 
-            {/* Admin avatar + name */}
             <Link to="/admin/profile" className="flex items-center gap-2.5 pl-1 pr-3 py-1.5 rounded-xl hover:bg-surface-container transition-colors group">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm font-bold flex-shrink-0 overflow-hidden">
                 {avatarSrc
@@ -133,7 +126,6 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* ── Page content ── */}
         <main className="flex-1 p-6">
           <Outlet />
         </main>

@@ -26,7 +26,6 @@ export default function AdminCustomers() {
   const [total, setTotal]               = useState(0)
   const debounceRef = useRef(null)
 
-  // Debounce search input so we don't fire on every keystroke
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => { setDebounced(search); setPage(1) }, 300)
@@ -68,7 +67,6 @@ export default function AdminCustomers() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <p className="text-sm text-on-surface-variant">Manage registered customers and their account status.</p>
         <button className="px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-sm">
@@ -77,7 +75,6 @@ export default function AdminCustomers() {
         </button>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Customers', value: stats?.totalCustomers ?? '…', icon: 'group',        color: 'text-primary bg-primary/10',     badge: null },
@@ -97,7 +94,6 @@ export default function AdminCustomers() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap items-center gap-5">
         <div className="flex-1 min-w-[260px] relative">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
@@ -124,7 +120,6 @@ export default function AdminCustomers() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -204,7 +199,6 @@ export default function AdminCustomers() {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="px-6 py-4 border-t border-outline-variant flex justify-between items-center flex-wrap gap-3">
           <p className="text-sm text-on-surface-variant">Showing {customers.length} of {total} customers</p>
           {pages > 1 && (

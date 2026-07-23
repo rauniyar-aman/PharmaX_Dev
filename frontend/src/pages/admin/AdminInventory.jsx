@@ -59,7 +59,6 @@ export default function AdminInventory() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="w-full top-0 sticky bg-surface border-b border-outline-variant flex justify-between items-center px-8 h-16 z-40 shadow-sm">
         <div className="flex items-center gap-6">
           <h2 className="text-lg font-bold text-primary">Inventory</h2>
@@ -87,7 +86,6 @@ export default function AdminInventory() {
       </header>
 
       <div className="flex-1 overflow-y-auto p-8 space-y-6">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { label: 'Total Medicines', value: pagination.total, icon: 'pill', bg: 'bg-surface-container', color: 'text-primary', fill: true },
@@ -107,7 +105,6 @@ export default function AdminInventory() {
           ))}
         </div>
 
-        {/* Filters */}
         <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[180px]">
             <select
@@ -150,7 +147,6 @@ export default function AdminInventory() {
           </button>
         </div>
 
-        {/* Inventory Table */}
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
           {loading ? (
             <div className="p-12 flex justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
@@ -258,7 +254,6 @@ export default function AdminInventory() {
             </div>
           )}
 
-          {/* Pagination */}
           <div className="px-6 py-4 bg-surface-container-low/50 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-outline-variant">
             <span className="text-xs text-on-surface-variant">
               {pagination.total === 0 ? 'No medicines found' : `Showing ${((page - 1) * LIMIT) + 1}-${Math.min(page * LIMIT, pagination.total)} of ${pagination.total} items`}

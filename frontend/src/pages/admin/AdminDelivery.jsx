@@ -48,7 +48,6 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
     <>
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55]" onClick={onClose} />
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-surface z-[60] shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest">
           <div>
             <h3 className="font-bold text-on-surface">Delivery Tracking</h3>
@@ -60,7 +59,6 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {/* Customer + Address */}
           <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>person</span>
@@ -79,13 +77,11 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
             )}
           </div>
 
-          {/* Current Status */}
           <div>
             <p className="text-[11px] text-on-surface-variant uppercase font-bold tracking-wider mb-3">Delivery Status</p>
             <span className={`px-3 py-1.5 rounded-full text-sm font-bold ${cfg.color}`}>{cfg.label}</span>
           </div>
 
-          {/* Timeline */}
           <div>
             <p className="text-[11px] text-on-surface-variant uppercase font-bold tracking-wider mb-4">Order Timeline</p>
             <div className="space-y-0">
@@ -120,7 +116,6 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
             </div>
           </div>
 
-          {/* Items */}
           <div>
             <p className="text-[11px] text-on-surface-variant uppercase font-bold tracking-wider mb-3">Package Contents</p>
             <div className="space-y-2">
@@ -140,7 +135,6 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
             </div>
           </div>
 
-          {/* Update Status */}
           {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
             <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
               <p className="text-[11px] text-on-surface-variant uppercase font-bold tracking-wider mb-3">Update Delivery Status</p>
@@ -204,10 +198,8 @@ export default function AdminDelivery() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <p className="text-sm text-on-surface-variant">Track and manage all order deliveries in real time.</p>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Deliveries',    value: total,           icon: 'local_shipping', color: 'text-primary bg-primary/10' },
@@ -225,7 +217,6 @@ export default function AdminDelivery() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[240px] relative">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
@@ -246,7 +237,6 @@ export default function AdminDelivery() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -305,7 +295,6 @@ export default function AdminDelivery() {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="px-6 py-4 border-t border-outline-variant flex justify-between items-center flex-wrap gap-3">
           <p className="text-sm text-on-surface-variant">Showing {orders.length} of {total} deliveries</p>
           {pages > 1 && (
@@ -329,7 +318,6 @@ export default function AdminDelivery() {
         </div>
       </div>
 
-      {/* Tracking Panel */}
       {selected && (
         <TrackingPanel order={selected} onClose={() => setSelected(null)} onStatusUpdate={handleStatusUpdate} />
       )}

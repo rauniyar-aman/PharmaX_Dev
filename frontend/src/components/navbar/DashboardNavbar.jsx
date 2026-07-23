@@ -68,7 +68,6 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
     return () => clearTimeout(debounceRef.current)
   }, [query, doSearch])
 
-  // Close on outside click
   useEffect(() => {
     const handler = e => {
       if (searchWrapRef.current && !searchWrapRef.current.contains(e.target)) setDropdownOpen(false)
@@ -98,13 +97,10 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
       className="fixed top-0 right-0 z-20 flex items-center justify-between h-16 bg-surface-container-lowest border-b border-outline-variant px-5 transition-all duration-300"
       style={{ left: sidebarCollapsed ? '72px' : '256px' }}
     >
-      {/* Page Title */}
       <h1 className="text-[17px] font-semibold text-on-surface">{getTitle()}</h1>
 
-      {/* Right Section */}
       <div className="flex items-center gap-2">
 
-        {/* Search */}
         <div ref={searchWrapRef} className="relative">
           <div className={`relative flex items-center transition-all duration-200 ${query || dropdownOpen ? 'w-64' : 'w-48'}`}>
             <span className="material-symbols-outlined absolute left-3 text-on-surface-variant pointer-events-none" style={{ fontSize: '18px' }}>search</span>
@@ -122,7 +118,6 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
             />
           </div>
 
-          {/* Dropdown */}
           {dropdownOpen && (
             <div className="absolute right-0 top-full mt-2 w-72 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xl z-50 overflow-hidden">
               {results.length === 0 ? (
@@ -165,7 +160,6 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
           )}
         </div>
 
-        {/* Cart */}
         <Link to="/dashboard/cart" className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
           <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>shopping_cart</span>
           {cartCount > 0 && (
@@ -175,7 +169,6 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
           )}
         </Link>
 
-        {/* Notifications */}
         <div className="relative">
           <button onClick={() => setNotifOpen(o => !o)}
             className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
@@ -196,10 +189,8 @@ export default function DashboardNavbar({ sidebarCollapsed }) {
           )}
         </div>
 
-        {/* Divider */}
         <div className="w-px h-6 bg-outline-variant mx-1" />
 
-        {/* Avatar */}
         <Link to="/dashboard/profile" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-surface-container transition-colors">
           <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-bold ring-2 ring-primary ring-offset-2 overflow-hidden flex-shrink-0">
             {avatarSrc

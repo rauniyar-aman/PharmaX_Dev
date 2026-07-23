@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
 function resolveImg(url) {
@@ -22,7 +21,6 @@ function initials(name) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
 function SectionCard({ title, icon, children, action }) {
   return (
     <div className="bg-surface-container-lowest rounded-2xl custom-shadow">
@@ -90,7 +88,6 @@ function Toast({ msg, type }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminProfile() {
   const { user: authUser, refreshUser } = useAuth()
   const fileRef = useRef()
@@ -100,7 +97,6 @@ export default function AdminProfile() {
   const [stats, setStats]       = useState({ orders: 0, prescriptions: 0, customers: 0 })
   const [toast, setToast]       = useState({ msg: '', type: 'success' })
 
-  // Edit states
   const [editingPersonal, setEditingPersonal] = useState(false)
   const [editingAddress,  setEditingAddress]  = useState(false)
   const [savingPersonal,  setSavingPersonal]  = useState(false)
@@ -143,7 +139,6 @@ export default function AdminProfile() {
       .finally(() => setLoading(false))
   }, [])
 
-  // ── Personal Info save ────────────────────────────────────────────────────
   async function savePersonal() {
     setSavingPersonal(true)
     try {
@@ -176,7 +171,6 @@ export default function AdminProfile() {
     setEditingPersonal(false)
   }
 
-  // ── Address save (uses first address or creates one) ─────────────────────
   async function saveAddress() {
     setSavingAddress(true)
     try {
@@ -200,11 +194,9 @@ export default function AdminProfile() {
     }
   }
 
-  // ── Profile picture upload ────────────────────────────────────────────────
   async function handlePicUpload(e) {
     const file = e.target.files[0]
     if (!file) return
-    // reset input so same file can be re-selected
     e.target.value = ''
     setUploadingPic(true)
     try {
@@ -235,7 +227,6 @@ export default function AdminProfile() {
   const avatarUrl = resolveImg(profile?.avatarUrl)
   const [firstName, lastName] = (profile?.fullName || '').split(' ')
 
-  // ─── Loading skeleton ────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="space-y-5 animate-pulse">
@@ -256,7 +247,6 @@ export default function AdminProfile() {
     <div className="space-y-5">
       <Toast msg={toast.msg} type={toast.type} />
 
-      {/* ── Page Header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between sticky top-0 z-10 bg-background py-1">
         <div>
           <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-1">
@@ -277,16 +267,12 @@ export default function AdminProfile() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {/* ══════════════════ LEFT COLUMN ══════════════════ */}
         <div className="space-y-5">
 
-          {/* Profile Overview Card */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow overflow-hidden">
-            {/* Banner */}
             <div className="h-24 bg-gradient-to-br from-secondary/30 to-primary/20 relative" />
 
             <div className="px-6 pb-6">
-              {/* Avatar */}
               <div className="relative -mt-12 mb-4 inline-block">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={profile?.fullName}
@@ -335,7 +321,6 @@ export default function AdminProfile() {
             </div>
           </div>
 
-          {/* Account Summary */}
           <SectionCard title="Activity Summary" icon="bar_chart">
             <div className="space-y-3">
               <StatCard icon="shopping_cart" label="Orders Managed"          value={stats.orders}        color="bg-secondary" />
@@ -345,7 +330,6 @@ export default function AdminProfile() {
             </div>
           </SectionCard>
 
-          {/* Account Information (read-only) */}
           <SectionCard title="Account Information" icon="manage_accounts">
             <div className="space-y-3">
               <ReadonlyField label="Username"         value={profile?.fullName?.toLowerCase().replace(' ', '.')} icon="person" />
@@ -357,10 +341,8 @@ export default function AdminProfile() {
           </SectionCard>
         </div>
 
-        {/* ══════════════════ RIGHT COLUMN ══════════════════ */}
         <div className="lg:col-span-2 space-y-5">
 
-          {/* Personal Information */}
           <SectionCard
             title="Personal Information"
             icon="person"
@@ -455,7 +437,6 @@ export default function AdminProfile() {
             )}
           </SectionCard>
 
-          {/* Work Information (read-only) */}
           <SectionCard title="Work Information" icon="work">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="flex items-center gap-3 p-4 rounded-xl border border-outline-variant">
@@ -493,7 +474,6 @@ export default function AdminProfile() {
             </p>
           </SectionCard>
 
-          {/* Address Information */}
           <SectionCard
             title="Address Information"
             icon="location_on"
@@ -570,7 +550,6 @@ export default function AdminProfile() {
             )}
           </SectionCard>
 
-          {/* Profile Picture Management */}
           <SectionCard title="Profile Picture" icon="photo_camera">
             <div className="flex items-start gap-6 flex-wrap">
               <div className="flex-shrink-0">
@@ -606,7 +585,6 @@ export default function AdminProfile() {
             </div>
           </SectionCard>
 
-          {/* Save Section */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 flex items-center justify-between gap-4 flex-wrap">
             <div>
               <p className="text-sm font-semibold text-on-surface">Save all changes</p>

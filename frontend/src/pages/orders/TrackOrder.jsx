@@ -95,7 +95,6 @@ export default function TrackOrder() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -116,7 +115,6 @@ export default function TrackOrder() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left: Timeline */}
         <div className="lg:col-span-1">
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <h2 className="text-[15px] font-semibold text-on-surface mb-5">Delivery Progress</h2>
@@ -167,9 +165,7 @@ export default function TrackOrder() {
           </div>
         </div>
 
-        {/* Right: Map + Info */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Map placeholder */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[15px] font-semibold text-on-surface">Live Map</h2>
@@ -199,7 +195,6 @@ export default function TrackOrder() {
             </div>
           </div>
 
-          {/* Delivery Address */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <h3 className="text-sm font-semibold text-on-surface mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-secondary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>location_on</span>
@@ -219,7 +214,6 @@ export default function TrackOrder() {
         </div>
       </div>
 
-      {/* Package Contents */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
         <h2 className="text-[15px] font-semibold text-on-surface mb-4">
           Package Contents <span className="text-on-surface-variant font-normal text-sm">({order.items?.length || 0} items)</span>

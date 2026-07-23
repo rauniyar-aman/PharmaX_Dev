@@ -23,7 +23,6 @@ const STATUS_CONFIG = {
   EXPIRED:  { label: 'Expired',        bg: 'bg-surface-container-high text-on-surface-variant', icon: 'event_busy' },
 }
 
-// ─── Preview Modal ─────────────────────────────────────────────────────────────
 function PreviewModal({ prescription, onClose }) {
   const urls  = parseFileUrls(prescription.fileUrl)
   const names = prescription.fileName?.split(', ') || []
@@ -42,15 +41,12 @@ function PreviewModal({ prescription, onClose }) {
   return (
     <div className="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="relative w-full max-w-5xl h-[90vh] bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden flex border border-outline-variant">
-        {/* Close */}
         <button onClick={onClose}
           className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-highest text-on-surface hover:bg-error-container hover:text-error transition-all">
           <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
         </button>
 
-        {/* Preview area */}
         <div className="flex-1 bg-surface-dim/30 flex flex-col items-center p-5 overflow-y-auto">
-          {/* Toolbar */}
           <div className="w-full max-w-2xl flex justify-between items-center mb-4 px-4 py-2 bg-surface-container-lowest/80 backdrop-blur rounded-full border border-outline-variant sticky top-0 z-10">
             <div className="flex items-center gap-2 min-w-0">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>
@@ -71,7 +67,6 @@ function PreviewModal({ prescription, onClose }) {
             </div>
           </div>
 
-          {/* Document */}
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl overflow-hidden flex-1 flex items-center justify-center" style={{ minHeight: '400px' }}>
             {url ? (
               isPdf(name) ? (
@@ -87,7 +82,6 @@ function PreviewModal({ prescription, onClose }) {
             )}
           </div>
 
-          {/* Page dots */}
           {urls.length > 1 && (
             <div className="flex items-center gap-2 mt-4">
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
@@ -106,7 +100,6 @@ function PreviewModal({ prescription, onClose }) {
           )}
         </div>
 
-        {/* Metadata sidebar */}
         <aside className="w-72 flex-shrink-0 border-l border-outline-variant bg-surface-container flex flex-col p-5 gap-5">
           <div>
             <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Document Details</p>
@@ -194,7 +187,6 @@ function PreviewModal({ prescription, onClose }) {
   )
 }
 
-// ─── Rejection Modal ──────────────────────────────────────────────────────────
 function RejectionModal({ prescription, onClose, onReupload }) {
   const urls = parseFileUrls(prescription.fileUrl)
   const previewUrl = urls[0] ? `${BACKEND}${urls[0]}` : null
@@ -208,7 +200,6 @@ function RejectionModal({ prescription, onClose, onReupload }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-inverse-surface/40 backdrop-blur-sm">
       <div className="relative w-full max-w-lg bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="p-5 border-b border-outline-variant flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-error flex items-center justify-center">
@@ -222,9 +213,7 @@ function RejectionModal({ prescription, onClose, onReupload }) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-5 overflow-y-auto space-y-5 flex-1">
-          {/* Reason */}
           <div className="flex items-start gap-3 p-4 bg-error/5 rounded-xl border-l-4 border-error">
             <div className="flex-1">
               <p className="text-[10px] font-bold text-error uppercase tracking-widest mb-1">Rejection Reason</p>
@@ -234,7 +223,6 @@ function RejectionModal({ prescription, onClose, onReupload }) {
             </div>
           </div>
 
-          {/* Preview */}
           {previewUrl && (
             <div className="relative rounded-xl border border-outline-variant overflow-hidden aspect-video bg-surface-container-high">
               {isPdf(previewUrl) ? (
@@ -253,7 +241,6 @@ function RejectionModal({ prescription, onClose, onReupload }) {
             </div>
           )}
 
-          {/* How to fix */}
           <div>
             <h3 className="text-sm font-bold text-secondary mb-3">How to Fix</h3>
             <ul className="space-y-3">
@@ -274,7 +261,6 @@ function RejectionModal({ prescription, onClose, onReupload }) {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-5 border-t border-outline-variant flex gap-3">
           <button onClick={onReupload}
             className="flex-1 flex items-center justify-center gap-2 py-3 bg-secondary text-on-secondary rounded-xl text-sm font-semibold hover:opacity-90 transition">
@@ -291,7 +277,6 @@ function RejectionModal({ prescription, onClose, onReupload }) {
   )
 }
 
-// ─── Prescription Card ────────────────────────────────────────────────────────
 function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
   const cfg = STATUS_CONFIG[rx.status] || STATUS_CONFIG.PENDING
   const urls = parseFileUrls(rx.fileUrl)
@@ -301,7 +286,6 @@ function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
   return (
     <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant hover:shadow-md transition-shadow group">
       <div className="flex gap-4">
-        {/* Thumbnail */}
         <div className="w-20 h-20 bg-surface-container rounded-xl overflow-hidden border border-outline-variant flex-shrink-0 flex items-center justify-center">
           {firstUrl && !isPdf(firstUrl) ? (
             <img src={firstUrl} alt="Prescription" className="w-full h-full object-cover" />
@@ -312,7 +296,6 @@ function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
           )}
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start gap-2">
             <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${cfg.bg}`}>{cfg.label}</span>
@@ -346,7 +329,6 @@ function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 mt-4 pt-3 border-t border-outline-variant">
         {rx.status === 'REJECTED' ? (
           <>
@@ -382,7 +364,6 @@ function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Prescriptions() {
   const fileRef = useRef()
   const [prescriptions, setPrescriptions] = useState([])
@@ -452,13 +433,11 @@ export default function Prescriptions() {
       {viewRx    && <PreviewModal   prescription={viewRx}    onClose={() => setViewRx(null)} />}
       {rejectedRx && <RejectionModal prescription={rejectedRx} onClose={() => setRejectedRx(null)} onReupload={() => handleReupload(rejectedRx)} />}
 
-      {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-on-surface">My Prescriptions</h2>
         <p className="text-sm text-on-surface-variant mt-0.5">Manage and track your digital prescription uploads.</p>
       </div>
 
-      {/* Stats row */}
       {!loading && prescriptions.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -481,12 +460,10 @@ export default function Prescriptions() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Upload Panel */}
         <section className="lg:col-span-4">
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 sticky top-20 flex flex-col gap-4">
             <h3 className="text-base font-bold text-on-surface">Upload New</h3>
 
-            {/* Drop zone */}
             <div
               onDragOver={e => { e.preventDefault(); setDragActive(true) }}
               onDragLeave={() => setDragActive(false)}
@@ -553,7 +530,6 @@ export default function Prescriptions() {
           </div>
         </section>
 
-        {/* List */}
         <section className="lg:col-span-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-on-surface">Recent Uploads</h3>
@@ -584,7 +560,6 @@ export default function Prescriptions() {
                   onDelete={handleDelete}
                 />
               ))}
-              {/* Add more placeholder */}
               <div
                 onClick={() => fileRef.current?.click()}
                 className="border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center p-8 cursor-pointer opacity-50 hover:opacity-80 hover:border-primary/50 transition-all select-none"
@@ -597,7 +572,6 @@ export default function Prescriptions() {
         </section>
       </div>
 
-      {/* Help Banner */}
       <section className="bg-secondary-container text-on-secondary-container p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h4 className="text-base font-bold">Need help with verification?</h4>

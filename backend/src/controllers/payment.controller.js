@@ -13,13 +13,11 @@ const BACKEND_URL  = process.env.BACKEND_URL         || 'http://localhost:5000'
 const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY || 'test_secret_key_f59e8b7d18b4499ca40f68195a846e9'
 const KHALTI_API_URL    = process.env.KHALTI_API_URL    || 'https://dev.khalti.com/api/v2'
 
-// HMAC-SHA256 signature over "total_amount,transaction_uuid,product_code"
 function generateSignature(totalAmount, transactionUuid) {
   const msg = `total_amount=${totalAmount},transaction_uuid=${transactionUuid},product_code=${PRODUCT_CODE}`
   return crypto.createHmac('sha256', SECRET_KEY).update(msg).digest('base64')
 }
 
-// Fetch eSewa transaction status (plain https — no extra deps needed)
 function verifyWithEsewa(productCode, totalAmount, transactionUuid) {
   return new Promise((resolve, reject) => {
     const url = `${VERIFY_URL}?product_code=${productCode}&total_amount=${totalAmount}&transaction_uuid=${transactionUuid}`
@@ -45,7 +43,6 @@ async function getCartData(userId) {
   return { cart, subtotal, deliveryCharge, totalAmount }
 }
 
-// ─── POST /api/payment/esewa/initiate ────────────────────────────────────────
 const initiateEsewa = async (req, res) => {
   const { addressId, prescriptionMap = {} } = req.body
   if (!addressId) return res.status(400).json({ success: false, message: 'Delivery address is required' })
@@ -56,7 +53,6 @@ const initiateEsewa = async (req, res) => {
   const { cart, totalAmount, deliveryCharge } = data
   const totalStr = totalAmount.toFixed(2)
 
-  // Create order in PENDING state first so we have an ID
   const order = await prisma.order.create({
     data: {
       userId: req.user.id,
@@ -76,7 +72,6 @@ const initiateEsewa = async (req, res) => {
     },
   })
 
-  // transaction_uuid must be unique across all eSewa payments
   const transactionUuid = `${order.id}-${Date.now()}`
 
   await prisma.order.update({
@@ -107,7 +102,6 @@ const initiateEsewa = async (req, res) => {
   })
 }
 
-// ─── GET /api/payment/esewa/success?data=<base64> ────────────────────────────
 const esewaSuccess = async (req, res) => {
   try {
     const { data } = req.query
@@ -120,7 +114,6 @@ const esewaSuccess = async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/dashboard/checkout/payment?esewa_cancelled=1&reason=incomplete`)
     }
 
-    // Verify with eSewa
     let verification
     try {
       verification = await verifyWithEsewa(PRODUCT_CODE, total_amount, transaction_uuid)
@@ -132,24 +125,20 @@ const esewaSuccess = async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/dashboard/checkout/payment?esewa_cancelled=1&reason=not_verified`)
     }
 
-    // Find matching order
     const order = await prisma.order.findUnique({
       where: { esewaTransactionUuid: transaction_uuid },
     })
     if (!order) return res.redirect(`${FRONTEND_URL}/dashboard/checkout/payment?esewa_cancelled=1&reason=order_not_found`)
 
-    // Idempotent — if already paid, just redirect
     if (order.paymentStatus === 'PAID') {
       return res.redirect(`${FRONTEND_URL}/dashboard/checkout/confirmation?orderId=${order.id}`)
     }
 
-    // Confirm order
     await prisma.order.update({
       where: { id: order.id },
       data: { paymentStatus: 'PAID', status: 'CONFIRMED' },
     })
 
-    // Clear cart
     const cart = await prisma.cart.findUnique({ where: { userId: order.userId } })
     if (cart) await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
 
@@ -160,7 +149,6 @@ const esewaSuccess = async (req, res) => {
   }
 }
 
-// ─── GET /api/payment/esewa/failure?data=<base64> ────────────────────────────
 const esewaFailure = async (req, res) => {
   try {
     const { data } = req.query
@@ -180,7 +168,6 @@ const esewaFailure = async (req, res) => {
   return res.redirect(`${FRONTEND_URL}/dashboard/checkout/payment?esewa_cancelled=1`)
 }
 
-// ─── POST /api/payment/cod/place ─────────────────────────────────────────────
 const placeCodOrder = async (req, res) => {
   const { addressId, prescriptionMap = {} } = req.body
   if (!addressId) return res.status(400).json({ success: false, message: 'Delivery address is required' })
@@ -216,7 +203,6 @@ const placeCodOrder = async (req, res) => {
   return res.status(201).json({ success: true, data: { order }, message: 'Order placed successfully' })
 }
 
-// ─── Khalti helpers ──────────────────────────────────────────────────────────
 function khaltiPost(path, body) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify(body)
@@ -247,7 +233,6 @@ function khaltiPost(path, body) {
   })
 }
 
-// ─── POST /api/payment/khalti/initiate ───────────────────────────────────────
 const initiateKhalti = async (req, res) => {
   const { addressId, prescriptionMap = {} } = req.body
   if (!addressId) return res.status(400).json({ success: false, message: 'Delivery address is required' })
@@ -312,12 +297,10 @@ const initiateKhalti = async (req, res) => {
   return res.json({ success: true, data: { payment_url: khaltiRes.payment_url } })
 }
 
-// ─── GET /api/payment/khalti/verify ──────────────────────────────────────────
 const khaltiVerify = async (req, res) => {
   const { pidx, status } = req.query
 
   if (!pidx || status !== 'Completed') {
-    // Cancel the pending order so it doesn't become a ghost record
     if (pidx) {
       try {
         const order = await prisma.order.findUnique({ where: { khaltiPidx: pidx } })
@@ -336,7 +319,6 @@ const khaltiVerify = async (req, res) => {
     const verification = await khaltiPost('/epayment/lookup/', { pidx })
 
     if (verification.status !== 'Completed') {
-      // Lookup confirmed payment did not succeed — cancel the order
       try {
         const order = await prisma.order.findUnique({ where: { khaltiPidx: pidx } })
         if (order && order.paymentStatus === 'PENDING') {

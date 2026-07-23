@@ -1,7 +1,6 @@
 const prisma = require('../config/db')
 const { ok, created, notFound, fail } = require('../utils/response')
 
-// GET /api/medicines
 const getMedicines = async (req, res) => {
   const { search, category, type, inStock, lowStock, minPrice, maxPrice, sortBy = 'totalReviews', page = 1, limit = 12 } = req.query
 
@@ -51,7 +50,6 @@ const getMedicines = async (req, res) => {
   })
 }
 
-// GET /api/medicines/:id
 const getMedicineById = async (req, res) => {
   const medicine = await prisma.medicine.findUnique({
     where: { id: req.params.id },
@@ -68,7 +66,6 @@ const getMedicineById = async (req, res) => {
   ok(res, { medicine })
 }
 
-// GET /api/medicines/:id/reviews
 const getMedicineReviews = async (req, res) => {
   const reviews = await prisma.review.findMany({
     where: { medicineId: req.params.id },
@@ -78,7 +75,6 @@ const getMedicineReviews = async (req, res) => {
   ok(res, { reviews })
 }
 
-// POST /api/medicines/:id/reviews
 const addReview = async (req, res) => {
   const { rating, comment } = req.body
   if (!rating || rating < 1 || rating > 5) return fail(res, 'Rating must be between 1 and 5')
@@ -106,7 +102,6 @@ const addReview = async (req, res) => {
   ok(res, { review }, 'Review submitted')
 }
 
-// PUT /api/medicines/:id/reviews  (update own review)
 const updateReview = async (req, res) => {
   const { rating, comment } = req.body
   if (!rating || rating < 1 || rating > 5) return fail(res, 'Rating must be between 1 and 5')
@@ -133,7 +128,6 @@ const updateReview = async (req, res) => {
   ok(res, { review }, 'Review updated')
 }
 
-// DELETE /api/medicines/:id/reviews  (delete own review)
 const deleteReview = async (req, res) => {
   const existing = await prisma.review.findUnique({
     where: { userId_medicineId: { userId: req.user.id, medicineId: req.params.id } },
@@ -154,7 +148,6 @@ const deleteReview = async (req, res) => {
   ok(res, {}, 'Review deleted')
 }
 
-// GET /api/medicines/my-reviews  (all reviews by current user)
 const getMyReviews = async (req, res) => {
   const reviews = await prisma.review.findMany({
     where: { userId: req.user.id },
@@ -166,7 +159,6 @@ const getMyReviews = async (req, res) => {
   ok(res, { reviews })
 }
 
-// POST /api/medicines
 const createMedicine = async (req, res) => {
   const { name, brand, description, dosage, usage, sideEffects, price, originalPrice, type, inStock, stockQuantity, packageSize, manufacturer, imageUrl, categoryId, expiryDate } = req.body
   if (!name || !brand || !price || !type || !categoryId) {
@@ -193,7 +185,6 @@ const createMedicine = async (req, res) => {
   created(res, { medicine }, 'Medicine added successfully')
 }
 
-// PUT /api/medicines/:id
 const updateMedicine = async (req, res) => {
   const existing = await prisma.medicine.findUnique({ where: { id: req.params.id } })
   if (!existing) return notFound(res, 'Medicine not found')
@@ -226,7 +217,6 @@ const updateMedicine = async (req, res) => {
   ok(res, { medicine }, 'Medicine updated successfully')
 }
 
-// DELETE /api/medicines/:id
 const deleteMedicine = async (req, res) => {
   const existing = await prisma.medicine.findUnique({ where: { id: req.params.id } })
   if (!existing) return notFound(res, 'Medicine not found')

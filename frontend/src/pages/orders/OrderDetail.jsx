@@ -283,7 +283,6 @@ export default function OrderDetail() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -323,7 +322,6 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* Delivery Timeline */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
         <h2 className="text-[15px] font-semibold text-on-surface mb-4">
           {cancelled ? 'Order Cancelled' : 'Delivery Timeline'}
@@ -374,9 +372,7 @@ export default function OrderDetail() {
         )}
       </div>
 
-      {/* Delivery + Payment Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Delivery */}
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-secondary" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>location_on</span>
@@ -397,7 +393,6 @@ export default function OrderDetail() {
           )}
         </div>
 
-        {/* Payment */}
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-secondary" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>payment</span>
@@ -437,7 +432,6 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* Items in Order */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
         <h2 className="text-[15px] font-semibold text-on-surface mb-4">
           Items in Order <span className="text-on-surface-variant font-normal text-sm">({order.items?.length || 0})</span>
@@ -473,10 +467,8 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* Ratings — only for delivered orders */}
       {order.status === 'DELIVERED' && (
         <div className="space-y-4">
-          {/* Overall order rating */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <h2 className="text-[15px] font-semibold text-on-surface mb-4">Rate Your Experience</h2>
             <div className="flex items-center gap-3 mb-3">
@@ -522,7 +514,6 @@ export default function OrderDetail() {
             )}
           </div>
 
-          {/* Per-medicine rating */}
           <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
             <h2 className="text-[15px] font-semibold text-on-surface mb-4">Rate the Medicines</h2>
             <div className="space-y-5">

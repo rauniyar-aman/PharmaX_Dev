@@ -14,7 +14,6 @@ const signToken = (user) =>
 const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString()
 
-// POST /api/auth/register
 const register = async (req, res) => {
   const { fullName, email, phone, password } = req.body
   if (!fullName || !email || !phone || !password) return fail(res, 'fullName, email, phone, and password are required')
@@ -69,7 +68,6 @@ const register = async (req, res) => {
   )
 }
 
-// POST /api/auth/resend-otp
 const resendOtp = async (req, res) => {
   const { email } = req.body
   if (!email) return fail(res, 'Email is required')
@@ -80,7 +78,6 @@ const resendOtp = async (req, res) => {
     return fail(res, 'This account is already verified.', 400)
   }
 
-  // Cooldown: if an OTP was sent less than 60 seconds ago, don't send another
   if (user.otpCode && user.otpExpiresAt) {
     const secondsRemaining = (user.otpExpiresAt - Date.now()) / 1000
     if (secondsRemaining > 9 * 60) {
@@ -109,7 +106,6 @@ const resendOtp = async (req, res) => {
   )
 }
 
-// POST /api/auth/verify-email
 const verifyEmail = async (req, res) => {
   const { email, otp } = req.body
   if (!email || !otp) return fail(res, 'Email and OTP are required')
@@ -134,7 +130,6 @@ const verifyEmail = async (req, res) => {
   ok(res, { token: signToken(user), user: safeUser }, 'Email verified successfully. Welcome to PharmaX!')
 }
 
-// POST /api/auth/login
 const login = async (req, res) => {
   const { email, password } = req.body
   if (!email || !password) return fail(res, 'Email and password are required')
@@ -169,7 +164,6 @@ const login = async (req, res) => {
   ok(res, { token: signToken(user), user: safeUser }, 'Login successful')
 }
 
-// GET /api/auth/me
 const getMe = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
@@ -183,7 +177,6 @@ const getMe = async (req, res) => {
   ok(res, { user })
 }
 
-// PUT /api/auth/me
 const updateProfile = async (req, res) => {
   const { fullName, phone, dob, gender, bloodGroup, allergies } = req.body
   if (!fullName) return fail(res, 'Full name is required')
@@ -215,7 +208,6 @@ const updateProfile = async (req, res) => {
   ok(res, { user: updated }, 'Profile updated successfully')
 }
 
-// POST /api/auth/avatar
 const uploadAvatar = async (req, res) => {
   if (!req.file) return fail(res, 'No file uploaded')
   const avatarUrl = `/uploads/avatars/${req.file.filename}`
@@ -231,8 +223,6 @@ const uploadAvatar = async (req, res) => {
   ok(res, { user: updated }, 'Profile picture updated')
 }
 
-// POST /api/auth/request-password-change
-// Step 1: verify current password, send OTP to email
 const requestPasswordChange = async (req, res) => {
   const { currentPassword } = req.body
   if (!currentPassword) return fail(res, 'Current password is required')
@@ -260,10 +250,6 @@ const requestPasswordChange = async (req, res) => {
   ok(res, devData, msg)
 }
 
-// POST /api/auth/change-password
-// Supports two modes:
-//   OTP mode (admin):  { otp, newPassword }          — requires prior requestPasswordChange call
-//   Direct mode (user): { currentPassword, newPassword } — verifies current password directly
 const changePassword = async (req, res) => {
   const { otp, currentPassword, newPassword } = req.body
   if (!newPassword) return fail(res, 'newPassword is required')
@@ -272,7 +258,6 @@ const changePassword = async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } })
 
   if (otp) {
-    // OTP mode
     if (!user.otpCode) return fail(res, 'No OTP request found. Please start over.', 400)
     if (user.otpCode !== otp) return fail(res, 'Incorrect OTP. Please try again.', 400)
     if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
@@ -280,7 +265,6 @@ const changePassword = async (req, res) => {
       return fail(res, 'OTP has expired. Please request a new one.', 400)
     }
   } else if (currentPassword) {
-    // Direct mode
     const match = await bcrypt.compare(currentPassword, user.passwordHash)
     if (!match) return fail(res, 'Current password is incorrect', 401)
   } else {
@@ -296,7 +280,6 @@ const changePassword = async (req, res) => {
   ok(res, {}, 'Password changed successfully')
 }
 
-// DELETE /api/auth/me — soft delete account
 const softDeleteAccount = async (req, res) => {
   await prisma.user.update({
     where: { id: req.user.id },
@@ -305,13 +288,11 @@ const softDeleteAccount = async (req, res) => {
   ok(res, {}, 'Account deleted. Your data is retained and can be restored later.')
 }
 
-// POST /api/auth/deactivate — temporarily deactivate
 const deactivateAccount = async (req, res) => {
   await prisma.user.update({ where: { id: req.user.id }, data: { isActive: false } })
   ok(res, {}, 'Account deactivated.')
 }
 
-// POST /api/auth/restore-request — send OTP to restore deleted/deactivated account
 const restoreRequest = async (req, res) => {
   const { email } = req.body
   if (!email) return fail(res, 'Email is required')
@@ -320,7 +301,6 @@ const restoreRequest = async (req, res) => {
   if (!user) return fail(res, 'No account found with this email.', 404)
   if (user.isActive && !user.isDeleted) return fail(res, 'This account is already active.', 400)
 
-  // Cooldown: if an OTP was sent less than 60 seconds ago, don't send another
   if (user.otpCode && user.otpExpiresAt) {
     const secondsRemaining = (user.otpExpiresAt - Date.now()) / 1000
     if (secondsRemaining > 9 * 60) {
@@ -347,7 +327,6 @@ const restoreRequest = async (req, res) => {
     : `Email delivery failed. Your OTP is: ${otp}`)
 }
 
-// POST /api/auth/restore-confirm — verify OTP and restore account
 const restoreConfirm = async (req, res) => {
   const { email, otp } = req.body
   if (!email || !otp) return fail(res, 'Email and OTP are required')
@@ -369,7 +348,6 @@ const restoreConfirm = async (req, res) => {
   ok(res, { token: signToken(restored), user: restored }, 'Account restored! Welcome back.')
 }
 
-// GET /api/auth/notifications
 const getNotifications = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
@@ -378,7 +356,6 @@ const getNotifications = async (req, res) => {
   ok(res, { notifs: user })
 }
 
-// PUT /api/auth/notifications
 const updateNotifications = async (req, res) => {
   const { notifOrderUpdates, notifPrescriptionAlerts, notifPromotions } = req.body
   await prisma.user.update({
@@ -392,7 +369,6 @@ const updateNotifications = async (req, res) => {
   ok(res, {}, 'Notification preferences saved.')
 }
 
-// POST /api/auth/forgot-password
 const forgotPassword = async (req, res) => {
   const { email } = req.body
   if (!email) return fail(res, 'Email is required')
@@ -421,7 +397,6 @@ const forgotPassword = async (req, res) => {
   ok(res, (!emailSent && process.env.NODE_ENV !== 'production') ? { otp } : {}, devMsg)
 }
 
-// POST /api/auth/reset-password
 const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body
   if (!email || !otp || !newPassword) return fail(res, 'email, otp, and newPassword are required')

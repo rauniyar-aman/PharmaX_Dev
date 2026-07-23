@@ -94,20 +94,17 @@ export default function MapPicker({ value, onChange }) {
         {marker && <Marker position={marker} animation={window.google.maps.Animation.DROP} />}
       </GoogleMap>
 
-      {/* Instruction overlay */}
       {!marker && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-inverse-surface/80 text-inverse-on-surface text-xs px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none">
           Click anywhere on the map to drop a pin
         </div>
       )}
 
-      {/* My location button */}
       <button type="button" onClick={handleMyLocation}
         className="absolute bottom-4 right-4 w-10 h-10 bg-surface rounded-full shadow-lg flex items-center justify-center hover:bg-surface-container-low transition-colors border border-outline-variant">
         <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>my_location</span>
       </button>
 
-      {/* Loading indicator */}
       {loadingAddress && (
         <div className="absolute bottom-4 left-4 bg-surface/90 backdrop-blur-sm text-on-surface text-xs px-3 py-1.5 rounded-full border border-outline-variant flex items-center gap-1.5">
           <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }}>progress_activity</span>
@@ -115,7 +112,6 @@ export default function MapPicker({ value, onChange }) {
         </div>
       )}
 
-      {/* Pin confirmation */}
       {marker && !loadingAddress && (
         <div className="absolute bottom-4 left-4 bg-primary/90 backdrop-blur-sm text-on-primary text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
           <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>location_on</span>

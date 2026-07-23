@@ -35,7 +35,6 @@ export default function NotificationPanel({ onClose }) {
 
   return (
     <div className="flex flex-col max-h-[480px]">
-      {/* Header */}
       <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-bold text-on-surface">Notifications</p>
@@ -57,7 +56,6 @@ export default function NotificationPanel({ onClose }) {
         </div>
       </div>
 
-      {/* List */}
       <div className="overflow-y-auto">
         {loading ? (
           <div className="space-y-1 p-2">

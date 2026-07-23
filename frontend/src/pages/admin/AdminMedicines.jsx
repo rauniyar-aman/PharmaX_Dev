@@ -56,7 +56,6 @@ export default function AdminMedicines() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant">
         <div className="flex items-center gap-6 flex-1">
           <div className="relative w-full max-w-md">
@@ -81,7 +80,6 @@ export default function AdminMedicines() {
       </header>
 
       <section className="flex-1 p-8 space-y-6">
-        {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-on-surface">Medicines</h2>
@@ -96,7 +94,6 @@ export default function AdminMedicines() {
           </button>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { icon: 'inventory', bg: 'bg-primary-fixed', color: 'text-on-primary-fixed-variant', label: 'Total Medicines', value: pagination.total, badge: '+12%', badgeCls: 'text-primary bg-primary/10' },
@@ -117,7 +114,6 @@ export default function AdminMedicines() {
           ))}
         </div>
 
-        {/* Filter Bar */}
         <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-sm flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[240px] relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
@@ -159,7 +155,6 @@ export default function AdminMedicines() {
           </select>
         </div>
 
-        {/* Table */}
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           {loading ? (
             <div className="p-12 flex justify-center">
@@ -244,7 +239,6 @@ export default function AdminMedicines() {
             </div>
           )}
 
-          {/* Pagination */}
           <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface-container-lowest border-t border-outline-variant">
             <p className="text-sm text-on-surface-variant">
               {pagination.total === 0

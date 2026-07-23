@@ -171,7 +171,6 @@ export default function Orders() {
         </Link>
       </div>
 
-      {/* Active Orders */}
       <div>
         <h2 className="text-[15px] font-semibold text-on-surface mb-3 flex items-center gap-2">
           Active Orders
@@ -205,7 +204,6 @@ export default function Orders() {
                     </div>
                   </div>
 
-                  {/* Timeline */}
                   <div className="overflow-x-auto pb-1">
                     <div className="flex items-center min-w-[520px]">
                       {progressSteps.map((stepLabel, i) => {
@@ -259,7 +257,6 @@ export default function Orders() {
         )}
       </div>
 
-      {/* Order History */}
       <div>
         <h2 className="text-[15px] font-semibold text-on-surface mb-3">Order History</h2>
         {historyOrders.length === 0 ? (

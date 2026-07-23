@@ -107,7 +107,6 @@ export default function Cart() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-3">
             {items.map(item => {
               const med = item.medicine
@@ -178,7 +177,6 @@ export default function Cart() {
               )
             })}
 
-            {/* Free Delivery Banner */}
             {subtotal < 500 ? (
               <div className="bg-primary-fixed border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
                 <span className="material-symbols-outlined ms-filled text-primary" style={{ fontSize: '24px' }}>local_shipping</span>
@@ -197,7 +195,6 @@ export default function Cart() {
             )}
           </div>
 
-          {/* Order Summary */}
           <div className="space-y-4">
             <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5">
               <h2 className="text-[15px] font-semibold text-on-surface mb-4">Order Summary</h2>
@@ -223,7 +220,6 @@ export default function Cart() {
                 </div>
               </div>
 
-              {/* Coupon */}
               <div className="mt-4">
                 <p className="text-xs font-medium text-on-surface mb-2">Promo Code</p>
                 <div className="flex gap-2">

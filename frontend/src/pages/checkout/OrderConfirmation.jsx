@@ -42,7 +42,6 @@ export default function OrderConfirmation() {
     <div className="space-y-4">
       <CheckoutSteps current={4} />
 
-      {/* Success banner */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-8 text-center">
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="material-symbols-outlined text-primary" style={{ fontSize: '48px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
@@ -63,7 +62,6 @@ export default function OrderConfirmation() {
         )}
       </div>
 
-      {/* Info cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -137,7 +135,6 @@ export default function OrderConfirmation() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Ordered items */}
         <div className="lg:col-span-2 bg-surface-container-lowest rounded-2xl custom-shadow p-5">
           <h2 className="text-[15px] font-semibold text-on-surface mb-4">Ordered Medicines</h2>
           {loading ? (
@@ -181,7 +178,6 @@ export default function OrderConfirmation() {
           )}
         </div>
 
-        {/* Summary + actions */}
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 h-fit space-y-3">
           <h2 className="text-[15px] font-semibold text-on-surface">Order Summary</h2>
           <div className="space-y-2 text-sm">

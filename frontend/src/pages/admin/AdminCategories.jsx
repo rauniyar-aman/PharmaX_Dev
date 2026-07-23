@@ -46,7 +46,6 @@ export default function AdminCategories() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-sm">
         <h2 className="text-lg font-bold text-primary">Categories</h2>
         <div className="flex items-center gap-4">
@@ -59,7 +58,6 @@ export default function AdminCategories() {
       </header>
 
       <div className="flex-1 p-8 max-w-7xl mx-auto w-full space-y-6">
-        {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h3 className="text-2xl font-semibold text-on-surface">Manage Medicine Categories</h3>
@@ -74,7 +72,6 @@ export default function AdminCategories() {
           </button>
         </div>
 
-        {/* Filter Bar */}
         <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[280px] relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">filter_list</span>
@@ -99,7 +96,6 @@ export default function AdminCategories() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -183,7 +179,6 @@ export default function AdminCategories() {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
@@ -220,7 +215,6 @@ export default function AdminCategories() {
         </div>
       </div>
 
-      {/* FAB */}
       <button
         onClick={() => navigate('/admin/categories/add')}
         className="fixed bottom-8 right-8 w-14 h-14 bg-primary-container text-on-primary-container rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95 z-50 group"

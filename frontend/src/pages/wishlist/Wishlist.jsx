@@ -80,7 +80,6 @@ export default function Wishlist() {
 
   return (
     <div className="space-y-5">
-      {/* Toast */}
       {toast && (
         <div className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${
           toast.type === 'error' ? 'bg-error text-on-error' : 'bg-primary text-on-primary'
@@ -92,7 +91,6 @@ export default function Wishlist() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-on-surface">My Wishlist</h1>
@@ -106,7 +104,6 @@ export default function Wishlist() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
@@ -139,7 +136,6 @@ export default function Wishlist() {
         </div>
       </div>
 
-      {/* Items */}
       {filtered.length === 0 ? (
         <div className="bg-surface-container-lowest rounded-2xl custom-shadow text-center py-16">
           <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '56px' }}>favorite_border</span>
@@ -164,7 +160,6 @@ export default function Wishlist() {
               <div key={item.id}
                 className={`bg-surface-container-lowest rounded-2xl custom-shadow overflow-hidden flex ${view === 'list' ? 'flex-row items-center' : 'flex-col'} group hover:-translate-y-0.5 transition-all duration-200`}>
 
-                {/* Image */}
                 <Link to={`/dashboard/medicines/${med.id}`}
                   className={`relative block overflow-hidden flex-shrink-0 ${view === 'list' ? 'w-24 h-24' : 'w-full'}`}>
                   {med.imageUrl
@@ -175,7 +170,6 @@ export default function Wishlist() {
                       </div>
                   }
 
-                  {/* Heart / remove button - z-10 keeps it above the out-of-stock overlay */}
                   <button
                     onClick={e => handleRemove(e, item.medicineId)}
                     disabled={isRemoving}
@@ -194,7 +188,6 @@ export default function Wishlist() {
                   )}
                 </Link>
 
-                {/* Content */}
                 <div className="p-4 flex-1 min-w-0">
                   {med.category?.name && (
                     <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">{med.category.name}</p>

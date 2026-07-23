@@ -14,7 +14,6 @@ export default function AdminInventoryLog() {
 
   return (
     <main className="flex-1 flex flex-col min-h-screen">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-sm flex justify-between items-center h-16 px-8 w-full">
         <div className="flex items-center gap-6">
           <div className="relative">
@@ -30,7 +29,6 @@ export default function AdminInventoryLog() {
       </header>
 
       <div className="p-8 flex-1 flex flex-col gap-6 overflow-y-auto">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-on-surface-variant text-xs">
           <Link to="/admin/medicines" className="hover:text-primary transition-colors text-sm">Medicines</Link>
           <span className="material-symbols-outlined text-base">chevron_right</span>
@@ -43,7 +41,6 @@ export default function AdminInventoryLog() {
           <span className="text-on-surface font-semibold text-sm">Inventory Activity Log</span>
         </nav>
 
-        {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold text-on-surface">Inventory Activity Log</h1>
@@ -58,7 +55,6 @@ export default function AdminInventoryLog() {
           </button>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { label: 'Stock In (30d)', value: '-', icon: 'trending_up', iconBg: 'bg-primary-fixed text-on-primary-fixed', barCls: 'bg-primary' },
@@ -89,7 +85,6 @@ export default function AdminInventoryLog() {
           ))}
         </div>
 
-        {/* Activity Table */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">

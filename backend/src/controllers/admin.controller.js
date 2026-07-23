@@ -16,7 +16,6 @@ const getStats = async (req, res) => {
     ],
   }
 
-  // Same filter used in getAdminPrescriptions — excludes orphaned checkout drafts
   const prescriptionBaseWhere = {
     OR: [
       { checkoutDraft: false },
@@ -71,7 +70,6 @@ const getStats = async (req, res) => {
   })
 }
 
-// GET /api/admin/orders
 const getAdminOrders = async (req, res) => {
   const { status, payment, search, page = 1, limit = 15 } = req.query
   const where = {
@@ -118,7 +116,6 @@ const getAdminOrders = async (req, res) => {
   ok(res, { orders, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } })
 }
 
-// PUT /api/admin/orders/:id/payment
 const updatePaymentStatus = async (req, res) => {
   const { paymentStatus } = req.body
   const { fail } = require('../utils/response')
@@ -145,7 +142,6 @@ const updatePaymentStatus = async (req, res) => {
   ok(res, { order }, 'Payment status updated')
 }
 
-// PUT /api/admin/orders/:id/status
 const updateOrderStatus = async (req, res) => {
   const { status } = req.body
   const validStatuses = ['PLACED', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
@@ -184,7 +180,6 @@ const updateOrderStatus = async (req, res) => {
   ok(res, { order }, 'Order status updated')
 }
 
-// GET /api/admin/prescriptions
 const getAdminPrescriptions = async (req, res) => {
   const { status, search, page = 1, limit = 15 } = req.query
   const where = {
@@ -220,7 +215,6 @@ const getAdminPrescriptions = async (req, res) => {
     ]
   }
 
-  // base filter without status — for global counts
   const baseWhere = {
     OR: [
       { checkoutDraft: false },
@@ -263,7 +257,6 @@ const getAdminPrescriptions = async (req, res) => {
   ok(res, { prescriptions, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) }, statusCounts })
 }
 
-// PUT /api/admin/prescriptions/:id
 const updatePrescriptionStatus = async (req, res) => {
   const { status, rejectionReason } = req.body
   const { fail } = require('../utils/response')
@@ -287,7 +280,6 @@ const updatePrescriptionStatus = async (req, res) => {
   ok(res, { prescription }, `Prescription ${status === 'VERIFIED' ? 'approved' : 'rejected'}`)
 }
 
-// GET /api/admin/customers
 const getCustomers = async (req, res) => {
   const { search, status, page = 1, limit = 15 } = req.query
   const where = { role: 'CUSTOMER', isDeleted: false }
@@ -327,7 +319,6 @@ const getCustomers = async (req, res) => {
   ok(res, { customers: result, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } })
 }
 
-// GET /api/admin/customers/:id
 const getCustomerById = async (req, res) => {
   const { notFound } = require('../utils/response')
   const customer = await prisma.user.findFirst({
@@ -358,7 +349,6 @@ const getCustomerById = async (req, res) => {
   ok(res, { customer: { ...customer, totalSpent: parseFloat(totalSpent._sum.totalAmount || 0) } })
 }
 
-// PUT /api/admin/customers/:id/block
 const toggleBlockCustomer = async (req, res) => {
   const { notFound } = require('../utils/response')
   const existing = await prisma.user.findFirst({ where: { id: req.params.id, role: 'CUSTOMER' } })
@@ -371,7 +361,6 @@ const toggleBlockCustomer = async (req, res) => {
   ok(res, { customer: updated }, updated.isActive ? 'Customer unblocked' : 'Customer blocked')
 }
 
-// GET /api/admin/reports
 const getReports = async (req, res) => {
   const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0)
 
@@ -406,7 +395,6 @@ const getReports = async (req, res) => {
     }),
   ])
 
-  // Enrich top medicines with names
   const medicineIds = topMedicines.map(m => m.medicineId)
   const medicines   = await prisma.medicine.findMany({ where: { id: { in: medicineIds } }, select: { id: true, name: true, brand: true, price: true } })
   const medMap      = Object.fromEntries(medicines.map(m => [m.id, m]))
@@ -417,7 +405,6 @@ const getReports = async (req, res) => {
     revenue: (m._sum.quantity || 0) * parseFloat(medMap[m.medicineId]?.price || 0),
   }))
 
-  // Monthly trend for last 6 months (active orders only)
   const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); sixMonthsAgo.setDate(1); sixMonthsAgo.setHours(0,0,0,0)
   const recentOrders = await prisma.order.findMany({
     where: { ...activeFilter, placedAt: { gte: sixMonthsAgo } },
@@ -452,14 +439,12 @@ const getReports = async (req, res) => {
   })
 }
 
-// GET /api/admin/settings
 const getSettings = async (req, res) => {
   const rows = await prisma.systemSetting.findMany()
   const settings = Object.fromEntries(rows.map(r => [r.key, r.value]))
   ok(res, { settings })
 }
 
-// PUT /api/admin/settings
 const updateSettings = async (req, res) => {
   const entries = Object.entries(req.body)
   if (!entries.length) return fail(res, 'No settings provided')

@@ -36,7 +36,6 @@ export default function Sidebar({ collapsed, onToggle }) {
       }`}
       style={{ boxShadow: '2px 0 12px -2px rgba(0,0,0,0.06)' }}
     >
-      {/* Logo */}
       <div className={`flex items-center border-b border-outline-variant flex-shrink-0 ${collapsed ? 'flex-col justify-center gap-2 px-3 py-3' : 'h-16 px-4 justify-between'}`}>
         {collapsed ? (
           <>
@@ -63,7 +62,6 @@ export default function Sidebar({ collapsed, onToggle }) {
         )}
       </div>
 
-      {/* Nav Items */}
       <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
         <ul className="space-y-0.5 px-2">
           {navItems.map((item) => (
@@ -97,7 +95,6 @@ export default function Sidebar({ collapsed, onToggle }) {
         </ul>
       </nav>
 
-      {/* Bottom Items */}
       <div className="border-t border-outline-variant py-2 px-2">
         <ul className="space-y-0.5">
           <li>
@@ -148,7 +145,6 @@ export default function Sidebar({ collapsed, onToggle }) {
             </li>
           ))}
 
-          {/* Logout */}
           <li>
             <button
               onClick={() => { logout(); navigate('/signin') }}

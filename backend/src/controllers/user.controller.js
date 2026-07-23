@@ -1,7 +1,6 @@
 const prisma = require('../config/db')
 const { ok, created, notFound, fail } = require('../utils/response')
 
-// GET /api/user/profile
 const getProfile = async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
@@ -11,7 +10,6 @@ const getProfile = async (req, res) => {
   ok(res, { user })
 }
 
-// PUT /api/user/profile
 const updateProfile = async (req, res) => {
   const { fullName, phone, dob, gender, bloodGroup, allergies } = req.body
   const user = await prisma.user.update({
@@ -29,7 +27,6 @@ const updateProfile = async (req, res) => {
   ok(res, { user }, 'Profile updated')
 }
 
-// GET /api/user/addresses
 const getAddresses = async (req, res) => {
   const addresses = await prisma.address.findMany({
     where: { userId: req.user.id },
@@ -38,7 +35,6 @@ const getAddresses = async (req, res) => {
   ok(res, { addresses })
 }
 
-// POST /api/user/addresses
 const addAddress = async (req, res) => {
   const { label, name, phone, address, city, province, zip, lat, lng, isDefault } = req.body
   if (!name || !phone || !address || !city || !province || !zip) {
@@ -60,7 +56,6 @@ const addAddress = async (req, res) => {
   created(res, { address: newAddress }, 'Address added')
 }
 
-// PUT /api/user/addresses/:id
 const updateAddress = async (req, res) => {
   const existing = await prisma.address.findFirst({ where: { id: req.params.id, userId: req.user.id } })
   if (!existing) return notFound(res, 'Address not found')
@@ -89,7 +84,6 @@ const updateAddress = async (req, res) => {
   ok(res, { address: updated }, 'Address updated')
 }
 
-// PUT /api/user/addresses/:id/default
 const setDefaultAddress = async (req, res) => {
   const existing = await prisma.address.findFirst({ where: { id: req.params.id, userId: req.user.id } })
   if (!existing) return notFound(res, 'Address not found')
@@ -99,7 +93,6 @@ const setDefaultAddress = async (req, res) => {
   ok(res, {}, 'Default address updated')
 }
 
-// DELETE /api/user/addresses/:id
 const deleteAddress = async (req, res) => {
   const existing = await prisma.address.findFirst({ where: { id: req.params.id, userId: req.user.id } })
   if (!existing) return notFound(res, 'Address not found')
@@ -107,7 +100,6 @@ const deleteAddress = async (req, res) => {
   ok(res, {}, 'Address deleted')
 }
 
-// POST /api/user/avatar
 const uploadAvatarHandler = async (req, res) => {
   if (!req.file) return fail(res, 'No image file provided')
   const avatarUrl = `/uploads/avatars/${req.file.filename}`
@@ -119,7 +111,6 @@ const uploadAvatarHandler = async (req, res) => {
   ok(res, { avatarUrl: user.avatarUrl }, 'Profile picture updated')
 }
 
-// DELETE /api/user/avatar
 const removeAvatarHandler = async (req, res) => {
   const fs = require('fs')
   const path = require('path')

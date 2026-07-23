@@ -37,7 +37,6 @@ export default function AdminSidebar({ collapsed, onToggle }) {
       className="h-screen fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col py-6 z-50 overflow-y-auto overflow-x-hidden transition-all duration-300"
       style={{ width: collapsed ? '72px' : '256px' }}
     >
-      {/* Logo + Toggle */}
       <div className={`flex items-center mb-6 px-4 ${collapsed ? 'flex-col justify-center gap-2' : 'justify-between'}`}>
         {collapsed ? (
           <>
@@ -64,7 +63,6 @@ export default function AdminSidebar({ collapsed, onToggle }) {
         )}
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 space-y-1 px-2">
         {navItems.map(item => (
           <NavLink
@@ -100,7 +98,6 @@ export default function AdminSidebar({ collapsed, onToggle }) {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="mt-auto pt-4 border-t border-outline-variant px-2 space-y-1">
         {!collapsed ? (
           <Link to="/admin/profile" className="flex items-center gap-3 px-3 py-2 mb-1 rounded-lg hover:bg-surface-container-high transition-colors group">

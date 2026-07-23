@@ -11,7 +11,6 @@ function applyTheme(theme) {
   } else if (theme === 'light') {
     root.classList.remove('dark')
   } else {
-    // system
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     root.classList.toggle('dark', prefersDark)
   }
@@ -24,7 +23,6 @@ export function ThemeProvider({ children }) {
     applyTheme(theme)
   }, [theme])
 
-  // React to system preference changes when theme === 'system'
   useEffect(() => {
     if (theme !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')

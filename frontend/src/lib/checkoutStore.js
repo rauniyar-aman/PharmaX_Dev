@@ -1,8 +1,5 @@
-// In-memory store for staged prescription files during checkout.
-// File objects can't be serialized to sessionStorage, so they live here.
-// The store survives React Router navigation but is cleared on page reload (intentional).
 const checkoutStore = {
-  staged: {}, // { [medId]: { files: File[], fileName: string } }
+  staged: {},
 
   stage(medId, files) {
     this.staged[medId] = { files, fileName: files.map(f => f.name).join(', ') }

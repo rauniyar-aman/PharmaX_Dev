@@ -39,7 +39,6 @@ export default function AdminCategoryDetails() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="w-full h-16 bg-surface flex justify-between items-center px-8 sticky top-0 z-40 border-b border-outline-variant shadow-sm">
         <div className="relative">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
@@ -53,7 +52,6 @@ export default function AdminCategoryDetails() {
       </header>
 
       <main className="p-8 space-y-6 max-w-7xl mx-auto w-full">
-        {/* Breadcrumb + Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <nav className="flex items-center gap-2 text-xs text-on-surface-variant mb-1">
@@ -81,9 +79,7 @@ export default function AdminCategoryDetails() {
           </div>
         </div>
 
-        {/* Summary Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Category Profile */}
           <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant shadow-sm flex items-start gap-8">
             <div className="w-32 h-32 rounded-2xl bg-surface-container flex items-center justify-center text-7xl shrink-0">
               {category.icon || <span className="material-symbols-outlined text-primary text-6xl">category</span>}
@@ -117,7 +113,6 @@ export default function AdminCategoryDetails() {
             </div>
           </div>
 
-          {/* Accent Card */}
           <div className="bg-primary-container rounded-xl p-8 text-on-primary-container relative overflow-hidden flex flex-col justify-between border border-primary-container shadow-sm">
             <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
             <div className="relative z-10">
@@ -139,7 +134,6 @@ export default function AdminCategoryDetails() {
           </div>
         </div>
 
-        {/* Medicines Table */}
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-8 py-5 border-b border-outline-variant flex items-center justify-between">
             <h3 className="text-lg font-semibold text-on-surface">Medicines in this Category</h3>

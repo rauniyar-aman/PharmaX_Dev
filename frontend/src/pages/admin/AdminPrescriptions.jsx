@@ -25,7 +25,6 @@ function parseUrls(fileUrl) {
   return fileUrl ? [fileUrl] : []
 }
 
-// ─── Verification Side Panel ──────────────────────────────────────────────────
 function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
   const navigate = useNavigate()
   const [rejectionReason, setRejectionReason] = useState(rx.rejectionReason || '')
@@ -65,7 +64,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
 
   return (
     <>
-      {/* Full-screen image / PDF preview */}
       {previewOpen && activeUrl && (
         <div className="fixed inset-0 z-[80] bg-black/90 flex flex-col" onClick={() => setPreviewOpen(false)}>
           <div className="flex items-center justify-between px-6 py-4 flex-shrink-0" onClick={e => e.stopPropagation()}>
@@ -85,7 +83,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
               ? <iframe src={activeUrl} className="w-full h-full max-w-4xl rounded-xl" title="Prescription" />
               : <img src={activeUrl} alt="Prescription" className="max-w-full max-h-full rounded-xl object-contain" />}
           </div>
-          {/* Multi-page dots */}
           {urls.length > 1 && (
             <div className="flex items-center justify-center gap-3 pb-6" onClick={e => e.stopPropagation()}>
               <button onClick={() => setPreviewIndex(i => Math.max(0, i - 1))} disabled={previewIndex === 0}
@@ -106,7 +103,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
       )}
 
       <div className="fixed inset-y-0 right-0 w-full max-w-[480px] bg-surface-container-lowest shadow-2xl z-[60] border-l border-outline-variant flex flex-col">
-        {/* Header */}
         <div className="p-5 border-b border-outline-variant flex items-center justify-between sticky top-0 bg-surface-container-lowest z-10">
           <div className="flex items-center gap-3">
             <button onClick={onClose} className="p-2 hover:bg-surface-container rounded-full transition-colors">
@@ -121,7 +117,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Customer info */}
           <div className="flex items-start gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant">
             <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-secondary-fixed flex items-center justify-center font-bold text-secondary text-lg">
               {user.avatarUrl
@@ -147,7 +142,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
             </div>
           </div>
 
-          {/* Prescription document viewer */}
           <div className="space-y-2">
             <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Prescription Document</p>
             <div className="relative group cursor-zoom-in rounded-xl overflow-hidden border border-outline-variant bg-surface-container"
@@ -191,7 +185,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
             )}
           </div>
 
-          {/* Metadata grid */}
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant">
               <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Uploaded</p>
@@ -209,9 +202,7 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
             )}
           </div>
 
-          {/* ── Status-specific sections ── */}
 
-          {/* PENDING: rejection reason input */}
           {rx.status === 'PENDING' && (
             <div className="space-y-2">
               <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
@@ -227,7 +218,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
             </div>
           )}
 
-          {/* VERIFIED: approved banner + optional revoke section */}
           {rx.status === 'VERIFIED' && !revokeMode && (
             <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 flex items-start gap-3">
               <span className="material-symbols-outlined text-primary mt-0.5 flex-shrink-0" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>verified_user</span>
@@ -238,7 +228,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
             </div>
           )}
 
-          {/* VERIFIED: revoke mode - show reason textarea */}
           {rx.status === 'VERIFIED' && revokeMode && (
             <div className="p-4 bg-error/5 border border-error/20 rounded-xl space-y-3">
               <div className="flex items-center gap-2 text-error">
@@ -257,7 +246,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
             </div>
           )}
 
-          {/* REJECTED: read-only rejection reason */}
           {rx.status === 'REJECTED' && (
             <div className="p-4 bg-error/5 border border-error/20 rounded-xl space-y-2">
               <div className="flex items-center gap-2 text-error">
@@ -271,7 +259,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
           )}
         </div>
 
-        {/* Footer actions */}
         <div className="p-5 border-t border-outline-variant bg-surface-container-low space-y-2">
           {actionDone && orderId && (
             <button
@@ -337,7 +324,6 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminPrescriptions() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [prescriptions, setPrescriptions] = useState([])
@@ -432,7 +418,6 @@ export default function AdminPrescriptions() {
 
   return (
     <div className="space-y-6 relative">
-      {/* Backdrop */}
       {selectedRx && (
         <div className="fixed inset-0 bg-inverse-surface/30 backdrop-blur-sm z-50" onClick={() => setSelectedRx(null)} />
       )}
@@ -440,7 +425,6 @@ export default function AdminPrescriptions() {
         <VerificationPanel rx={selectedRx} onClose={() => { setSelectedRx(null); setLinkedOrderId(null) }} onUpdate={handleUpdate} orderId={linkedOrderId} />
       )}
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm text-on-surface-variant">Verify and approve medicine requests from registered customers.</p>
@@ -452,7 +436,6 @@ export default function AdminPrescriptions() {
         </button>
       </div>
 
-      {/* Priority alert */}
       {pendingCount > 0 && (
         <div className="bg-error-container border-l-4 border-error p-4 rounded-r-xl flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -471,7 +454,6 @@ export default function AdminPrescriptions() {
         </div>
       )}
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map(s => (
           <div key={s.label} className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
@@ -486,11 +468,8 @@ export default function AdminPrescriptions() {
         ))}
       </div>
 
-      {/* Table card */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col">
-        {/* Filter row */}
         <div className="p-4 border-b border-outline-variant flex flex-wrap items-center gap-4">
-          {/* Tab filter */}
           <div className="flex border border-outline-variant rounded-xl overflow-hidden flex-shrink-0">
             {[['', 'All'], ['PENDING', 'Pending'], ['VERIFIED', 'Approved'], ['REJECTED', 'Rejected']].map(([val, lbl]) => (
               <button key={val}
@@ -500,7 +479,6 @@ export default function AdminPrescriptions() {
               </button>
             ))}
           </div>
-          {/* Search */}
           <div className="flex-1 min-w-[220px] relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: '18px' }}>search</span>
             <input ref={searchRef} type="text" placeholder="Search by patient name or ID…"
@@ -516,7 +494,6 @@ export default function AdminPrescriptions() {
           <p className="text-sm text-on-surface-variant ml-auto">Showing {prescriptions.length} of {total}</p>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -603,7 +580,6 @@ export default function AdminPrescriptions() {
           </table>
         </div>
 
-        {/* Pagination */}
         {pages > 1 && (
           <div className="px-5 py-4 border-t border-outline-variant flex justify-between items-center">
             <p className="text-sm text-on-surface-variant">{total} total records</p>

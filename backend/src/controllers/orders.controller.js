@@ -2,7 +2,6 @@ const prisma = require('../config/db')
 const { ok, created, notFound, fail } = require('../utils/response')
 const { createNotification, notifyAdmins } = require('../utils/notify')
 
-// GET /api/orders
 const getOrders = async (req, res) => {
   const { status, page = 1, limit = 10 } = req.query
   const where = {
@@ -33,7 +32,6 @@ const getOrders = async (req, res) => {
   ok(res, { orders, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } })
 }
 
-// GET /api/orders/:id
 const getOrderById = async (req, res) => {
   const order = await prisma.order.findFirst({
     where: { id: req.params.id, userId: req.user.id },
@@ -59,7 +57,6 @@ const getOrderById = async (req, res) => {
   ok(res, { order })
 }
 
-// POST /api/orders
 const createOrder = async (req, res) => {
   const { addressId, prescriptionId, paymentMethod, items } = req.body
 
@@ -98,11 +95,9 @@ const createOrder = async (req, res) => {
     },
   })
 
-  // Clear the cart after successful order
   const cart = await prisma.cart.findUnique({ where: { userId: req.user.id } })
   if (cart) await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
 
-  // Notify customer + admins
   const shortId = order.id.slice(0, 8).toUpperCase()
   await Promise.all([
     createNotification({ userId: req.user.id, type: 'ORDER_PLACED', title: 'Order Placed', message: `Your order #${shortId} has been placed successfully.`, link: `/dashboard/orders/${order.id}` }),
@@ -112,7 +107,6 @@ const createOrder = async (req, res) => {
   created(res, { order }, 'Order placed successfully')
 }
 
-// PUT /api/orders/:id/cancel
 const cancelOrder = async (req, res) => {
   const order = await prisma.order.findFirst({
     where: { id: req.params.id, userId: req.user.id },
