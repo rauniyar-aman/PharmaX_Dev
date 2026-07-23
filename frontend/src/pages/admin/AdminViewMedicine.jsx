@@ -80,18 +80,6 @@ export default function AdminViewMedicine() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="w-full h-16 bg-surface flex justify-between items-center px-8 sticky top-0 z-40 border-b border-outline-variant">
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
-          <input className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full w-80 text-sm outline-none focus:ring-2 focus:ring-primary" placeholder="Search medicines, orders..." type="text" />
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface-variant transition-colors relative">
-            <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
-          </button>
-        </div>
-      </header>
 
       <main className="p-8 space-y-6 max-w-7xl mx-auto w-full">
         <div className="flex items-center justify-between">

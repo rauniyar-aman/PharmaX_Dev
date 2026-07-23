@@ -39,17 +39,6 @@ export default function AdminCategoryDetails() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="w-full h-16 bg-surface flex justify-between items-center px-8 sticky top-0 z-40 border-b border-outline-variant shadow-sm">
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-          <input className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full w-72 text-sm outline-none focus:ring-2 focus:ring-primary" placeholder="Search pharmacy database..." type="text" />
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-        </div>
-      </header>
 
       <main className="p-8 space-y-6 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

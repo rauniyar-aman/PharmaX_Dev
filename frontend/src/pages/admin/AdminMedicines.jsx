@@ -56,29 +56,6 @@ export default function AdminMedicines() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant">
-        <div className="flex items-center gap-6 flex-1">
-          <div className="relative w-full max-w-md">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-            <form onSubmit={handleSearch}>
-              <input
-                className="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Search medicines, orders..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                type="text"
-              />
-            </form>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 ml-6">
-          <button className="relative p-2 rounded-full hover:bg-surface-container-low transition-colors">
-            <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-            <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface" />
-          </button>
-        </div>
-      </header>
-
       <section className="flex-1 p-8 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

@@ -14,19 +14,6 @@ export default function AdminInventoryLog() {
 
   return (
     <main className="flex-1 flex flex-col min-h-screen">
-      <header className="sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-sm flex justify-between items-center h-16 px-8 w-full">
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-            <input className="bg-surface-container border-none rounded-full py-2 pl-10 pr-4 w-64 text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Search across PharmaX..." type="text" />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="hover:bg-surface-container rounded-full p-2 transition-all cursor-pointer">
-            <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-          </button>
-        </div>
-      </header>
 
       <div className="p-8 flex-1 flex flex-col gap-6 overflow-y-auto">
         <nav className="flex items-center gap-2 text-on-surface-variant text-xs">

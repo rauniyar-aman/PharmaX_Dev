@@ -168,7 +168,7 @@ export default function Home() {
               {testimonials.map((item) => (
                 <div key={item.name} className="rounded-[28px] border border-surface-container bg-surface-container-lowest p-6 text-left shadow-sm">
                   <div className="mb-4 flex items-center gap-2 text-sm text-primary">
-                    <span>â˜…â˜…â˜…â˜…â˜…</span>
+                    <span>★★★★★</span>
                     <span className="font-semibold">99</span>
                   </div>
                   <p className="text-sm leading-6 text-on-surface-variant">{item.quote}</p>
@@ -193,9 +193,9 @@ export default function Home() {
                 <Link to="/signup" className="inline-flex items-center justify-center rounded-full bg-surface-container-lowest px-6 py-3 text-sm font-semibold text-primary shadow-sm hover:bg-slate-100">
                   Create Account
                 </Link>
-                <button className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/20">
+                <a href="https://github.com/rauniyar-aman/PharmaX" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/20">
                   Download App
-                </button>
+                </a>
               </div>
             </div>
           </div>

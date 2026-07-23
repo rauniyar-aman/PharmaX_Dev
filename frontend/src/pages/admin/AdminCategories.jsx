@@ -46,16 +46,6 @@ export default function AdminCategories() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-sm">
-        <h2 className="text-lg font-bold text-primary">Categories</h2>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-            <input className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Global search..." type="text" />
-          </div>
-          <button className="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">notifications</button>
-        </div>
-      </header>
 
       <div className="flex-1 p-8 max-w-7xl mx-auto w-full space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -70,6 +60,41 @@ export default function AdminCategories() {
             <span className="material-symbols-outlined">add</span>
             Add Category
           </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Categories</p>
+            <div className="flex items-end justify-between">
+              <h4 className="text-3xl font-bold text-on-surface">{categories.length}</h4>
+              <span className="text-primary flex items-center text-xs font-bold">
+                <span className="material-symbols-outlined text-base mr-1">category</span>
+                {totalActive} Active
+              </span>
+            </div>
+          </div>
+          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-secondary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Most Medicines</p>
+            <div className="flex flex-col">
+              <h4 className="text-lg font-bold text-on-surface">{mostActive?.name || '-'}</h4>
+              <span className="text-on-surface-variant text-xs">{mostActive?._count?.medicines || 0} Medicines</span>
+            </div>
+          </div>
+          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-error/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Inactive</p>
+            <div className="flex items-end justify-between">
+              <h4 className="text-3xl font-bold text-on-surface">{totalInactive}</h4>
+              {totalInactive > 0 && (
+                <span className="text-error flex items-center text-xs font-bold">
+                  <span className="material-symbols-outlined text-base mr-1">warning</span>
+                  Action Req.
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-wrap items-center gap-4">
@@ -179,40 +204,6 @@ export default function AdminCategories() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
-            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Categories</p>
-            <div className="flex items-end justify-between">
-              <h4 className="text-3xl font-bold text-on-surface">{categories.length}</h4>
-              <span className="text-primary flex items-center text-xs font-bold">
-                <span className="material-symbols-outlined text-base mr-1">category</span>
-                {totalActive} Active
-              </span>
-            </div>
-          </div>
-          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-secondary/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
-            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Most Medicines</p>
-            <div className="flex flex-col">
-              <h4 className="text-lg font-bold text-on-surface">{mostActive?.name || '-'}</h4>
-              <span className="text-on-surface-variant text-xs">{mostActive?._count?.medicines || 0} Medicines</span>
-            </div>
-          </div>
-          <div className="p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-error/5 rounded-full group-hover:scale-110 transition-transform duration-500" />
-            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Inactive</p>
-            <div className="flex items-end justify-between">
-              <h4 className="text-3xl font-bold text-on-surface">{totalInactive}</h4>
-              {totalInactive > 0 && (
-                <span className="text-error flex items-center text-xs font-bold">
-                  <span className="material-symbols-outlined text-base mr-1">warning</span>
-                  Action Req.
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
       <button

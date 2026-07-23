@@ -53,12 +53,6 @@ export default function AdminAddCategory() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant shadow-sm">
-        <h2 className="text-lg font-bold text-primary">Categories</h2>
-        <div className="flex items-center gap-3">
-          <button className="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">notifications</button>
-        </div>
-      </header>
 
       <div className="flex-1 p-8 max-w-5xl mx-auto w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
