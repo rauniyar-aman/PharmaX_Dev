@@ -59,19 +59,6 @@ function ReadonlyField({ label, value, icon }) {
   )
 }
 
-function StatCard({ icon, label, value, color }) {
-  return (
-    <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-        <span className="material-symbols-outlined text-white" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
-      </div>
-      <div>
-        <p className="text-xl font-bold text-on-surface leading-none">{value ?? '-'}</p>
-        <p className="text-xs text-on-surface-variant mt-0.5">{label}</p>
-      </div>
-    </div>
-  )
-}
 
 function Toast({ msg, type }) {
   if (!msg) return null
@@ -94,20 +81,14 @@ export default function AdminProfile() {
 
   const [profile, setProfile]   = useState(null)
   const [loading, setLoading]   = useState(true)
-  const [stats, setStats]       = useState({ orders: 0, prescriptions: 0, customers: 0 })
   const [toast, setToast]       = useState({ msg: '', type: 'success' })
 
   const [editingPersonal, setEditingPersonal] = useState(false)
-  const [editingAddress,  setEditingAddress]  = useState(false)
   const [savingPersonal,  setSavingPersonal]  = useState(false)
-  const [savingAddress,   setSavingAddress]   = useState(false)
   const [uploadingPic,    setUploadingPic]    = useState(false)
 
   const [personalForm, setPersonalForm] = useState({
     fullName: '', email: '', phone: '', dob: '', gender: '',
-  })
-  const [addressForm, setAddressForm] = useState({
-    country: 'Nepal', state: '', city: '', address: '', zip: '',
   })
 
   function showToast(msg, type = 'success') {
@@ -116,10 +97,7 @@ export default function AdminProfile() {
   }
 
   useEffect(() => {
-    Promise.all([
-      api.get('/user/profile'),
-      api.get('/admin/stats').catch(() => ({ data: { data: {} } })),
-    ]).then(([profileRes, statsRes]) => {
+    api.get('/user/profile').then(profileRes => {
       const u = profileRes.data.data.user
       setProfile(u)
       setPersonalForm({
@@ -128,12 +106,6 @@ export default function AdminProfile() {
         phone:    u.phone    || '',
         dob:      u.dob ? u.dob.slice(0, 10) : '',
         gender:   u.gender   || '',
-      })
-      const s = statsRes.data.data
-      setStats({
-        orders:        s.totalOrders        ?? 0,
-        prescriptions: s.pendingPrescriptions ?? 0,
-        customers:     s.totalCustomers      ?? 0,
       })
     }).catch(() => {})
       .finally(() => setLoading(false))
@@ -169,29 +141,6 @@ export default function AdminProfile() {
       gender:   profile.gender   || '',
     })
     setEditingPersonal(false)
-  }
-
-  async function saveAddress() {
-    setSavingAddress(true)
-    try {
-      await api.post('/user/addresses', {
-        name:     profile.fullName,
-        phone:    profile.phone || '',
-        label:    'Work',
-        address:  addressForm.address,
-        city:     addressForm.city,
-        province: addressForm.state,
-        zip:      addressForm.zip,
-        country:  addressForm.country,
-        isDefault: true,
-      })
-      setEditingAddress(false)
-      showToast('Address updated successfully.')
-    } catch {
-      showToast('Failed to save address.', 'error')
-    } finally {
-      setSavingAddress(false)
-    }
   }
 
   async function handlePicUpload(e) {
@@ -321,15 +270,6 @@ export default function AdminProfile() {
             </div>
           </div>
 
-          <SectionCard title="Activity Summary" icon="bar_chart">
-            <div className="space-y-3">
-              <StatCard icon="shopping_cart" label="Orders Managed"          value={stats.orders}        color="bg-secondary" />
-              <StatCard icon="description"   label="Prescriptions Reviewed"  value={stats.prescriptions} color="bg-tertiary" />
-              <StatCard icon="group"         label="Customers Managed"       value={stats.customers}     color="bg-primary" />
-              <StatCard icon="summarize"     label="Reports Generated"       value="-"                  color="bg-error" />
-            </div>
-          </SectionCard>
-
           <SectionCard title="Account Information" icon="manage_accounts">
             <div className="space-y-3">
               <ReadonlyField label="Username"         value={profile?.fullName?.toLowerCase().replace(' ', '.')} icon="person" />
@@ -437,119 +377,6 @@ export default function AdminProfile() {
             )}
           </SectionCard>
 
-          <SectionCard title="Work Information" icon="work">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-outline-variant">
-                <span className="material-symbols-outlined text-primary" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>badge</span>
-                <div>
-                  <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wide">Role</p>
-                  <p className="text-sm font-semibold text-on-surface capitalize">{profile?.role?.toLowerCase() || 'Administrator'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-outline-variant">
-                <span className="material-symbols-outlined text-secondary" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>corporate_fare</span>
-                <div>
-                  <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wide">Department</p>
-                  <p className="text-sm font-semibold text-on-surface">Pharmacy Management</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-outline-variant">
-                <span className="material-symbols-outlined text-tertiary" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>calendar_month</span>
-                <div>
-                  <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wide">Joined Date</p>
-                  <p className="text-sm font-semibold text-on-surface">{fmtDate(profile?.createdAt)}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-outline-variant">
-                <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>tag</span>
-                <div>
-                  <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wide">Employee ID</p>
-                  <p className="text-sm font-semibold text-on-surface font-mono">{profile?.id?.slice(0, 8).toUpperCase()}</p>
-                </div>
-              </div>
-            </div>
-            <p className="text-[11px] text-on-surface-variant mt-4 flex items-center gap-1">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>info</span>
-              Work information is managed by the system. Contact IT to make changes.
-            </p>
-          </SectionCard>
-
-          <SectionCard
-            title="Address Information"
-            icon="location_on"
-            action={
-              !editingAddress ? (
-                <button onClick={() => setEditingAddress(true)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-secondary/80 transition-colors">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
-                  Edit Address
-                </button>
-              ) : null
-            }
-          >
-            {editingAddress ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-medium text-on-surface-variant mb-1 block">Country</label>
-                    <input value={addressForm.country}
-                      onChange={e => setAddressForm(f => ({ ...f, country: e.target.value }))}
-                      className="w-full text-sm border border-outline-variant rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-primary bg-surface transition" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-on-surface-variant mb-1 block">State / Province</label>
-                    <input value={addressForm.state}
-                      onChange={e => setAddressForm(f => ({ ...f, state: e.target.value }))}
-                      placeholder="e.g. Bagmati"
-                      className="w-full text-sm border border-outline-variant rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-primary bg-surface transition" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-on-surface-variant mb-1 block">City</label>
-                    <input value={addressForm.city}
-                      onChange={e => setAddressForm(f => ({ ...f, city: e.target.value }))}
-                      placeholder="e.g. Kathmandu"
-                      className="w-full text-sm border border-outline-variant rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-primary bg-surface transition" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-on-surface-variant mb-1 block">Postal Code</label>
-                    <input value={addressForm.zip}
-                      onChange={e => setAddressForm(f => ({ ...f, zip: e.target.value }))}
-                      className="w-full text-sm border border-outline-variant rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-primary bg-surface transition" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-xs font-medium text-on-surface-variant mb-1 block">Address Line</label>
-                    <textarea value={addressForm.address} rows={2}
-                      onChange={e => setAddressForm(f => ({ ...f, address: e.target.value }))}
-                      placeholder="Street address, area, ward no."
-                      className="w-full text-sm border border-outline-variant rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-primary bg-surface transition resize-none" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 pt-1">
-                  <button onClick={saveAddress} disabled={savingAddress}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-60">
-                    {savingAddress
-                      ? <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> Saving…</>
-                      : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span> Save Changes</>}
-                  </button>
-                  <button onClick={() => setEditingAddress(false)}
-                    className="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container transition">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Field label="Country"       value={addressForm.country} />
-                <Field label="State / Province" value={addressForm.state} />
-                <Field label="City"          value={addressForm.city} />
-                <Field label="Postal Code"   value={addressForm.zip} />
-                <div className="sm:col-span-2">
-                  <Field label="Address Line" value={addressForm.address} />
-                </div>
-              </div>
-            )}
-          </SectionCard>
-
           <SectionCard title="Profile Picture" icon="photo_camera">
             <div className="flex items-start gap-6 flex-wrap">
               <div className="flex-shrink-0">
@@ -585,26 +412,6 @@ export default function AdminProfile() {
             </div>
           </SectionCard>
 
-          <div className="bg-surface-container-lowest rounded-2xl custom-shadow p-5 flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-sm font-semibold text-on-surface">Save all changes</p>
-              <p className="text-xs text-on-surface-variant mt-0.5">Make sure all your information is up to date before saving.</p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setEditingPersonal(false); setEditingAddress(false) }}
-                className="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-on-surface hover:bg-surface-container transition">
-                Cancel
-              </button>
-              <button
-                onClick={savePersonal}
-                disabled={savingPersonal}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-60">
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
-                Save Changes
-              </button>
-            </div>
-          </div>
 
         </div>
       </div>
