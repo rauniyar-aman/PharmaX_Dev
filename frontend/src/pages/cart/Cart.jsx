@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 
 export default function Cart() {
+  useEffect(() => { document.title = 'My Cart — PharmaX' }, [])
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const { refreshCart } = useCart()

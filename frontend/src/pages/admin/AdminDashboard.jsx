@@ -40,6 +40,7 @@ const NOTIF_ICON = {
 }
 
 export default function AdminDashboard() {
+  useEffect(() => { document.title = 'Dashboard — PharmaX Admin' }, [])
   const navigate = useNavigate()
   const { notifs } = useNotificationsCtx()
 

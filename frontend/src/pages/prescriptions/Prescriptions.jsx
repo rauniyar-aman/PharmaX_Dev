@@ -370,6 +370,7 @@ function PrescriptionCard({ rx, onView, onViewReason, onDelete }) {
 }
 
 export default function Prescriptions() {
+  useEffect(() => { document.title = 'My Prescriptions — PharmaX' }, [])
   const fileRef = useRef()
   const [prescriptions, setPrescriptions] = useState([])
   const [loading, setLoading]             = useState(true)

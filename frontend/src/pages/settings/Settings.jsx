@@ -98,6 +98,7 @@ const THEMES = [
 ]
 
 export default function Settings() {
+  useEffect(() => { document.title = 'Settings — PharmaX' }, [])
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
   const navigate = useNavigate()

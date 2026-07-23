@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
 export default function AdminInventoryLog() {
+  useEffect(() => { document.title = 'Inventory Log — PharmaX Admin' }, [])
   const { id } = useParams()
   const [medicine, setMedicine] = useState(null)
 

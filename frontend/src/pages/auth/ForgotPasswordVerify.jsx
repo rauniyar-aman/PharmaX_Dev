@@ -4,6 +4,7 @@ import AuthLayout from '../../components/common/AuthLayout'
 import api from '../../lib/api'
 
 export default function ForgotPasswordVerify() {
+  useEffect(() => { document.title = 'Reset Password — PharmaX' }, [])
   const location = useLocation()
   const navigate = useNavigate()
   const email = location.state?.email

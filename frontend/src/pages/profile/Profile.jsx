@@ -103,6 +103,7 @@ function ChangePasswordModal({ onClose }) {
 }
 
 export default function Profile() {
+  useEffect(() => { document.title = 'My Profile — PharmaX' }, [])
   const { refreshUser } = useAuth()
   const [profile, setProfile] = useState(null)
   const [form, setForm] = useState({})

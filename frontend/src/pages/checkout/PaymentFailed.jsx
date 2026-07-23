@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 const REASONS = {
@@ -11,6 +11,7 @@ const REASONS = {
 }
 
 export default function PaymentFailed() {
+  useEffect(() => { document.title = 'Payment Failed — PharmaX' }, [])
   const [params] = useSearchParams()
   const reason = REASONS[params.get('reason')] || 'Your payment was not completed.'
 

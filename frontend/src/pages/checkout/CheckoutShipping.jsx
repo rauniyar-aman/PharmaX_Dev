@@ -27,6 +27,7 @@ function MiniMap({ lat, lng }) {
 }
 
 export default function CheckoutShipping() {
+  useEffect(() => { document.title = 'Shipping — PharmaX' }, [])
   const navigate = useNavigate()
   const [addresses, setAddresses] = useState([])
   const [addrLoading, setAddrLoading] = useState(true)

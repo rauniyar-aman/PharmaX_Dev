@@ -6,6 +6,7 @@ const TABS = ['Dosage & Usage', 'Side Effects', 'Contraindications']
 
 
 export default function AdminViewMedicine() {
+  useEffect(() => { document.title = 'Medicine Details — PharmaX Admin' }, [])
   const { id } = useParams()
   const navigate = useNavigate()
   const [medicine, setMedicine] = useState(null)

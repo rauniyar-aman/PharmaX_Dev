@@ -113,6 +113,7 @@ function buildInvoice(order) {
 }
 
 export default function Orders() {
+  useEffect(() => { document.title = 'My Orders — PharmaX' }, [])
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [orders, setOrders] = useState([])

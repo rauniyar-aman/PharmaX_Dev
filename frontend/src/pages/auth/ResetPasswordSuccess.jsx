@@ -1,8 +1,9 @@
-﻿import React from 'react'
+﻿import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
 
 export default function ResetPasswordSuccess() {
+  useEffect(() => { document.title = 'Password Reset — PharmaX' }, [])
   return (
     <AuthLayout>
       <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-surface-container bg-surface-container-lowest shadow-[0_40px_80px_-40px_rgba(15,23,42,0.2)]">

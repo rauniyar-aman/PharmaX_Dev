@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
 export default function AdminInventoryDetails() {
+  useEffect(() => { document.title = 'Inventory Details — PharmaX Admin' }, [])
   const { id } = useParams()
   const navigate = useNavigate()
   const [med, setMed] = useState(null)

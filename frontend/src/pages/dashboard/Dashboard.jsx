@@ -49,6 +49,7 @@ const HEALTH_TIPS = [
 ]
 
 export default function Dashboard() {
+  useEffect(() => { document.title = 'Dashboard — PharmaX' }, [])
   const { user } = useAuth()
   const { notifs } = useNotificationsCtx()
   const firstName = user?.fullName?.split(' ')[0] || 'there'

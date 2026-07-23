@@ -163,6 +163,7 @@ function TrackingPanel({ order, onClose, onStatusUpdate }) {
 }
 
 export default function AdminDelivery() {
+  useEffect(() => { document.title = 'Delivery Tracking — PharmaX Admin' }, [])
   const [orders, setOrders]         = useState([])
   const [loading, setLoading]       = useState(true)
   const [selected, setSelected]     = useState(null)

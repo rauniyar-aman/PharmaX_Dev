@@ -490,6 +490,7 @@ function usePersistedAssignments() {
 }
 
 export default function CheckoutPrescription() {
+  useEffect(() => { document.title = 'Checkout — PharmaX' }, [])
   const navigate = useNavigate()
   const [cartItems, setCartItems] = useState([])
   const [cartLoading, setCartLoading] = useState(true)

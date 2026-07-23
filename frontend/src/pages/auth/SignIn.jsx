@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import AuthLayout from '../../components/common/AuthLayout'
@@ -20,6 +20,7 @@ const LockIcon = (
 )
 
 export default function SignIn() {
+  useEffect(() => { document.title = 'Sign In — PharmaX' }, [])
   const navigate = useNavigate()
   const { login } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })

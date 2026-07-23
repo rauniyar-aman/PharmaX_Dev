@@ -32,6 +32,7 @@ function MedicineSkeleton() {
 }
 
 export default function MedicinesListing() {
+  useEffect(() => { document.title = 'Medicines — PharmaX' }, [])
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const { refreshCart } = useCart()

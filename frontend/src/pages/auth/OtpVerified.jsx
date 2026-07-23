@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import AuthLayout from '../../components/common/AuthLayout'
 
 export default function OtpVerified() {
+  useEffect(() => { document.title = 'Email Verified — PharmaX' }, [])
   return (
     <AuthLayout>
       <div className="max-w-md w-full bg-surface p-8 rounded-2xl shadow-md text-center">

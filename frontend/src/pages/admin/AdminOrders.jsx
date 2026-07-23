@@ -277,6 +277,7 @@ function OrderPanel({ order, onClose, onStatusUpdate }) {
 }
 
 export default function AdminOrders() {
+  useEffect(() => { document.title = 'Orders — PharmaX Admin' }, [])
   const [searchParams, setSearchParams] = useSearchParams()
   const [orders, setOrders]     = useState([])
   const [stats, setStats]       = useState(null)

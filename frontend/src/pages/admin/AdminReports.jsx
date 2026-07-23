@@ -82,6 +82,7 @@ function TrendChart({ data }) {
 }
 
 export default function AdminReports() {
+  useEffect(() => { document.title = 'Reports — PharmaX Admin' }, [])
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(false)

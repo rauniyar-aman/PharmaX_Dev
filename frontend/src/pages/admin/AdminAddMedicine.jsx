@@ -6,6 +6,7 @@ const FIELD_CLS = 'w-full rounded-lg border border-outline-variant px-3 py-2 tex
 const LABEL_CLS = 'block text-xs font-semibold text-on-surface-variant mb-1'
 
 export default function AdminAddMedicine() {
+  useEffect(() => { document.title = 'Add Medicine — PharmaX Admin' }, [])
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = Boolean(id)

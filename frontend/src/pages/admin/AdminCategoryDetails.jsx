@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../../lib/api'
 
 export default function AdminCategoryDetails() {
+  useEffect(() => { document.title = 'Category Details — PharmaX Admin' }, [])
   const { id } = useParams()
   const navigate = useNavigate()
   const [category, setCategory] = useState(null)

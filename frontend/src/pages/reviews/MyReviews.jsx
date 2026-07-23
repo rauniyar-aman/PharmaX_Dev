@@ -28,6 +28,7 @@ function Stars({ value, hover, onHover, onLeave, onClick, size = 18, readOnly = 
 }
 
 export default function MyReviews() {
+  useEffect(() => { document.title = 'My Reviews — PharmaX' }, [])
   const [reviews, setReviews]       = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')

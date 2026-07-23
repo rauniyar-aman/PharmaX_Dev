@@ -200,6 +200,7 @@ function downloadInvoice(order) {
 }
 
 export default function OrderDetail() {
+  useEffect(() => { document.title = 'Order Details — PharmaX' }, [])
   const { orderId } = useParams()
   const navigate    = useNavigate()
   const [order, setOrder]       = useState(null)

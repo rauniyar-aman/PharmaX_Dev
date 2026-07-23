@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 
 export default function Wishlist() {
+  useEffect(() => { document.title = 'Wishlist — PharmaX' }, [])
   const [items, setItems]       = useState([])
   const [loading, setLoading]   = useState(true)
   const [removing, setRemoving] = useState({})

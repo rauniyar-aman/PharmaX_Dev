@@ -4,6 +4,7 @@ import api from '../../lib/api'
 import { useCart } from '../../context/CartContext'
 
 export default function MedicineDetails() {
+  useEffect(() => { document.title = 'Medicine Details — PharmaX' }, [])
   const { id } = useParams()
   const navigate = useNavigate()
   const [med, setMed] = useState(null)

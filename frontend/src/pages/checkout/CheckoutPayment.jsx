@@ -42,6 +42,7 @@ async function uploadStagedPrescriptions(prescriptionMap) {
 }
 
 export default function CheckoutPayment() {
+  useEffect(() => { document.title = 'Payment — PharmaX' }, [])
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const esewaCancelled  = searchParams.get('esewa_cancelled')  === '1'

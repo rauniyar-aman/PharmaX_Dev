@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 
 export default function OtpVerification() {
+  useEffect(() => { document.title = 'Verify OTP — PharmaX' }, [])
   const navigate = useNavigate()
   const location = useLocation()
   const { verifyEmail } = useAuth()

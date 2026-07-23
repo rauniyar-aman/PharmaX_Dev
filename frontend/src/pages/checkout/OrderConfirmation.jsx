@@ -11,6 +11,7 @@ function clearCheckoutSession() {
 }
 
 export default function OrderConfirmation() {
+  useEffect(() => { document.title = 'Order Confirmed — PharmaX' }, [])
   const [params] = useSearchParams()
   const orderId = params.get('orderId')
   const [order, setOrder] = useState(null)

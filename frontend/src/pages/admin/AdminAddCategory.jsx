@@ -8,6 +8,7 @@ const LABEL_CLS = 'block text-sm font-semibold text-on-surface-variant mb-1.5'
 const ICON_OPTIONS = ['medication', 'local_pharmacy', 'vaccines', 'medical_services', 'favorite', 'healing', 'sick', 'air', 'science', 'stethoscope', 'biotech', 'spa', 'visibility', 'psychology', 'dentistry', 'fitness_center', 'child_care', 'orthopedics']
 
 export default function AdminAddCategory() {
+  useEffect(() => { document.title = 'Add Category — PharmaX Admin' }, [])
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = Boolean(id)

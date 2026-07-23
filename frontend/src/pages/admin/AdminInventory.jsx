@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
 
 export default function AdminInventory() {
+  useEffect(() => { document.title = 'Inventory — PharmaX Admin' }, [])
   const navigate = useNavigate()
   const [medicines, setMedicines] = useState([])
   const [categories, setCategories] = useState([])

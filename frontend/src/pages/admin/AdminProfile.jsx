@@ -76,6 +76,7 @@ function Toast({ msg, type }) {
 }
 
 export default function AdminProfile() {
+  useEffect(() => { document.title = 'Admin Profile — PharmaX' }, [])
   const { user: authUser, refreshUser } = useAuth()
   const fileRef = useRef()
 

@@ -325,6 +325,7 @@ function VerificationPanel({ rx, onClose, onUpdate, orderId }) {
 }
 
 export default function AdminPrescriptions() {
+  useEffect(() => { document.title = 'Prescriptions — PharmaX Admin' }, [])
   const [searchParams, setSearchParams] = useSearchParams()
   const [prescriptions, setPrescriptions] = useState([])
   const [statusCounts, setStatusCounts] = useState({})

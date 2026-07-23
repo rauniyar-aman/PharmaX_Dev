@@ -52,6 +52,7 @@ const inputCls   = "w-full border border-outline-variant rounded-xl px-4 py-2.5 
 const inputROCls = "w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm bg-surface-container text-on-surface-variant cursor-not-allowed"
 
 export default function AdminSettings() {
+  useEffect(() => { document.title = 'Admin Settings — PharmaX' }, [])
   const { user, refreshUser } = useAuth()
   const { theme, setTheme: applyTheme } = useTheme()
 

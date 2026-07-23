@@ -18,6 +18,7 @@ const COLOR_PALETTE = [
 ]
 
 export default function Categories() {
+  useEffect(() => { document.title = 'Categories — PharmaX' }, [])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 

@@ -14,6 +14,7 @@ function fmtDate(iso) {
 }
 
 export default function AdminCustomers() {
+  useEffect(() => { document.title = 'Customers — PharmaX Admin' }, [])
   const navigate = useNavigate()
   const [customers, setCustomers] = useState([])
   const [stats, setStats]         = useState(null)

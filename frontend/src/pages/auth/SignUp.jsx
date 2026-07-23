@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Logo from '../../components/common/Logo'
@@ -64,6 +64,7 @@ const featureItems = [
 ]
 
 export default function SignUp() {
+  useEffect(() => { document.title = 'Sign Up — PharmaX' }, [])
   const navigate = useNavigate()
   const { register } = useAuth()
   const [showPassword, setShowPassword] = useState(false)

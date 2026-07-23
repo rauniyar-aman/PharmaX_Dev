@@ -49,6 +49,7 @@ function fmtDateShort(iso) {
 }
 
 export default function TrackOrder() {
+  useEffect(() => { document.title = 'Track Order — PharmaX' }, [])
   const { orderId } = useParams()
   const [order, setOrder]     = useState(null)
   const [loading, setLoading] = useState(true)

@@ -24,6 +24,7 @@ const STATUS_CFG = {
 }
 
 export default function AdminCustomerDetail() {
+  useEffect(() => { document.title = 'Customer Details — PharmaX Admin' }, [])
   const { id } = useParams()
   const navigate = useNavigate()
   const [customer, setCustomer]   = useState(null)

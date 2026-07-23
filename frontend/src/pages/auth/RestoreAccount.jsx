@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 
 export default function RestoreAccount() {
+  useEffect(() => { document.title = 'Restore Account — PharmaX' }, [])
   const navigate = useNavigate()
   const location = useLocation()
   const { restoreAccount } = useAuth()
