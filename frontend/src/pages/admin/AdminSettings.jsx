@@ -80,10 +80,6 @@ export default function AdminSettings() {
   const [notifs, setNotifs] = useState({ notifOrderUpdates: true, notifPrescriptionAlerts: true, notifPromotions: false })
   const [savingNotifs, setSavingNotifs] = useState(false)
 
-  /* ── pharmacy settings ── */
-  const [pharmacy, setPharmacy] = useState({ pharmacyName: 'PharmaX', pharmacyEmail: '', pharmacyPhone: '', pharmacyAddress: '', timezone: 'Asia/Kathmandu' })
-  const [savingPharmacy, setSavingPharmacy] = useState(false)
-
   /* ── inventory ── */
   const [inv, setInv] = useState({ lowStockThreshold: '10', expiryAlertDays: '30', requirePrescription: 'true' })
   const [savingInv, setSavingInv] = useState(false)
@@ -105,16 +101,9 @@ export default function AdminSettings() {
     api.get('/admin/settings')
       .then(r => {
         const s = r.data.data.settings || {}
-        setPharmacy(p => ({
-          pharmacyName:    s.pharmacyName    ?? p.pharmacyName,
-          pharmacyEmail:   s.pharmacyEmail   ?? p.pharmacyEmail,
-          pharmacyPhone:   s.pharmacyPhone   ?? p.pharmacyPhone,
-          pharmacyAddress: s.pharmacyAddress ?? p.pharmacyAddress,
-          timezone:        s.timezone        ?? p.timezone,
-        }))
         setInv({
-          lowStockThreshold:  s.lowStockThreshold  ?? '10',
-          expiryAlertDays:    s.expiryAlertDays    ?? '30',
+          lowStockThreshold:   s.lowStockThreshold  ?? '10',
+          expiryAlertDays:     s.expiryAlertDays    ?? '30',
           requirePrescription: s.requirePrescription ?? 'true',
         })
       })
@@ -203,17 +192,6 @@ export default function AdminSettings() {
       showToast('Failed to save preferences', 'error')
     }
     setSavingNotifs(false)
-  }
-
-  const savePharmacy = async () => {
-    setSavingPharmacy(true)
-    try {
-      await api.put('/admin/settings', pharmacy)
-      showToast('Pharmacy settings saved')
-    } catch {
-      showToast('Failed to save settings', 'error')
-    }
-    setSavingPharmacy(false)
   }
 
   const saveInventory = async () => {
@@ -456,44 +434,6 @@ export default function AdminSettings() {
             ))}
           </div>
           <p className="text-xs text-on-surface-variant italic">System follows your device's color scheme preference automatically.</p>
-        </div>
-      </Section>
-
-      <Section title="Pharmacy Settings" subtitle="Business details shown on invoices and customer pages" icon="business">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <Field label="Pharmacy Name">
-            <input type="text" value={pharmacy.pharmacyName}
-              onChange={e => setPharmacy(p => ({ ...p, pharmacyName: e.target.value }))} className={inputCls} />
-          </Field>
-          <Field label="Contact Email">
-            <input type="email" value={pharmacy.pharmacyEmail}
-              onChange={e => setPharmacy(p => ({ ...p, pharmacyEmail: e.target.value }))} className={inputCls} placeholder="pharmacy@example.com" />
-          </Field>
-          <Field label="Contact Phone">
-            <input type="tel" value={pharmacy.pharmacyPhone}
-              onChange={e => setPharmacy(p => ({ ...p, pharmacyPhone: e.target.value }))} className={inputCls} placeholder="+977 01-XXXXXXX" />
-          </Field>
-          <Field label="Timezone">
-            <select value={pharmacy.timezone} onChange={e => setPharmacy(p => ({ ...p, timezone: e.target.value }))} className={inputCls}>
-              <option value="Asia/Kathmandu">Asia/Kathmandu (NPT +5:45)</option>
-              <option value="Asia/Kolkata">Asia/Kolkata (IST +5:30)</option>
-              <option value="UTC">UTC +0:00</option>
-            </select>
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Pharmacy Address" hint="Printed on customer invoices">
-              <textarea rows={2} value={pharmacy.pharmacyAddress}
-                onChange={e => setPharmacy(p => ({ ...p, pharmacyAddress: e.target.value }))}
-                className={`${inputCls} resize-none`} placeholder="Full address including street, city, province…" />
-            </Field>
-          </div>
-        </div>
-        <div className="mt-5 flex justify-end">
-          <button onClick={savePharmacy} disabled={savingPharmacy}
-            className="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-2">
-            {savingPharmacy && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>}
-            {savingPharmacy ? 'Saving…' : 'Save Pharmacy Settings'}
-          </button>
         </div>
       </Section>
 
